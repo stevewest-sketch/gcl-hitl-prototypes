@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440, initial-scale=1">
+<title>Gladly Team — HITL Task Prototype v6</title>
+<!--
+  HITL Task Prototype v6 — Apr 17 direction
+  - No separate HITL inbox. Customers (tasks + chats) route into the standard customer list.
+  - Action buttons (Approve / Handoff) live on the task card in the conversation timeline.
+  - Right panel = Copilot chat (Figma 1064-21908). Summary + status + conversational modify.
+  - Inline citations, continuous suggestions, Vibe Service event on approve.
+  - Purple is reserved for the single Assist icon-tab. Everything else is native Gladly.
+  - Two wired scenarios: Rachel Thompson (Cancel order) and Jordan Rivera (Return exception).
+-->
+<style>
+  :root {
+    --green-400: #009B00;
+    --green-500: #007A00;
+    --green-100: #D8F4D8;
+    --green-50:  #EAF7EA;
+    --navy:      #0F203C;
+    --red-400:   #D50E0E;
+    --red-50:    #FFF0F2;
+    --black:     #000000;
+    --white:     #FFFFFF;
+    --gray-50:   #FAFAFA;
+    --gray-100:  #F6F6F6;
+    --gray-200:  #F1F1F1;
+    --gray-300:  #E3E3E3;
+    --gray-400:  #CECECE;
+    --gray-500:  #B3B3B3;
+    --gray-600:  #919191;
+    --gray-700:  #767676;
+    --gray-900:  #242424;
+    --purple-assist: #8C69F0;
+
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+
+    --ff: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    --copy:       400 13px/1.62 var(--ff);
+    --copy-bold:  700 13px/1.62 var(--ff);
+    --copy-sm:    400 12px/1.3 var(--ff);
+    --copy-xs:    400 10px/1.3 var(--ff);
+    --h3:         700 16px/1 var(--ff);
+    --button:     500 13px/1 var(--ff);
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-pill: 20px;
+    --radius-round: 9999px;
+
+    --shadow-sm: 0 2px 8px rgba(0,0,0,.08);
+    --shadow-soft: 5px 5px 25px rgba(0,0,0,.15);
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font: var(--copy);
+    color: var(--black);
+    background: var(--gray-100);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    min-width: 1440px;
+  }
+  button{font-family: var(--ff); cursor: pointer; background: none; border: none; color: inherit}
+  a{color: var(--green-400); text-decoration: none}
+
+  /* ================ NAV ================ */
+  .nav{
+    position: relative;
+    height: 56px;
+    background: var(--white);
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--sp-6);
+    z-index: 10;
+  }
+  .nav-l{display:flex; align-items:center; gap: var(--sp-4); flex: 1}
+  .icon-btn{width: 32px; height: 32px; display:inline-flex; align-items:center; justify-content:center; border-radius: var(--radius-round); color: var(--black)}
+  .icon-btn:hover{background: var(--gray-100)}
+  .home-link{display:flex; align-items:center; gap: var(--sp-2); font: var(--button); color: var(--black)}
+  .nav-c{position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap: 2px; font: 700 22px/1 var(--ff)}
+  .nav-c .plus{color: var(--green-400); font-weight: 700}
+  .nav-c .word{color: var(--black); letter-spacing: -.3px}
+  .nav-r{display:flex; align-items:center; gap: var(--sp-1); margin-left:auto}
+  .tog{width: 32px; height: 32px; border: 1px solid var(--gray-300); border-radius: var(--radius-round); display:inline-flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700)}
+  .nav-next{background: var(--gray-300); color: var(--gray-500); font: var(--button); padding: 8px 16px; border-radius: var(--radius-pill); margin-left: var(--sp-2)}
+  .nav-divider{width:1px; height: 32px; background: var(--gray-300); margin: 0 var(--sp-2)}
+  .bell{position: relative}
+  .bell .badge{position:absolute; top: -4px; right: -4px; background: var(--red-400); color: #fff; font: 700 9px/1 var(--ff); padding: 2px 5px; border-radius: var(--radius-round); min-width: 16px; text-align:center}
+  .nav-av{width:32px; height:32px; border-radius: var(--radius-round); box-shadow: var(--shadow-sm); overflow:hidden; display:flex; align-items:center; justify-content:center; background: #7BB86F; color: #fff; font: 700 11px/1 var(--ff)}
+
+  /* ================ LAYOUT ================ */
+  .layout{
+    display:flex;
+    height: calc(100vh - 56px - 48px);
+    background: var(--gray-100);
+  }
+  .col-cl{
+    width: 260px; min-width: 260px;
+    background: var(--white);
+    border-right: 1px solid var(--gray-200);
+    display:flex; flex-direction: column;
+    position: relative;
+    transition: width .2s, min-width .2s;
+    overflow: hidden;
+  }
+  .col-cl.collapsed{ width: 80px; min-width: 80px }
+  .col-profile{width: 320px; min-width: 320px; background: var(--gray-100); padding: var(--sp-4); overflow-y: auto}
+  .col-conv{flex:1; min-width: 420px; background: var(--gray-100); display:flex; flex-direction: column; overflow: hidden}
+  .col-right{width: 380px; min-width: 380px; display:flex; position: relative; background: var(--white)}
+
+  /* ================ CUSTOMER LIST (expanded default) ================ */
+  .cl-header{
+    display:flex; align-items:center; gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--gray-200);
+    flex-shrink: 0;
+  }
+  .cl-htitle{
+    font: 700 13px/1 var(--ff);
+    color: var(--black);
+    flex: 1;
+    display:flex; align-items:center; gap: var(--sp-2);
+  }
+  .cl-htitle .count{
+    font: 700 10px/1 var(--ff);
+    background: var(--gray-200);
+    color: var(--gray-700);
+    padding: 3px 6px;
+    border-radius: 10px;
+  }
+  .cl-toggle{
+    width: 28px; height: 28px;
+    border-radius: 4px;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--gray-700);
+    cursor: pointer;
+  }
+  .cl-toggle:hover{background: var(--gray-100)}
+
+  .cl-filters{
+    display:flex; gap: var(--sp-1);
+    padding: var(--sp-2) var(--sp-4);
+    border-bottom: 1px solid var(--gray-200);
+    flex-shrink: 0;
+  }
+  .cl-fil{
+    font: 500 11px/1 var(--ff);
+    padding: 5px 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--gray-300);
+    background: var(--white);
+    color: var(--black);
+    cursor: pointer;
+  }
+  .cl-fil.on{background: var(--black); color: #fff; border-color: var(--black)}
+
+  .cl-list{
+    flex: 1; overflow-y: auto;
+  }
+
+  .cle-card{
+    display:flex; gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--gray-100);
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    position: relative;
+  }
+  .cle-card:hover{background: var(--gray-50)}
+  .cle-card.active{background: var(--green-50); border-left-color: var(--green-400)}
+
+  .cle-left{position: relative; flex-shrink: 0; width: 40px; height: 40px}
+  .cle-priority-dot{
+    position: absolute;
+    left: -10px; top: 18px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green-400);
+  }
+  .cle-av{
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    font: 700 13px/1 var(--ff);
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+    background: var(--gray-600);
+  }
+  .cle-type-pip{
+    position: absolute;
+    right: -2px; bottom: -2px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .cle-type-pip.task{background: var(--green-400); color: #fff}
+  .cle-type-pip.chat{background: var(--gray-700); color: #fff}
+
+  .cle-body{flex: 1; min-width: 0}
+  .cle-row1{display:flex; align-items:baseline; gap: var(--sp-2)}
+  .cle-name{font: var(--copy-bold); color: var(--black); flex:1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis}
+  .cle-time{font: var(--copy-sm); color: var(--gray-700); flex-shrink: 0}
+  .cle-preview{
+    font: var(--copy); color: var(--gray-700);
+    line-height: 1.4;
+    margin-top: 2px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .cle-meta-row{
+    display:flex; align-items:center; gap: var(--sp-2);
+    margin-top: 6px;
+  }
+  .cle-tag{
+    display:inline-flex; align-items:center; gap: 3px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font: 700 9px/1 var(--ff);
+    letter-spacing: .4px;
+    text-transform: uppercase;
+  }
+  .cle-tag.task{background: var(--green-100); color: var(--green-500)}
+  .cle-tag.chat{background: var(--gray-200); color: var(--gray-700)}
+  .cle-channel{font: var(--copy-sm); color: var(--gray-700)}
+
+  /* Collapsed mode hides text, shows avatar-only strip */
+  .col-cl.collapsed .cl-header{padding: var(--sp-3) 12px}
+  .col-cl.collapsed .cl-htitle{display:none}
+  .col-cl.collapsed .cl-filters{display:none}
+  .col-cl.collapsed .cle-body{display:none}
+  .col-cl.collapsed .cle-card{
+    padding: 8px 12px;
+    border-bottom: none;
+    border-left: none;
+    gap: 0;
+  }
+  .col-cl.collapsed .cle-card.active{
+    background: var(--green-400);
+    border-radius: var(--radius-sm);
+    margin: 2px 8px;
+    padding: 8px;
+  }
+  .col-cl.collapsed .cle-card.active .cle-av{box-shadow: 0 0 0 2px #fff}
+  .col-cl.collapsed .cle-priority-dot{left: 2px}
+
+  /* ================ PROFILE ================ */
+  .profile-card{
+    background: var(--white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--sp-4);
+    margin-bottom: var(--sp-3);
+  }
+  .profile-head{display:flex; align-items:center; gap: var(--sp-3); margin-bottom: var(--sp-3)}
+  .profile-av{
+    width: 56px; height: 56px; border-radius: var(--radius-round);
+    color: #fff;
+    display:flex; align-items:center; justify-content:center;
+    font: 700 18px/1 var(--ff);
+    box-shadow: var(--shadow-sm);
+    flex-shrink: 0;
+  }
+  .profile-name{font: var(--h3); color: var(--black)}
+  .profile-dots{margin-left:auto; color: var(--gray-500); font-size: 18px; cursor: pointer; padding: 0 var(--sp-1)}
+  .kv{display:flex; justify-content:space-between; padding: var(--sp-1) 0; font: var(--copy)}
+  .kv .l{color: var(--black)}
+  .kv .v{color: var(--black); font-weight: 400}
+  .link-customer{
+    display:flex; align-items:center; gap: var(--sp-2);
+    padding: var(--sp-3) 0 0;
+    font: var(--button); color: var(--green-400);
+    border-top: 1px solid var(--gray-200);
+    margin-top: var(--sp-3);
+    cursor: pointer;
+  }
+  .link-customer .suggestion-count{margin-left:auto; color: var(--gray-500); font: var(--copy-sm)}
+
+  .sec-title{font: 700 16px/1 var(--ff); color: var(--black); margin-bottom: var(--sp-3); display:flex; align-items:center; justify-content:space-between}
+  .sec-title .add{color: var(--gray-500); font-size: 18px; font-weight: 400; cursor: pointer}
+  .contact-row{display:flex; align-items:center; gap: var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black)}
+  .contact-row .ci{color: var(--gray-500); width: 16px; height: 16px; flex-shrink: 0; display:inline-flex; align-items:center; justify-content:center}
+  .contact-row .tag{background: var(--black); color: #fff; font: 700 9px/1 var(--ff); padding: 3px 6px; border-radius: 3px; letter-spacing: .5px}
+  .contact-row .tag-grp{margin-left:auto; display:flex; gap: 4px}
+  .contact-sub{font: var(--copy-sm); color: var(--gray-700); padding-left: 28px}
+
+  .pref-row{display:flex; padding: 4px 0; font: var(--copy); color: var(--black)}
+  .pref-row .pl{color: var(--gray-700); min-width: 140px}
+  .pref-row .pv{color: var(--black)}
+  .pref-row .pv.empty{color: var(--gray-500); font-style: italic}
+
+  .order-card{display:flex; align-items:center; gap: var(--sp-3); padding: var(--sp-2) 0}
+  .order-thumb{width: 56px; height: 56px; border-radius: var(--radius-sm); background: var(--gray-200); flex-shrink: 0; display:flex; align-items:center; justify-content:center; color: var(--gray-600); overflow:hidden}
+  .order-info{flex:1}
+  .order-info .oid{font: var(--copy); color: var(--black)}
+  .order-info .oid a{font-weight: 700}
+  .order-info .ometa{font: var(--copy); color: var(--black)}
+  .order-chev{color: var(--gray-500); cursor: pointer}
+
+  .conv-row{display:flex; gap: var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black); border-bottom: 1px solid var(--gray-200)}
+  .conv-row:last-child{border-bottom: none}
+  .conv-row .when{color: var(--gray-700); min-width: 56px}
+
+  /* ================ CONVERSATION ================ */
+  .conv-wrap{flex:1; display:flex; flex-direction:column; overflow:hidden}
+  .conv-header{
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    padding: var(--sp-3) var(--sp-6);
+    text-align: center;
+    font: var(--copy); color: var(--gray-700);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .conv-header .title{color: var(--black); font-weight: 700}
+  .conv-header-right{position:absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); display:flex; gap: var(--sp-2); color: var(--gray-500)}
+  .conv-scroll{flex:1; overflow-y:auto; padding: var(--sp-6) var(--sp-6); background: var(--white)}
+  .tl-event{
+    text-align:center;
+    padding: var(--sp-3) 0;
+    font: var(--copy-sm); color: var(--gray-700);
+  }
+  .tl-event strong{color: var(--black); font-weight: 700}
+  .tl-event a{color: var(--green-400); font-weight: 500}
+  .tl-event .evt-icon{margin-right: 4px}
+  .msg-meta{
+    font: var(--copy-sm); color: var(--gray-700);
+    margin-bottom: var(--sp-2);
+    display:flex; align-items:center; gap: 6px;
+  }
+  .msg-meta.right{justify-content: flex-end}
+  .msg-meta .ch-icon{display:inline-flex; align-items:center; justify-content:center; width: 16px; height: 16px; color: var(--gray-600)}
+  .msg{
+    display:flex; gap: var(--sp-3);
+    margin-bottom: var(--sp-5);
+    max-width: 82%;
+  }
+  .msg.outbound{margin-left: auto; flex-direction: row-reverse}
+  .msg-av{
+    width: 32px; height: 32px; border-radius: var(--radius-round);
+    display:flex; align-items:center; justify-content:center;
+    font: 700 11px/1 var(--ff); color: #fff;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .msg-bub{
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: 16px;
+    font: var(--copy); color: var(--black);
+    line-height: 1.62;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+  }
+  .msg-dots{color: var(--gray-500); margin-top: var(--sp-2); cursor: pointer}
+
+  /* ======== TASK CARD in conversation ======== */
+  .tc{
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    margin: var(--sp-4) 0;
+    transition: box-shadow .15s, border-color .15s;
+  }
+  .tc.selected{border-color: var(--green-400); box-shadow: 0 0 0 1px var(--green-400)}
+  .tc.closed{background: var(--gray-50)}
+  .tc-top{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: var(--sp-3) var(--sp-4) var(--sp-2);
+    gap: var(--sp-3);
+  }
+  .tc-top-l{display:flex; align-items:center; gap: var(--sp-2); flex: 1; min-width: 0}
+  .tc-dot{width: 8px; height: 8px; border-radius: 50%; background: var(--green-400); flex-shrink: 0}
+  .tc.closed .tc-dot{background: var(--gray-500)}
+  .tc.handed .tc-dot{background: var(--navy)}
+  .tc-label{font: var(--copy-bold); color: var(--black)}
+  .tc-label .asgn{color: var(--green-400); font-weight: 700}
+  .tc-label .chev{color: var(--gray-500); font-weight: 400; font-size: 10px; margin-left: 2px}
+  .tc-top-r{display:flex; align-items:center; gap: var(--sp-2); flex-shrink: 0}
+  .btn-approve{
+    background: var(--green-400); color: #fff;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    font: var(--button);
+  }
+  .btn-approve:hover{background: var(--green-500)}
+  .btn-handoff{
+    background: var(--white); color: var(--green-400);
+    border: 1px solid var(--green-400);
+    padding: 5px 14px;
+    border-radius: var(--radius-pill);
+    font: var(--button);
+  }
+  .btn-handoff:hover{background: var(--green-50)}
+  .btn-overflow{color: var(--gray-500); font-size: 18px; padding: 0 var(--sp-1); line-height: 1}
+  .tc-details{padding: var(--sp-2) var(--sp-4)}
+  .tc-row{display:flex; gap: var(--sp-2); padding: 2px 0; font: var(--copy)}
+  .tc-row-label{color: var(--gray-700); min-width: 60px}
+  .tc-row-value{color: var(--black)}
+  .tc-row-value strong{font-weight: 700}
+  .tc-desc{
+    padding: var(--sp-2) var(--sp-4);
+    font: var(--copy); color: var(--black);
+  }
+  .tc-handoff-reason{
+    padding: var(--sp-2) var(--sp-4) var(--sp-3);
+    border-top: 1px solid var(--gray-200);
+    font: var(--copy-sm); color: var(--gray-700);
+  }
+  .tc-cmt{
+    display:flex; align-items:center; gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-4);
+    border-top: 1px solid var(--gray-200);
+  }
+  .tc-cmt-av{width: 24px; height: 24px; border-radius: var(--radius-round); background: #7BB86F; color: #fff; font: 700 9px/1 var(--ff); display:flex; align-items:center; justify-content:center; box-shadow: var(--shadow-sm); flex-shrink: 0}
+  .tc-cmt-in{
+    flex: 1;
+    padding: 6px 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    font: var(--copy); color: var(--gray-500);
+    background: var(--white);
+  }
+
+  /* ========= Vibe Service timeline event ========= */
+  .vibe-event{
+    display:flex; align-items:center; justify-content:center; gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--green-50);
+    border: 1px solid var(--green-100);
+    border-radius: var(--radius-md);
+    margin: var(--sp-3) auto;
+    max-width: 540px;
+    font: var(--copy-sm); color: var(--black);
+  }
+  .vibe-event .vb-check{color: var(--green-400); font-weight: 700}
+  .vibe-event a{font-weight: 500}
+
+  /* ================ BOTTOM BAR ================ */
+  .bottom-bar{
+    height: 48px;
+    background: var(--white);
+    border-top: 1px solid var(--gray-200);
+    display:flex; align-items: center;
+    padding: 0 var(--sp-4);
+    gap: var(--sp-3);
+    position: relative;
+  }
+  .bb-assigned{display:flex; align-items:center; gap: var(--sp-3); padding-right: var(--sp-4); border-right: 1px solid var(--gray-200); min-width: 260px}
+  .bb-inbox{width: 24px; height: 24px; border-radius: var(--radius-round); background: var(--gray-200); display:flex; align-items:center; justify-content:center; color: var(--gray-700)}
+  .bb-assigned .at{font: var(--copy-sm); color: var(--black)}
+  .bb-assigned .at strong{color: var(--green-400); font-weight: 500; display:block}
+  .bb-fab{
+    width: 32px; height: 32px; border-radius: var(--radius-round);
+    background: var(--green-400); color: #fff;
+    display:flex; align-items:center; justify-content:center; font: 700 18px/1 var(--ff);
+  }
+  .bb-input{
+    flex: 1;
+    height: 32px;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 0 var(--sp-3);
+    font: var(--copy-sm);
+    background: var(--white);
+    color: var(--black);
+  }
+  .bb-input:focus{outline: none; border-color: var(--green-400)}
+  .bb-topic{display:flex; align-items:center; gap: var(--sp-2); padding: 0 var(--sp-3); color: var(--black); font: var(--copy-sm); cursor: pointer}
+  .bb-topic .tlabel{font-weight: 400}
+  .bb-topic .tval{color: var(--green-400)}
+  .bb-split{
+    display:flex;
+    background: var(--green-400);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    height: 32px;
+  }
+  .bb-split .bbs-main{padding: 0 var(--sp-4); color: #fff; font: 500 12px/1 var(--ff); display:flex; align-items:center; cursor:pointer}
+  .bb-split .bbs-main:hover{background: var(--green-500)}
+  .bb-split .bbs-caret{padding: 0 var(--sp-2); border-left: 1px solid rgba(255,255,255,.25); display:flex; align-items:center; color: #fff; cursor: pointer}
+  .bb-split .bbs-caret:hover{background: var(--green-500)}
+
+  /* ================ RIGHT PANEL = COPILOT ================ */
+  .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200)}
+  .rp-gutter{
+    width: 32px;
+    padding: var(--sp-4) 0 var(--sp-6);
+    display:flex; flex-direction:column; align-items: flex-end; gap: var(--sp-1);
+    background: var(--gray-100);
+  }
+  .rp-tab{
+    width: 32px; height: 32px;
+    border-radius: 8px 0 0 8px;
+    display:flex; align-items:center; justify-content:center;
+    background: var(--white);
+    color: var(--gray-700);
+    cursor: pointer;
+  }
+  .rp-tab.active{background: var(--purple-assist); color: #fff}
+  .rp-body{
+    flex:1; display:flex; flex-direction:column;
+    background: var(--white);
+    overflow: hidden;
+  }
+
+  /* Status strip */
+  .rp-status{
+    display:flex; align-items:center; justify-content:space-between;
+    margin: var(--sp-4) var(--sp-4) 0;
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+  }
+  .rp-status-l{display:flex; align-items:center; gap: var(--sp-2); font: var(--copy-bold); color: var(--black)}
+  .rp-status-l .sdot{width: 8px; height: 8px; border-radius: 50%; background: var(--green-400)}
+  .rp-conf{display:flex; align-items:center; gap: var(--sp-2); font: var(--copy-bold); color: var(--green-400); font-size: 11px}
+  .rp-conf-bar{width: 40px; height: 3px; background: var(--gray-300); border-radius: 2px; overflow:hidden}
+  .rp-conf-bar > i{display:block; height:100%; background: var(--green-400); transition: width .3s}
+
+  /* Body scroll */
+  .rp-scroll{
+    flex:1;
+    overflow-y: auto;
+    padding: var(--sp-4);
+    display:flex; flex-direction: column;
+    gap: var(--sp-4);
+  }
+  .rp-ai{font: var(--copy); color: var(--black); line-height: 1.62}
+  .rp-ai strong{font-weight: 700}
+  .cite{
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    vertical-align: super;
+    font: 700 9px/1 var(--ff);
+    color: var(--green-400);
+    border: 1px solid var(--green-400);
+    border-radius: 8px;
+    margin-left: 2px;
+    cursor: pointer;
+    background: var(--white);
+  }
+  .cite:hover{background: var(--green-50)}
+  .cite-pop{
+    position: absolute;
+    z-index: 50;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 14px rgba(0,0,0,.12);
+    padding: var(--sp-3);
+    width: 280px;
+    font: var(--copy-sm); color: var(--black);
+    display: none;
+  }
+  .cite-pop.open{display:block}
+  .cite-pop .ct-title{font-weight: 700; margin-bottom: var(--sp-1)}
+  .cite-pop .ct-link{color: var(--green-400); font-weight: 500}
+
+  .facts{
+    display:flex; flex-direction: column; gap: var(--sp-2);
+    padding: var(--sp-3);
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+  }
+  .fact-row{display:flex; gap: var(--sp-3); font: var(--copy); color: var(--black)}
+  .fact-row .fl{font-weight: 700; min-width: 108px}
+  .fact-row .fr{flex:1}
+
+  .rec-card{
+    display:flex; gap: var(--sp-3);
+    padding: var(--sp-3);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    position: relative;
+  }
+  .rec-icon{
+    width: 36px; height: 36px; flex-shrink: 0;
+    border-radius: var(--radius-md);
+    background: var(--green-50);
+    color: var(--green-400);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .rec-body{flex:1; min-width: 0}
+  .rec-title{font: var(--copy-bold); color: var(--black); display:flex; align-items:center; gap: var(--sp-2); margin-bottom: var(--sp-1); flex-wrap: wrap}
+  .rec-title .pill-modified{
+    display: none;
+    font: 700 9px/1 var(--ff);
+    color: var(--green-400);
+    background: var(--green-100);
+    padding: 3px 6px;
+    border-radius: 10px;
+    letter-spacing: .3px;
+  }
+  .rec-title .pill-modified.on{display:inline-flex}
+  .rec-line{font: var(--copy); color: var(--black)}
+  .rec-line b{font-weight: 700}
+  .rec-fav{
+    position:absolute; top: var(--sp-2); right: var(--sp-2);
+    width: 24px; height: 24px; border-radius: var(--radius-sm);
+    background: var(--green-100);
+    color: var(--green-400);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .rec-foot{font: var(--copy-sm); color: var(--gray-700); margin-top: var(--sp-2)}
+  .feedback{display:flex; gap: var(--sp-2); margin-top: var(--sp-2)}
+  .fb{
+    width: 28px; height: 28px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--gray-700);
+    cursor: pointer;
+  }
+  .fb:hover{background: var(--gray-100)}
+  .fb.filled{background: var(--green-100); border-color: var(--green-400); color: var(--green-400)}
+  .fb.down.filled{background: var(--red-50); border-color: var(--red-400); color: var(--red-400)}
+
+  .chat-msgs{display:flex; flex-direction: column; gap: var(--sp-3)}
+  .cm{display:flex}
+  .cm.agent{justify-content: flex-end}
+  .cm .cb{
+    max-width: 280px;
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: 16px;
+    font: var(--copy);
+    color: var(--black);
+  }
+  .cm.agent .cb{background: var(--gray-100)}
+  .cm.ai .cb{background: transparent; padding-left: 0; padding-right: 0}
+
+  .typing{display:flex; gap: 4px; padding: 4px 0}
+  .typing span{width: 6px; height: 6px; border-radius: 50%; background: var(--gray-500); animation: blink 1.3s infinite}
+  .typing span:nth-child(2){animation-delay: .2s}
+  .typing span:nth-child(3){animation-delay: .4s; background: var(--gray-300)}
+  @keyframes blink{0%,60%,100%{opacity: .3}30%{opacity: 1}}
+
+  /* Suggestion chips (above input) */
+  .rp-sugs{
+    display:flex; gap: var(--sp-2);
+    overflow-x: auto;
+    padding: var(--sp-2) var(--sp-4);
+    border-top: 1px solid var(--gray-200);
+    background: var(--white);
+  }
+  .rp-sugs::-webkit-scrollbar{display:none}
+  .chip{
+    white-space: nowrap;
+    padding: 6px 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-pill);
+    background: var(--white);
+    font: var(--copy-sm);
+    color: var(--black);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .chip:hover{background: var(--gray-100); border-color: var(--gray-500)}
+
+  /* Chat footer */
+  .rp-foot{
+    padding: var(--sp-4) var(--sp-4);
+    background: var(--white);
+    display:flex; align-items: center; gap: var(--sp-2);
+    position: relative;
+  }
+  .rp-input-wrap{
+    flex: 1;
+    display:flex; align-items: center;
+    border: 1px solid var(--gray-500);
+    border-radius: 24px;
+    box-shadow: var(--shadow-sm);
+    padding: 4px 4px 4px 16px;
+    background: var(--white);
+  }
+  .rp-input{
+    flex:1; border: none; outline: none;
+    background: transparent;
+    font: var(--copy); color: var(--black);
+    padding: 6px 0;
+    resize: none;
+    min-height: 24px; max-height: 120px;
+    font-family: var(--ff);
+  }
+  .rp-input::placeholder{color: var(--gray-700)}
+  .rp-send{
+    width: 32px; height: 32px;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--gray-700);
+    border-radius: var(--radius-round);
+  }
+  .rp-send:hover{color: var(--green-400)}
+  .rp-attach{
+    width: 46px; height: 30px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--gray-200), var(--gray-300));
+    display:flex; align-items:center; justify-content:center;
+    color: var(--gray-700);
+    flex-shrink: 0;
+  }
+
+  /* ============= MODALS ============= */
+  .mbg{
+    display:none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.3);
+    z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .mbg.open{display:flex}
+  .mbox{
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: var(--sp-6);
+    width: 460px;
+    box-shadow: 0 16px 48px rgba(0,0,0,.18);
+  }
+  .mbox h2{font: 700 18px/1.2 var(--ff); color: var(--black); margin-bottom: var(--sp-3)}
+  .mbox p{font: var(--copy); color: var(--black); margin-bottom: var(--sp-4); line-height: 1.62}
+  .mbox label{display:block; font: 700 10px/1 var(--ff); color: var(--gray-700); letter-spacing: .6px; text-transform: uppercase; margin-bottom: var(--sp-1)}
+  .mbox input[type=text], .mbox select{
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    font: var(--copy); font-family: var(--ff);
+    margin-bottom: var(--sp-3);
+  }
+  .mbox input[type=text]:focus, .mbox select:focus{outline: none; border-color: var(--green-400)}
+  .mbox textarea{
+    width: 100%;
+    min-height: 72px;
+    padding: 10px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    font: var(--copy); font-family: var(--ff);
+    resize: vertical;
+    margin-bottom: var(--sp-4);
+  }
+  .mbox textarea:focus{outline: none; border-color: var(--green-400)}
+  .mrow{display:flex; justify-content: flex-end; gap: var(--sp-2)}
+  .mb{padding: 8px 18px; border-radius: var(--radius-sm); font: var(--button)}
+  .mb.cancel{background: var(--gray-100); color: var(--gray-700)}
+  .mb.cancel:hover{background: var(--gray-200)}
+  .mb.approve{background: var(--green-400); color: #fff}
+  .mb.approve:hover{background: var(--green-500)}
+  .mb.handoff{background: var(--navy); color: #fff}
+  .mb.handoff:hover{opacity: .9}
+
+  /* Toast */
+  .toast{
+    position: fixed;
+    left: 50%; bottom: 80px; transform: translateX(-50%);
+    background: var(--black); color: #fff;
+    padding: 10px 18px;
+    border-radius: var(--radius-pill);
+    font: var(--copy-sm);
+    box-shadow: 0 4px 14px rgba(0,0,0,.2);
+    opacity: 0;
+    transition: opacity .2s;
+    pointer-events: none;
+    z-index: 300;
+  }
+  .toast.on{opacity: 1}
+
+  /* Scrollbars */
+  .conv-scroll::-webkit-scrollbar, .rp-scroll::-webkit-scrollbar, .col-profile::-webkit-scrollbar, .cl-list::-webkit-scrollbar{width: 8px}
+  .conv-scroll::-webkit-scrollbar-thumb, .rp-scroll::-webkit-scrollbar-thumb, .col-profile::-webkit-scrollbar-thumb, .cl-list::-webkit-scrollbar-thumb{background: var(--gray-300); border-radius: 4px}
+</style>
+</head>
+<body>
+
+<!-- ================ NAV ================ -->
+<nav class="nav">
+  <div class="nav-l">
+    <button class="icon-btn" title="Menu">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <a class="home-link" href="#">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M6 2L3 5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </a>
+  </div>
+  <div class="nav-c">
+    <span class="plus">+</span><span class="word">Gladly</span>
+  </div>
+  <div class="nav-r">
+    <button class="tog" title="Email">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+    </button>
+    <button class="tog" title="Voice">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3a2 2 0 012-2h1l2 3-1.5 1.5a8 8 0 003 3L10 7l3 2v1a2 2 0 01-2 2A10 10 0 013 3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+    </button>
+    <button class="tog" title="Chat" style="background: var(--green-400); color: #fff; border-color: var(--green-400);">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
+    </button>
+    <button class="nav-next">Next</button>
+    <div class="nav-divider"></div>
+    <button class="icon-btn" title="Search">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <button class="icon-btn bell" title="Notifications">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 014 4c0 3 1 4 1 6H3c0-2 1-3 1-6a4 4 0 014-4zM6.5 13a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+      <span class="badge">7</span>
+    </button>
+    <div class="nav-av">LG</div>
+  </div>
+</nav>
+
+<!-- ================ LAYOUT ================ -->
+<div class="layout">
+
+  <!-- LEFT: customer list -->
+  <aside class="col-cl" id="col-cl">
+    <div class="cl-header">
+      <div class="cl-htitle">Your customers <span class="count" id="cl-count">6</span></div>
+      <div class="cl-toggle" id="cl-toggle" onclick="toggleList()" title="Collapse">
+        <svg id="cl-tog-svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="cl-filters">
+      <button class="cl-fil on">All</button>
+      <button class="cl-fil">Tasks</button>
+      <button class="cl-fil">Chats</button>
+    </div>
+    <div class="cl-list" id="cl-list"></div>
+  </aside>
+
+  <!-- PROFILE -->
+  <aside class="col-profile" id="col-profile"></aside>
+
+  <!-- CONVERSATION -->
+  <section class="col-conv">
+    <div class="conv-wrap">
+      <div class="conv-header" id="conv-header">
+        <span class="title" id="conv-title">Apr 17 · Cancel Order</span> · <span id="conv-status">Waiting</span>
+        <div class="conv-header-right">
+          <span title="More">⋮</span>
+        </div>
+      </div>
+      <div class="conv-scroll" id="timeline"></div>
+    </div>
+  </section>
+
+  <!-- RIGHT PANEL: Copilot -->
+  <aside class="col-right">
+    <div class="rp">
+      <div class="rp-gutter">
+        <button class="rp-tab active" title="Assist">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z" fill="currentColor"/></svg>
+        </button>
+        <button class="rp-tab" title="Answers">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2a1 1 0 011-1h7l2 2v11a1 1 0 01-1 1H4a1 1 0 01-1-1V2z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 5h5M5 8h5M5 11h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </button>
+        <button class="rp-tab" title="Library">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="4" y="2" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.3" fill="#fff"/></svg>
+        </button>
+      </div>
+      <div class="rp-body">
+        <div class="rp-status">
+          <div class="rp-status-l">
+            <span class="sdot"></span>
+            <span id="rp-status-label">Awaiting your review</span>
+          </div>
+          <div class="rp-conf">
+            <span id="rp-conf-pct">AI confidence 92%</span>
+            <span class="rp-conf-bar"><i id="rp-conf-fill" style="width:92%"></i></span>
+          </div>
+        </div>
+
+        <div class="rp-scroll" id="rp-scroll">
+          <div class="rp-ai" id="rp-ai-summary"></div>
+          <div class="facts" id="rp-facts"></div>
+          <div class="rec-card" id="rec-card">
+            <div class="rec-icon" id="rec-icon"></div>
+            <div class="rec-body">
+              <div class="rec-title">
+                <span id="rec-title-text"></span>
+                <span class="pill-modified" id="pill-modified">MODIFIED</span>
+              </div>
+              <div class="rec-line" id="rec-line1"></div>
+              <div class="rec-line" id="rec-line2"></div>
+              <div class="rec-foot" id="rec-foot"></div>
+              <div class="feedback">
+                <div class="fb up" id="fb-up" onclick="thumbs('up')" title="Helpful">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 7v6h7l2-5V6h-4V3a1 1 0 00-2 0l-1 4H4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
+                </div>
+                <div class="fb down" id="fb-down" onclick="thumbs('down')" title="Not helpful">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 9V3h7l2 5v2h-4v3a1 1 0 01-2 0l-1-4H4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
+                </div>
+              </div>
+            </div>
+            <div class="rec-fav" title="Recommended">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 14s-5-3.5-5-7.5A3.5 3.5 0 018 4a3.5 3.5 0 015 2.5c0 4-5 7.5-5 7.5z"/></svg>
+            </div>
+          </div>
+          <div class="chat-msgs" id="chat-msgs"></div>
+        </div>
+
+        <div class="rp-sugs" id="rp-sugs"></div>
+
+        <div class="rp-foot">
+          <div class="rp-input-wrap">
+            <textarea class="rp-input" id="rp-input" rows="1" placeholder="Chat with Gladly AI" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
+            <button class="rp-send" onclick="sendMessage()" title="Send">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-5 13-2-5-5-2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
+            </button>
+          </div>
+          <div class="rp-attach" title="Attachment preview">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><path d="M3 17l5-5 4 4 3-3 6 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- ================ BOTTOM BAR ================ -->
+<div class="bottom-bar">
+  <div class="bb-assigned">
+    <div class="bb-inbox">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 10v3a1 1 0 001 1h10a1 1 0 001-1v-3m-4 0h-4a1 1 0 00-1 1v1h6v-1a1 1 0 00-1-1zM2 10l2-7h8l2 7" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
+    </div>
+    <div class="at">Assigned to<strong>VIP Response Team — Lisa Green</strong></div>
+  </div>
+  <button class="bb-fab" title="New"><span>+</span></button>
+  <input class="bb-input" placeholder="">
+  <div class="bb-topic">
+    <div class="tlabel">Topic<div class="tval" id="bb-topic-val">Cancel Order</div></div>
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </div>
+  <div class="bb-split">
+    <div class="bbs-main">Close &amp; Next</div>
+    <div class="bbs-caret">
+      <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="mbg" id="approveModal">
+  <div class="mbox">
+    <h2 id="approve-title">Approve</h2>
+    <p id="approve-body"></p>
+    <label>Add a note (optional)</label>
+    <textarea placeholder="Note for the record"></textarea>
+    <div class="mrow">
+      <button class="mb cancel" onclick="closeModal('approveModal')">Cancel</button>
+      <button class="mb approve" onclick="resolve('approved')" id="approve-confirm">Approve &amp; close task</button>
+    </div>
+  </div>
+</div>
+
+<div class="mbg" id="handoffModal">
+  <div class="mbox">
+    <h2>Hand off to a human</h2>
+    <p>Gladly AI will stop responding. The conversation moves to your queue and you'll take over in chat.</p>
+    <label>Reason</label>
+    <select>
+      <option>Customer wants to speak with a person</option>
+      <option>Need more context before deciding</option>
+      <option>Outside AI's scope</option>
+      <option>Policy exception required</option>
+    </select>
+    <label>Note for the record</label>
+    <textarea placeholder="Why are you taking over?"></textarea>
+    <div class="mrow">
+      <button class="mb cancel" onclick="closeModal('handoffModal')">Cancel</button>
+      <button class="mb handoff" onclick="resolve('handoff')">Hand off to me</button>
+    </div>
+  </div>
+</div>
+
+<!-- Citation popovers (reused per-scenario; titles/bodies updated on swap) -->
+<div class="cite-pop" id="cite-pop-1">
+  <div class="ct-title" id="pop1-title"></div>
+  <div id="pop1-body"></div>
+  <div style="margin-top:6px"><a class="ct-link" href="#">Open in Knowledge Base →</a></div>
+</div>
+<div class="cite-pop" id="cite-pop-2">
+  <div class="ct-title" id="pop2-title"></div>
+  <div id="pop2-body"></div>
+  <div style="margin-top:6px"><a class="ct-link" href="#">Open in Knowledge Base →</a></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   SCENARIOS
+   ========================================================================= */
+
+const RACHEL = {
+  id: 'rachel',
+  type: 'task',
+  listCard: {
+    name: 'Rachel Thompson',
+    initials: 'RT',
+    avatarColor: '#5B8DEF',
+    preview: "Cancel order #ORD-2026-84721 — Dyson V15 Detect, $847. Apartment restriction.",
+    time: '2m',
+    channel: 'Chat',
+    priority: 'high'
+  },
+  profile: {
+    name: 'Rachel Thompson',
+    initials: 'RT',
+    avatarColor: '#5B8DEF',
+    customerSince: '2022',
+    ltv: '$12,400.00',
+    contact: {
+      address: '2721 Addison Street<br>San Francisco, CA 94110',
+      email: 'rachel.thompson@email.com',
+      phone: '(415) 555-0192',
+      phoneSub: 'Mobile'
+    },
+    preferences: null,
+    ordersLabel: '1 Order',
+    orders: [
+      { id: 'ORD-2026-84721', title: 'Dyson V15 Detect', status: 'Processing', total: '$847.00', date: '03/28/2026', icon: 'vacuum' }
+    ],
+    conversations: [
+      { when: 'Today', text: 'Cancel order request' },
+      { when: 'Mar 15', text: 'Shipping address change' },
+      { when: 'Feb 2',  text: 'Product question — Dyson' }
+    ]
+  },
+  convHeader: { title: 'Apr 17 · Cancel Order', status: 'Waiting' },
+  topic: 'Cancel Order',
+  events: [
+    { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '2 min ago',
+      text: "Hi, I need to cancel my order #ORD-2026-84721. I ordered the Dyson V15 Detect but I just found out my apartment building doesn't allow vacuum use after 9pm and I work late shifts. Can I get a full refund?" },
+    { kind: 'amsg', time: '1 min ago',
+      text: "Hi Rachel — thanks for reaching out. Let me connect you with the right person so we can sort this out. You'll hear back in just a moment." },
+    { kind: 'event', text: '⏱ Gladly AI created a task — just now' },
+    { kind: 'task' },
+    { kind: 'event', text: 'Task routed from <a href="#">Gladly AI</a> to <a href="#">Tier 2 Support</a> by <strong>rule</strong> — just now' }
+  ],
+  task: {
+    assignee: 'Tier 2 Support',
+    rows: [
+      { l: 'Action', v: 'Cancel order <strong>#48721</strong>' },
+      { l: 'Item',   v: 'Dyson V15 Detect — <strong>$847</strong>' },
+      { l: 'Status', v: 'Order still in processing' }
+    ],
+    desc: "Customer can't use the product due to apartment restrictions.",
+    handoffReason: 'Needs approval — order value exceeds the $500 auto-approve threshold'
+  },
+  copilot: {
+    confidence: 92,
+    summary: `👋 Hey Lisa — Rachel's asking to cancel her <strong>Dyson V15 ($847)</strong>. She's a VIP since 2022 with zero prior cancellations and a clean 3% return rate. Order is still in processing, so cancelling is clean. My recommendation: <strong>approve the full refund + $25 loyalty credit</strong> per the VIP retention playbook<span class="cite" onclick="togglePop(event, 1)">1</span>. The order value is above the $500 auto-approve line, so it needs your sign-off<span class="cite" onclick="togglePop(event, 2)">2</span>.`,
+    facts: [
+      ['Order status',    'Processing · not shipped'],
+      ['Customer tier',   'VIP · Lifetime $12.4K'],
+      ['Policy match',    'VIP cancellation within window<span class="cite" onclick="togglePop(event, 1)">1</span>'],
+      ['Credit guideline','$25 for $500–$1K band<span class="cite" onclick="togglePop(event, 2)">2</span>']
+    ],
+    rec: {
+      iconSvg: '<svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M3 8l3-3v2h5a2 2 0 012 2v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M13 8l-3 3v-2H5a2 2 0 01-2-2V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>',
+      title: 'Full cancellation + <span id="rec-credit-title">$25 credit</span>',
+      line1: '$847 refund to Visa ···4821',
+      line2: '<span id="rec-credit-line">$25 loyalty credit</span>',
+      foot:  "Approve on the task card when you're ready, or tell me to adjust below."
+    },
+    citations: [
+      { title: 'VIP Retention Playbook — Cancellations', body: 'Full refund on in-processing orders, no questions asked. $25–$50 loyalty credit offered for orders $500–$1K to encourage a return visit.' },
+      { title: 'Refund Authority Matrix', body: 'Tier 2 auto-approval limit: $500. Cancellations above this threshold require human sign-off. Tier 2 discretionary credit: up to $75.' }
+    ],
+    chips: [
+      'Lower the credit to $10',
+      'Ask why $25',
+      'Show return policy source'
+    ]
+  },
+  approveModal: {
+    title: 'Approve cancellation',
+    bodyTemplate: s => `Full cancellation of order #ORD-2026-84721 ($847.00) with <strong>$${s.creditAmount}</strong> loyalty credit. Gladly AI will process the refund via Commerce Cloud and notify Rachel.`,
+    confirmLabel: 'Approve & close task'
+  },
+  onApproveTimeline: s =>
+    `<div class="vibe-event"><span class="vb-check">●</span> Gladly AI processed cancellation via Commerce Cloud API — just now · <a href="#">View API call</a></div>` +
+    `<div class="tl-event"><strong>Lisa Green</strong> approved AI recommendation — just now</div>` +
+    `<div class="msg-meta right">Gladly AI sent a chat — just now<span class="ch-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span></div>` +
+    `<div class="msg outbound"><div class="msg-av" style="background:${RACHEL.profile.avatarColor === '#5B8DEF' ? 'var(--navy)' : 'var(--navy)'}">AI</div><div class="msg-bub">Great news, Rachel — your cancellation is approved. A full refund of $847.00 is on its way to your Visa ending 4821 within 3–5 business days. I've also added a $${s.creditAmount} loyalty credit to your account as a thank-you for being a VIP. Anything else I can help with?</div><span class="msg-dots">⋮</span></div>`,
+  onApproveCopilot: s => `✅ Processed — full refund + $${s.creditAmount} credit issued at ${nowTime()}. Task closed.`,
+  onHandoffCopilot: "Handed off. I'll stop responding to Rachel — the conversation is yours now.",
+  chipResponses: {
+    "Lower the credit to $10": {
+      reply: "Done — I've adjusted the recommendation to a $10 loyalty credit. That's still within Tier 2 discretion. Approve on the task card when you're ready.",
+      mutate: (s) => setCredit(s, 10)
+    },
+    "Ask why $25": {
+      reply: "It follows the VIP Retention Playbook for the $500–$1K order band. $50 is the guideline for orders over $1K; for Rachel's $847, $25 is the standard. You have discretion to adjust between $10 and $75.",
+      mutate: null
+    },
+    "Show return policy source": {
+      reply: "Pulled it from the VIP Retention Playbook (section 3.2). Full refunds on in-processing orders are no-questions-asked for VIPs. Opening citation 1.",
+      mutate: null
+    }
+  }
+};
+
+const JORDAN = {
+  id: 'jordan',
+  type: 'task',
+  listCard: {
+    name: 'Jordan Rivera',
+    initials: 'JR',
+    avatarColor: '#6B8E6F',
+    preview: "Return exception — running shoes, 2 days past window. ACL injury, can't train.",
+    time: '5m',
+    channel: 'Email',
+    priority: 'high'
+  },
+  profile: {
+    name: 'Jordan Rivera',
+    initials: 'JR',
+    avatarColor: '#6B8E6F',
+    customerSince: '2020',
+    ltv: '$4,240.00',
+    contact: {
+      address: '792 Evergreen Terrace<br>Austin, TX 78749',
+      email: 'jordan.rivera@gmail.com',
+      phone: '(555) 123-0192',
+      phoneSub: 'Mobile'
+    },
+    preferences: [
+      { l: 'Favorite category', v: 'Running' },
+      { l: 'Favorite color',    v: 'Navy' },
+      { l: 'Sizing',            v: "Men's 10" },
+      { l: 'Brand preference',  v: 'GCL Ultra · Nimbus' }
+    ],
+    ordersLabel: '4 Returns',
+    orders: [
+      { id: 'GCL-55892', title: 'GCL Ultra Marathon Shoes', status: 'Delivered', total: '$189.00', date: '03/18/2026', icon: 'shoe' }
+    ],
+    conversations: [
+      { when: 'Today',  text: 'Return exception request' },
+      { when: 'Feb 8',  text: 'Size swap — trail shoes' },
+      { when: 'Dec 21', text: 'Gift card redemption' }
+    ]
+  },
+  convHeader: { title: 'Apr 17 · Return Exception', status: 'Waiting' },
+  topic: 'Return Exception',
+  events: [
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: '5 min ago', channel: 'email',
+      text: "Hi, I need to return a pair of shoes — order #GCL-55892. I know I'm a few days past 30, but I'm hoping you can help given my situation.<br><br>I've been training for a marathon for over a year. I bought these specifically for race day. Last week I was diagnosed with a torn ACL — surgery and months of recovery. There's no way I'll be running the race, or any race, for a long time.<br><br>I haven't worn them outside — just tried them on at home. I can include receipts and the box. Please let me know, thank you." },
+    { kind: 'amsg', time: '3 min ago',
+      text: "Hi Jordan — really sorry to hear about your injury. Let me connect you with someone who can help. A team member will be right with you." },
+    { kind: 'event', text: '⏱ Gladly AI created a task — just now' },
+    { kind: 'task' },
+    { kind: 'event', text: 'Task routed from <a href="#">Gladly AI</a> to <a href="#">Tier 2 Support</a> by <strong>rule</strong> — just now' }
+  ],
+  task: {
+    assignee: 'Tier 2 Support',
+    rows: [
+      { l: 'Action', v: 'Return exception <strong>#GCL-55892</strong>' },
+      { l: 'Item',   v: 'GCL Ultra Marathon Shoes — <strong>$189</strong>' },
+      { l: 'Status', v: '2 days past 30-day return window' }
+    ],
+    desc: "ACL injury ended marathon training. Shoes unworn outside — only tried on at home.",
+    handoffReason: 'Policy exception — outside the standard 30-day return window'
+  },
+  copilot: {
+    confidence: 90,
+    summary: `👋 Hey Lisa — Jordan emailed about returning his running shoes (<strong>#GCL-55892, $189</strong>). He trained a year for a marathon, then was diagnosed with a torn ACL last week — surgery and a long recovery. The shoes are <strong>unworn</strong> — only tried on at home — and he's just 2 days past the 30-day window. My recommendation: <strong>approve the exception with a full refund and a prepaid return label</strong><span class="cite" onclick="togglePop(event, 1)">1</span>. Jordan's been a customer since 2020 with zero prior exceptions<span class="cite" onclick="togglePop(event, 2)">2</span>.`,
+    facts: [
+      ['Order status',  'Delivered · unworn'],
+      ['Customer tier', 'Loyal · Lifetime $4.2K'],
+      ['Policy match',  'Medical hardship exception<span class="cite" onclick="togglePop(event, 1)">1</span>'],
+      ['Window miss',   '2 days past standard<span class="cite" onclick="togglePop(event, 2)">2</span>']
+    ],
+    rec: {
+      iconSvg: '<svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M3 8l3-3v2h5a2 2 0 012 2v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M13 8l-3 3v-2H5a2 2 0 01-2-2V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>',
+      title: '<span id="rec-mode-title">Full refund + free return label</span>',
+      line1: '$189 refund to Visa ···8204',
+      line2: 'Prepaid UPS return label emailed to Jordan',
+      foot:  "Approve on the task card when you're ready, or tell me to adjust (e.g. store credit instead)."
+    },
+    citations: [
+      { title: 'Medical Hardship Return Exception', body: 'Agents may approve returns outside the 30-day window when the customer provides a legitimate medical or hardship reason and the product is unworn. Full refund is the default resolution.' },
+      { title: 'Loyalty Tenure Guidelines', body: 'Customers with 3+ years of tenure and no prior exception history qualify for most good-faith resolutions. Jordan has been a customer since 2020 with zero exceptions on record.' }
+    ],
+    chips: [
+      'Offer store credit instead',
+      'Why approve this exception?',
+      'Show return exception policy'
+    ]
+  },
+  approveModal: {
+    title: 'Approve return exception',
+    bodyTemplate: s => `Return exception for order #GCL-55892 ($189.00). Gladly AI will issue ${s.mode === 'credit' ? 'a <strong>$189 store credit</strong>' : 'a <strong>full $189 refund</strong>'} and email a prepaid UPS return label to Jordan.`,
+    confirmLabel: 'Approve & close task'
+  },
+  onApproveTimeline: s =>
+    `<div class="vibe-event"><span class="vb-check">●</span> Gladly AI issued ${s.mode === 'credit' ? 'store credit' : 'refund'} + return label via Commerce Cloud API — just now · <a href="#">View API call</a></div>` +
+    `<div class="tl-event"><strong>Lisa Green</strong> approved AI recommendation — just now</div>` +
+    `<div class="msg-meta right">Gladly AI sent an email — just now<span class="ch-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></span></div>` +
+    `<div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">Hi Jordan — really sorry to hear about your injury. ${s.mode === 'credit' ? "I've issued a $189 store credit to your account" : "I've approved the return exception and a full refund of $189 is on its way to your Visa ending 8204 within 3–5 business days"}, and a prepaid UPS return label just landed in your inbox. Wishing you a smooth recovery — we'll be here when you're back on your feet.</div><span class="msg-dots">⋮</span></div>`,
+  onApproveCopilot: s => `✅ Processed — ${s.mode === 'credit' ? '$189 store credit + return label' : '$189 refund + return label'} issued at ${nowTime()}. Task closed.`,
+  onHandoffCopilot: "Handed off. I'll stop responding to Jordan — the conversation is yours now.",
+  chipResponses: {
+    "Offer store credit instead": {
+      reply: "Switched — recommendation now offers a $189 store credit instead of a refund. This keeps Jordan's money in-brand and is often more popular for injury scenarios where they'll be back. Approve on the task card when you're ready.",
+      mutate: (s) => setJordanMode(s, 'credit')
+    },
+    "Why approve this exception?": {
+      reply: "Three reasons: (1) he's 2 days past window, not 30. (2) Medical hardship is explicitly covered in our exception policy. (3) He's a 6-year customer with a clean history — a good-faith decision here protects long-term LTV more than $189 saves.",
+      mutate: null
+    },
+    "Show return exception policy": {
+      reply: "From the Medical Hardship Return Exception doc: agents may approve returns outside the 30-day window when the customer provides a legitimate medical reason and the product is unworn. Full refund is the default. Opening citation 1.",
+      mutate: null
+    }
+  }
+};
+
+const STUB = (partial) => ({ ...partial, wired: false });
+
+const CUSTOMERS = [
+  STUB({ id: 'sarah', type: 'chat', listCard: {
+    name: 'Sarah Kim', initials: 'SK', avatarColor: '#A47BD4',
+    preview: "Hey, where's my order? It's been a week…", time: '1m', channel: 'Chat'
+  }}),
+  { ...RACHEL, wired: true },
+  { ...JORDAN, wired: true },
+  STUB({ id: 'priya', type: 'task', listCard: {
+    name: 'Priya Shah', initials: 'PS', avatarColor: '#0F203C',
+    preview: "VIP exchange approval — handbag, $380 → $420, 5-year customer.", time: '6m', channel: 'SMS'
+  }}),
+  STUB({ id: 'marcus', type: 'chat', listCard: {
+    name: 'Marcus Klein', initials: 'MK', avatarColor: '#0F203C',
+    preview: "Voice callback requested — follow-up on shipment", time: '9m', channel: 'Voice'
+  }}),
+  STUB({ id: 'kira', type: 'chat', listCard: {
+    name: 'Kira Fletcher', initials: 'KF', avatarColor: '#0F203C',
+    preview: "Question on sizing — jackets run true to size?", time: '14m', channel: 'Chat'
+  }})
+];
+
+/* =========================================================================
+   STATE
+   ========================================================================= */
+
+let currentId = 'rachel';
+let taskState = 'open';
+let creditAmount = 25;
+let jordanMode = 'refund';
+
+function currentScenario() { return CUSTOMERS.find(c => c.id === currentId); }
+
+function sessionState() {
+  return { creditAmount, mode: jordanMode };
+}
+
+/* =========================================================================
+   RENDER: CUSTOMER LIST
+   ========================================================================= */
+
+function renderCustomerList() {
+  const list = document.getElementById('cl-list');
+  list.innerHTML = CUSTOMERS.map(c => `
+    <div class="cle-card ${c.id === currentId ? 'active' : ''}" data-id="${c.id}" onclick="selectCustomer('${c.id}')">
+      <div class="cle-left">
+        <span class="cle-priority-dot" style="${c.listCard.priority === 'high' ? '' : 'background: var(--gray-400)'}"></span>
+        <div class="cle-av" style="background:${c.listCard.avatarColor}">${c.listCard.initials}</div>
+        <div class="cle-type-pip ${c.type}">
+          ${c.type === 'task'
+            ? '<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="10" height="12" rx="1" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 8l2 2 3-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>'
+            : '<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>'}
+        </div>
+      </div>
+      <div class="cle-body">
+        <div class="cle-row1">
+          <span class="cle-name">${c.listCard.name}</span>
+          <span class="cle-time">${c.listCard.time}</span>
+        </div>
+        <div class="cle-preview">${c.listCard.preview}</div>
+        <div class="cle-meta-row">
+          <span class="cle-tag ${c.type}">${c.type === 'task' ? 'Task' : 'Chat'}</span>
+          <span class="cle-channel">${c.listCard.channel}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleList() {
+  const cl = document.getElementById('col-cl');
+  cl.classList.toggle('collapsed');
+  const svg = document.getElementById('cl-tog-svg');
+  if (cl.classList.contains('collapsed')) {
+    svg.innerHTML = '<path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    document.getElementById('cl-toggle').title = 'Expand';
+  } else {
+    svg.innerHTML = '<path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    document.getElementById('cl-toggle').title = 'Collapse';
+  }
+}
+
+/* =========================================================================
+   RENDER: PROFILE
+   ========================================================================= */
+
+function renderProfile(s) {
+  const p = s.profile;
+  const prefs = p.preferences ? `
+    <div class="profile-card">
+      <div class="sec-title">Preferences <span class="add">+</span></div>
+      ${p.preferences.map(r => `<div class="pref-row"><span class="pl">${r.l}</span><span class="pv">${r.v}</span></div>`).join('')}
+    </div>` : '';
+
+  const orders = p.orders.map(o => `
+    <div class="order-card">
+      <div class="order-thumb">${orderIcon(o.icon)}</div>
+      <div class="order-info">
+        <div class="oid">Order <a href="#">${o.id}</a></div>
+        <div class="ometa">${o.status} • ${o.total}</div>
+        <div class="ometa" style="color: var(--gray-700); font-size: 12px">Ordered ${o.date}</div>
+      </div>
+      <span class="order-chev">▾</span>
+    </div>`).join('');
+
+  const convos = p.conversations.map(c => `<div class="conv-row"><span class="when">${c.when}</span><span>${c.text}</span></div>`).join('');
+
+  document.getElementById('col-profile').innerHTML = `
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="profile-av" style="background:${p.avatarColor}">${p.initials}</div>
+        <div><div class="profile-name">${p.name}</div></div>
+        <span class="profile-dots">⋮</span>
+      </div>
+      <div class="kv"><span class="l">Customer since</span><span class="v">${p.customerSince}</span></div>
+      <div class="kv"><span class="l">Lifetime Value</span><span class="v">${p.ltv}</span></div>
+      <div class="link-customer">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 10l-2 2a2 2 0 102 2l2-2M10 6l2-2a2 2 0 10-2-2L8 4M6 10l4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
+        Link to customer <span class="suggestion-count">1 suggestion</span>
+      </div>
+    </div>
+    <div class="profile-card">
+      <div class="sec-title">Contact <span class="add">+</span></div>
+      <div class="contact-row">
+        <span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1a5 5 0 015 5c0 4-5 9-5 9S3 10 3 6a5 5 0 015-5z" stroke="currentColor" stroke-width="1.3" fill="none"/><circle cx="8" cy="6" r="1.8" fill="currentColor"/></svg></span>
+        ${p.contact.address}
+      </div>
+      <div class="contact-row">
+        <span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span>
+        ${p.contact.email}
+        <span class="tag-grp"><span class="tag">Main</span></span>
+      </div>
+      <div class="contact-row">
+        <span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 3a1.5 1.5 0 011-1h1.5l1.5 2-1 1a7 7 0 003 3l1-1 2 1.5V11a1.5 1.5 0 01-1 1A9 9 0 013 3z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span>
+        ${p.contact.phone}
+        <span class="tag-grp"><span class="tag">SMS</span><span class="tag">Main</span></span>
+      </div>
+      <div class="contact-sub">${p.contact.phoneSub}</div>
+    </div>
+    ${prefs}
+    <div class="profile-card">
+      <div class="sec-title">${p.ordersLabel}</div>
+      ${orders}
+    </div>
+    <div class="profile-card">
+      <div class="sec-title">Conversations</div>
+      ${convos}
+    </div>
+  `;
+}
+
+function orderIcon(kind) {
+  if (kind === 'shoe') {
+    return '<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 20c0-2 2-4 4-5l3-1 2-3 6 1c3 1 9 3 9 7v3H4v-2z" stroke="#919191" stroke-width="1.3" fill="#F1F1F1"/><path d="M11 14l2 2M14 12l2 2M17 10l2 2" stroke="#919191" stroke-width="1.2" stroke-linecap="round"/></svg>';
+  }
+  // vacuum default
+  return '<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="22" rx="2" fill="#E3E3E3"/><circle cx="16" cy="17" r="6" stroke="#919191" stroke-width="1.4" fill="none"/><path d="M12 6v-2h8v2" stroke="#919191" stroke-width="1.4" fill="none"/></svg>';
+}
+
+/* =========================================================================
+   RENDER: CONVERSATION
+   ========================================================================= */
+
+function renderConversation(s) {
+  document.getElementById('conv-title').textContent = s.convHeader.title;
+  document.getElementById('conv-status').textContent = s.convHeader.status;
+  document.getElementById('bb-topic-val').textContent = s.topic;
+
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = s.events.map(e => renderEvent(e, s)).join('');
+  // default: task card selected
+  const tc = tl.querySelector('.tc');
+  if (tc) tc.classList.add('selected');
+}
+
+function renderEvent(e, s) {
+  if (e.kind === 'cmsg') {
+    const chIcon = e.channel === 'email'
+      ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>'
+      : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
+    const ch = e.channel === 'email' ? 'sent an email' : 'sent a chat';
+    return `
+      <div class="msg-meta"><span class="ch-icon">${chIcon}</span>${e.who} ${ch} — ${e.time}</div>
+      <div class="msg inbound">
+        <div class="msg-av" style="background:${e.avColor}">${e.av}</div>
+        <div class="msg-bub">${e.text}</div>
+        <span class="msg-dots">⋮</span>
+      </div>`;
+  }
+  if (e.kind === 'amsg') {
+    return `
+      <div class="msg-meta right">Gladly AI sent a chat — ${e.time}<span class="ch-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span></div>
+      <div class="msg outbound">
+        <div class="msg-av" style="background:var(--navy)">AI</div>
+        <div class="msg-bub">${e.text}</div>
+        <span class="msg-dots">⋮</span>
+      </div>`;
+  }
+  if (e.kind === 'event') {
+    return `<div class="tl-event">${e.text}</div>`;
+  }
+  if (e.kind === 'task') {
+    return renderTaskCard(s);
+  }
+  return '';
+}
+
+function renderTaskCard(s) {
+  const rows = s.task.rows.map(r => `<div class="tc-row"><span class="tc-row-label">${r.l}</span><span class="tc-row-value">${r.v}</span></div>`).join('');
+  return `
+    <div class="tc" id="taskcard" onclick="selectTask()">
+      <div class="tc-top">
+        <div class="tc-top-l">
+          <span class="tc-dot" id="tc-dot"></span>
+          <span class="tc-label" id="tc-label">Task for <span class="asgn">${s.task.assignee}</span> <span class="chev">▾</span></span>
+        </div>
+        <div class="tc-top-r" id="tc-actions">
+          <button class="btn-approve" onclick="event.stopPropagation(); openModal('approve')">Approve</button>
+          <button class="btn-handoff" onclick="event.stopPropagation(); openModal('handoff')">Handoff</button>
+          <span class="btn-overflow" onclick="event.stopPropagation()">⋮</span>
+        </div>
+      </div>
+      <div class="tc-details">${rows}</div>
+      <div class="tc-desc">${s.task.desc}</div>
+      <div class="tc-handoff-reason">${s.task.handoffReason}</div>
+      <div class="tc-cmt">
+        <div class="tc-cmt-av">LG</div>
+        <div class="tc-cmt-in" onclick="event.stopPropagation()">Comment on this task</div>
+      </div>
+    </div>`;
+}
+
+/* =========================================================================
+   RENDER: COPILOT PANEL
+   ========================================================================= */
+
+function renderCopilot(s) {
+  const c = s.copilot;
+
+  document.getElementById('rp-ai-summary').innerHTML = c.summary;
+  document.getElementById('rp-facts').innerHTML = c.facts.map(f => `<div class="fact-row"><span class="fl">${f[0]}</span><span class="fr">${f[1]}</span></div>`).join('');
+
+  document.getElementById('rec-icon').innerHTML = c.rec.iconSvg;
+  document.getElementById('rec-title-text').innerHTML = c.rec.title;
+  document.getElementById('rec-line1').innerHTML = c.rec.line1;
+  document.getElementById('rec-line2').innerHTML = c.rec.line2;
+  document.getElementById('rec-foot').textContent = c.rec.foot;
+
+  document.getElementById('pill-modified').classList.remove('on');
+
+  // Confidence
+  document.getElementById('rp-conf-pct').textContent = `AI confidence ${c.confidence}%`;
+  document.getElementById('rp-conf-fill').style.width = c.confidence + '%';
+
+  // Citations
+  document.getElementById('pop1-title').textContent = c.citations[0].title;
+  document.getElementById('pop1-body').textContent  = c.citations[0].body;
+  document.getElementById('pop2-title').textContent = c.citations[1].title;
+  document.getElementById('pop2-body').textContent  = c.citations[1].body;
+
+  // Status strip
+  document.getElementById('rp-status-label').textContent = 'Awaiting your review';
+  document.querySelector('.rp-status').style.background = 'var(--gray-100)';
+  document.querySelector('.sdot').style.background = 'var(--green-400)';
+
+  // Feedback reset
+  document.getElementById('fb-up').classList.remove('filled');
+  document.getElementById('fb-down').classList.remove('filled');
+
+  // Chips
+  const sugs = document.getElementById('rp-sugs');
+  sugs.innerHTML = c.chips.map(ch => `<button class="chip" onclick="sendChip(this)">${ch}</button>`).join('');
+
+  // Clear chat messages
+  document.getElementById('chat-msgs').innerHTML = '';
+}
+
+/* =========================================================================
+   SELECT CUSTOMER
+   ========================================================================= */
+
+function selectCustomer(id) {
+  const s = CUSTOMERS.find(c => c.id === id);
+  if (!s) return;
+
+  if (!s.wired) {
+    showToast(`${s.listCard.name} — this is a demo, only Rachel and Jordan are wired`);
+    return;
+  }
+
+  currentId = id;
+  taskState = 'open';
+  if (id === 'rachel') creditAmount = 25;
+  if (id === 'jordan') jordanMode = 'refund';
+
+  // Refresh everything
+  document.querySelectorAll('.cle-card').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === id);
+  });
+
+  renderProfile(s);
+  renderConversation(s);
+  renderCopilot(s);
+
+  document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+}
+
+/* =========================================================================
+   TASK INTERACTIONS
+   ========================================================================= */
+
+function selectTask() {
+  const tc = document.getElementById('taskcard');
+  if (tc) tc.classList.add('selected');
+}
+
+function openModal(type) {
+  const s = currentScenario();
+  if (type === 'approve') {
+    const sess = sessionState();
+    document.getElementById('approve-title').textContent = s.approveModal.title;
+    document.getElementById('approve-body').innerHTML   = s.approveModal.bodyTemplate(sess);
+    document.getElementById('approve-confirm').textContent = s.approveModal.confirmLabel;
+  }
+  document.getElementById(type + 'Modal').classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function resolve(action) {
+  document.querySelectorAll('.mbg').forEach(m => m.classList.remove('open'));
+  const s = currentScenario();
+  const sess = sessionState();
+  const tc = document.getElementById('taskcard');
+  const label = document.getElementById('tc-label');
+  const actions = document.getElementById('tc-actions');
+  const tl = document.getElementById('timeline');
+  const status = document.getElementById('rp-status-label');
+
+  if (action === 'approved') {
+    taskState = 'approved';
+    tc.classList.add('closed', 'selected');
+    tc.classList.remove('handed');
+    label.innerHTML = `<span style="color: var(--green-400); margin-right: 4px;">✓</span> <strong>Closed Task</strong> for <span class="asgn">Lisa Green in ${s.task.assignee}</span>`;
+    actions.innerHTML = `<button class="btn-handoff" onclick="event.stopPropagation(); reopen()">Reopen</button><span class="btn-overflow" onclick="event.stopPropagation()">⋮</span>`;
+
+    tl.insertAdjacentHTML('beforeend', s.onApproveTimeline(sess));
+
+    status.textContent = '✓ Processed';
+    document.querySelector('.rp-status').style.background = 'var(--green-100)';
+    document.querySelector('.sdot').style.background = 'var(--green-500)';
+
+    pushAIMsg(s.onApproveCopilot(sess));
+
+    const tlScroll = document.querySelector('.conv-scroll');
+    tlScroll.scrollTop = tlScroll.scrollHeight;
+  }
+  else if (action === 'handoff') {
+    taskState = 'handoff';
+    tc.classList.add('handed', 'selected');
+    tc.classList.remove('closed');
+    label.innerHTML = `<strong>Handed off</strong> to <span class="asgn">Lisa Green</span>`;
+    actions.innerHTML = `<button class="btn-handoff" onclick="event.stopPropagation(); reopen()">Reopen</button><span class="btn-overflow" onclick="event.stopPropagation()">⋮</span>`;
+
+    tl.insertAdjacentHTML('beforeend',
+      `<div class="tl-event"><strong>Lisa Green</strong> took over — just now</div>` +
+      `<div class="tl-event">Gladly AI stopped responding · manual handling</div>`);
+
+    status.textContent = 'Handed off — manual';
+    document.querySelector('.rp-status').style.background = 'var(--gray-200)';
+    document.querySelector('.sdot').style.background = 'var(--navy)';
+
+    pushAIMsg(s.onHandoffCopilot);
+
+    const tlScroll = document.querySelector('.conv-scroll');
+    tlScroll.scrollTop = tlScroll.scrollHeight;
+  }
+}
+
+function reopen() {
+  const s = currentScenario();
+  taskState = 'open';
+  const tc = document.getElementById('taskcard');
+  const label = document.getElementById('tc-label');
+  const actions = document.getElementById('tc-actions');
+  tc.classList.remove('closed','handed');
+  label.innerHTML = `Task for <span class="asgn">${s.task.assignee}</span> <span class="chev">▾</span>`;
+  actions.innerHTML = `<button class="btn-approve" onclick="event.stopPropagation(); openModal('approve')">Approve</button>` +
+                      `<button class="btn-handoff" onclick="event.stopPropagation(); openModal('handoff')">Handoff</button>` +
+                      `<span class="btn-overflow" onclick="event.stopPropagation()">⋮</span>`;
+  document.getElementById('rp-status-label').textContent = 'Awaiting your review';
+  document.querySelector('.rp-status').style.background = 'var(--gray-100)';
+  document.querySelector('.sdot').style.background = 'var(--green-400)';
+}
+
+/* =========================================================================
+   COPILOT CHAT
+   ========================================================================= */
+
+function pushAgentMsg(text) {
+  const box = document.getElementById('chat-msgs');
+  const el = document.createElement('div');
+  el.className = 'cm agent';
+  el.innerHTML = `<div class="cb">${escapeHtml(text)}</div>`;
+  box.appendChild(el);
+  scrollRP();
+}
+function pushAIMsg(text) {
+  const box = document.getElementById('chat-msgs');
+  const el = document.createElement('div');
+  el.className = 'cm ai';
+  el.innerHTML = `<div class="cb">${text}</div>`;
+  box.appendChild(el);
+  scrollRP();
+}
+function pushTyping() {
+  const box = document.getElementById('chat-msgs');
+  const el = document.createElement('div');
+  el.className = 'cm ai';
+  el.id = 'tmp-typing';
+  el.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+  box.appendChild(el);
+  scrollRP();
+}
+function removeTyping() {
+  const t = document.getElementById('tmp-typing');
+  if (t) t.remove();
+}
+function scrollRP() {
+  const s = document.getElementById('rp-scroll');
+  s.scrollTop = s.scrollHeight;
+}
+
+function sendChip(el) {
+  const text = el.textContent;
+  pushAgentMsg(text);
+  el.parentNode.removeChild(el);
+  pushTyping();
+  const s = currentScenario();
+  setTimeout(() => {
+    removeTyping();
+    const conf = s.chipResponses[text];
+    if (conf) {
+      pushAIMsg(conf.reply);
+      if (conf.mutate) conf.mutate(sessionState());
+    } else {
+      pushAIMsg("Let me think on that — give me a second.");
+    }
+  }, 800);
+}
+
+function sendMessage() {
+  const input = document.getElementById('rp-input');
+  const text = input.value.trim();
+  if (!text) return;
+  pushAgentMsg(text);
+  input.value = '';
+  autoGrow(input);
+  pushTyping();
+  const s = currentScenario();
+  setTimeout(() => {
+    removeTyping();
+    const lc = text.toLowerCase();
+
+    // Scenario-specific inference
+    if (s.id === 'rachel') {
+      const m = lc.match(/\$?(\d+)\s*(credit|loyalty)?/);
+      if ((lc.includes('credit') || lc.includes('$')) && m) {
+        const n = parseInt(m[1], 10);
+        if (n >= 0 && n <= 75) {
+          setCredit(sessionState(), n);
+          pushAIMsg(`Updated — recommendation now shows a $${n} loyalty credit. Approve on the task card to apply.`);
+          return;
+        }
+      }
+      if (lc.includes('policy')) {
+        pushAIMsg("VIP cancellation policy: full refund for orders still in processing. Source is the VIP Retention Playbook (section 3.2).");
+        return;
+      }
+      pushAIMsg(`Based on Rachel's history and the policy checks, I'd still recommend approving with a $${creditAmount} credit. Let me know if you want to adjust.`);
+      return;
+    }
+
+    if (s.id === 'jordan') {
+      if (lc.includes('credit') || lc.includes('store')) {
+        setJordanMode(sessionState(), 'credit');
+        pushAIMsg("Switched to a $189 store credit. Approve on the task card when you're ready.");
+        return;
+      }
+      if (lc.includes('refund') || lc.includes('money back')) {
+        setJordanMode(sessionState(), 'refund');
+        pushAIMsg("Back to a full $189 refund. Approve on the task card when you're ready.");
+        return;
+      }
+      if (lc.includes('policy') || lc.includes('exception')) {
+        pushAIMsg("Medical hardship is covered under the Return Exception policy — agents may approve outside the 30-day window when the item is unworn. Opening citation 1.");
+        return;
+      }
+      pushAIMsg("Jordan's case is a clean exception — 2 days past window, unworn, medical reason, clean history. I'd still recommend approving.");
+      return;
+    }
+
+    pushAIMsg("Let me think on that.");
+  }, 900);
+}
+
+function setCredit(sess, n) {
+  creditAmount = n;
+  const t = document.getElementById('rec-credit-title');
+  const l = document.getElementById('rec-credit-line');
+  if (t) t.textContent = `$${n} credit`;
+  if (l) l.textContent = `$${n} loyalty credit`;
+  document.getElementById('pill-modified').classList.add('on');
+}
+
+function setJordanMode(sess, mode) {
+  jordanMode = mode;
+  const t = document.getElementById('rec-mode-title');
+  const line1 = document.getElementById('rec-line1');
+  const line2 = document.getElementById('rec-line2');
+  if (mode === 'credit') {
+    if (t) t.textContent = 'Full $189 store credit + free return label';
+    if (line1) line1.innerHTML = '$189 store credit issued to account';
+    if (line2) line2.innerHTML = 'Prepaid UPS return label emailed to Jordan';
+  } else {
+    if (t) t.textContent = 'Full refund + free return label';
+    if (line1) line1.innerHTML = '$189 refund to Visa ···8204';
+    if (line2) line2.innerHTML = 'Prepaid UPS return label emailed to Jordan';
+  }
+  document.getElementById('pill-modified').classList.add('on');
+}
+
+function autoGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function nowTime() {
+  const d = new Date();
+  let h = d.getHours(), m = d.getMinutes();
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12;
+  return `${h}:${m < 10 ? '0' : ''}${m}${ampm}`;
+}
+
+/* =========================================================================
+   THUMBS, CITATIONS, TOAST, SHORTCUTS
+   ========================================================================= */
+
+function thumbs(which) {
+  const up = document.getElementById('fb-up');
+  const down = document.getElementById('fb-down');
+  if (which === 'up') { up.classList.toggle('filled'); down.classList.remove('filled'); }
+  else { down.classList.toggle('filled'); up.classList.remove('filled'); }
+}
+
+function togglePop(e, n) {
+  e.stopPropagation();
+  const pop = document.getElementById('cite-pop-' + n);
+  const rect = e.target.getBoundingClientRect();
+  document.querySelectorAll('.cite-pop.open').forEach(p => { if (p !== pop) p.classList.remove('open'); });
+  pop.style.left = Math.min(rect.left, window.innerWidth - 300) + 'px';
+  pop.style.top = (rect.bottom + 6) + 'px';
+  pop.classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.classList.contains('cite')) {
+    document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+  }
+});
+
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('on');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.remove('on'), 2400);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.mbg.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+    return;
+  }
+  if (taskState !== 'open') return;
+  const target = e.target;
+  const inInput = target.tagName === 'TEXTAREA' || target.tagName === 'INPUT';
+  if (e.metaKey || e.ctrlKey) {
+    if (e.key === 'Enter' && !inInput) { e.preventDefault(); openModal('approve'); }
+    if (e.key.toLowerCase() === 'h') { e.preventDefault(); openModal('handoff'); }
+  }
+});
+
+document.querySelectorAll('.mbg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+});
+
+/* =========================================================================
+   BOOT
+   ========================================================================= */
+
+renderCustomerList();
+selectCustomer('rachel');
+</script>
+</body>
+</html>

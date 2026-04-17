@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gladly Team — HITL Task Prototype v1</title>
+<style>
+  /* ── RESET & BASE ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', -apple-system, Arial, sans-serif; background: #0D0D0D; color: #E8E8E8; height: 100vh; overflow: hidden; }
+
+  /* ── GLADLY COLORS ── */
+  :root {
+    --gladly-green: #009B00;
+    --gladly-green-tint: #CDEFCD;
+    --gladly-green-bg: rgba(0,155,0,0.08);
+    --gladly-green-bg-hover: rgba(0,155,0,0.15);
+    --gladly-purple: #8C69F0;
+    --gladly-purple-tint: #C5B3F8;
+    --gladly-purple-bg: rgba(140,105,240,0.08);
+    --bg-primary: #0D0D0D;
+    --bg-secondary: #1A1A1A;
+    --bg-tertiary: #252525;
+    --bg-elevated: #2A2A2A;
+    --bg-hover: #333333;
+    --border: #333333;
+    --border-subtle: #2A2A2A;
+    --text-primary: #E8E8E8;
+    --text-secondary: #AAAAAA;
+    --text-muted: #777777;
+    --red: #FA183C;
+    --yellow: #FFBE00;
+    --blue: #4A9EFF;
+  }
+
+  /* ── LAYOUT: 3-COLUMN ── */
+  .app { display: flex; height: 100vh; }
+
+  /* ── LEFT SIDEBAR: CUSTOMER LIST ── */
+  .sidebar { width: 300px; min-width: 300px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+  .sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .sidebar-header h2 { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+  .sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); }
+  .sidebar-tab { flex: 1; padding: 10px 0; font-size: 12px; font-weight: 500; text-align: center; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; letter-spacing: 0.3px; text-transform: uppercase; }
+  .sidebar-tab.active { color: var(--gladly-green); border-bottom-color: var(--gladly-green); }
+  .sidebar-tab:hover:not(.active) { color: var(--text-secondary); }
+  .customer-list { flex: 1; overflow-y: auto; }
+  .customer-item { padding: 14px 20px; border-bottom: 1px solid var(--border-subtle); cursor: pointer; transition: background 0.15s; display: flex; gap: 12px; align-items: flex-start; }
+  .customer-item:hover { background: var(--bg-hover); }
+  .customer-item.active { background: var(--bg-tertiary); border-left: 3px solid var(--gladly-green); }
+  .customer-item.ai-task { border-left: 3px solid var(--gladly-purple); }
+  .customer-item.ai-task.active { border-left: 3px solid var(--gladly-purple); background: var(--gladly-purple-bg); }
+  .customer-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .avatar-human { background: #3A3A3A; color: var(--text-primary); }
+  .avatar-ai { background: var(--gladly-purple); color: white; }
+  .customer-info { flex: 1; min-width: 0; }
+  .customer-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
+  .customer-preview { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .customer-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.3px; text-transform: uppercase; }
+  .badge-ai { background: var(--gladly-purple); color: white; }
+  .badge-task { background: var(--gladly-green); color: white; }
+  .badge-urgent { background: var(--red); color: white; }
+  .badge-chat { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border); }
+  .time-label { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+
+  /* ── CENTER: TASK TIMELINE ── */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .main-header { padding: 14px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; background: var(--bg-secondary); }
+  .main-header-info { flex: 1; }
+  .main-header-info h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
+  .main-header-info .subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .header-actions { display: flex; gap: 8px; }
+  .btn-icon { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-size: 14px; }
+  .btn-icon:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+  .timeline { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Timeline Items */
+  .timeline-item { max-width: 680px; width: 100%; }
+  .timeline-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; text-align: center; margin: 8px 0 16px; }
+
+  /* AI Context Card */
+  .ai-context-card { background: linear-gradient(135deg, rgba(140,105,240,0.06) 0%, rgba(0,155,0,0.04) 100%); border: 1px solid rgba(140,105,240,0.25); border-radius: 12px; overflow: hidden; }
+  .ai-context-header { padding: 16px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(140,105,240,0.15); }
+  .ai-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--gladly-purple); display: flex; align-items: center; justify-content: center; font-size: 14px; color: white; }
+  .ai-context-header-text h3 { font-size: 13px; font-weight: 600; color: var(--gladly-purple-tint); }
+  .ai-context-header-text span { font-size: 11px; color: var(--text-muted); }
+  .confidence-badge { margin-left: auto; display: flex; align-items: center; gap: 6px; background: rgba(0,155,0,0.12); padding: 4px 10px; border-radius: 20px; }
+  .confidence-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gladly-green); }
+  .confidence-text { font-size: 11px; font-weight: 600; color: var(--gladly-green-tint); }
+  .ai-context-body { padding: 20px; }
+  .ai-recommendation { margin-bottom: 16px; }
+  .ai-rec-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .ai-rec-text { font-size: 14px; line-height: 1.5; color: var(--text-primary); }
+  .ai-reasoning { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 14px 16px; margin-top: 12px; }
+  .ai-reasoning-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .ai-reasoning ul { list-style: none; padding: 0; }
+  .ai-reasoning li { font-size: 12px; color: var(--text-secondary); line-height: 1.6; padding-left: 16px; position: relative; }
+  .ai-reasoning li::before { content: ''; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--gladly-purple); opacity: 0.5; }
+
+  /* Task Card in Timeline */
+  .task-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .task-card-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .task-icon { width: 24px; height: 24px; border-radius: 6px; background: var(--gladly-green); display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; }
+  .task-card-header span { font-size: 12px; font-weight: 600; color: var(--gladly-green-tint); }
+  .task-card-header .task-time { margin-left: auto; font-size: 11px; color: var(--text-muted); font-weight: 400; }
+  .task-card-body { padding: 16px; }
+  .task-field { margin-bottom: 12px; }
+  .task-field:last-child { margin-bottom: 0; }
+  .task-field-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .task-field-value { font-size: 13px; color: var(--text-primary); line-height: 1.4; }
+
+  /* Comment area */
+  .comment-box { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .comment-box textarea { width: 100%; background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 13px; resize: none; outline: none; height: 48px; }
+  .comment-box textarea::placeholder { color: var(--text-muted); }
+  .comment-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
+  .comment-actions .btn-small { font-size: 12px; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; transition: all 0.15s; }
+
+  /* ── RIGHT PANEL: AI RECOMMENDATION + ACTIONS ── */
+  .right-panel { width: 360px; min-width: 360px; background: var(--bg-secondary); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+  .panel-section { padding: 20px; border-bottom: 1px solid var(--border); }
+  .panel-section-header { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+
+  /* Customer Profile Mini */
+  .customer-profile { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .customer-profile-avatar { width: 44px; height: 44px; border-radius: 50%; background: #3A3A3A; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; color: var(--text-primary); }
+  .customer-profile-details h3 { font-size: 14px; font-weight: 600; }
+  .customer-profile-details p { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .profile-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-item { background: var(--bg-tertiary); border-radius: 8px; padding: 10px 12px; }
+  .stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+  .stat-value { font-size: 16px; font-weight: 700; margin-top: 2px; }
+  .stat-value.green { color: var(--gladly-green-tint); }
+  .stat-value.yellow { color: var(--yellow); }
+
+  /* Order Details */
+  .order-detail { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
+  .order-detail:last-child { border-bottom: none; }
+  .order-detail-label { font-size: 12px; color: var(--text-muted); }
+  .order-detail-value { font-size: 12px; font-weight: 500; color: var(--text-primary); }
+  .order-detail-value.highlight { color: var(--yellow); font-weight: 600; }
+
+  /* AI Action Buttons */
+  .action-panel { padding: 20px; background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(140,105,240,0.04) 100%); flex-shrink: 0; }
+  .action-panel-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .action-panel-header .ai-badge { font-size: 10px; font-weight: 700; color: var(--gladly-purple-tint); background: rgba(140,105,240,0.15); padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px; }
+  .action-panel-header span { font-size: 13px; font-weight: 600; }
+
+  .action-btn { width: 100%; padding: 12px 16px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; transition: all 0.2s; margin-bottom: 8px; letter-spacing: -0.1px; }
+  .action-btn:last-child { margin-bottom: 0; }
+  .action-btn-approve { background: var(--gladly-green); color: white; }
+  .action-btn-approve:hover { background: #00B300; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,155,0,0.3); }
+  .action-btn-modify { background: transparent; border: 1px solid var(--yellow); color: var(--yellow); }
+  .action-btn-modify:hover { background: rgba(255,190,0,0.08); }
+  .action-btn-reject { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+  .action-btn-reject:hover { background: rgba(250,24,60,0.06); border-color: var(--red); color: var(--red); }
+
+  .action-btn-icon { width: 20px; text-align: center; font-size: 14px; }
+  .action-btn-text { flex: 1; text-align: left; }
+  .action-btn-shortcut { font-size: 10px; opacity: 0.6; font-weight: 400; padding: 2px 6px; border-radius: 3px; background: rgba(255,255,255,0.1); }
+
+  /* Linked Conversation */
+  .linked-convo { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg-tertiary); border-radius: 8px; cursor: pointer; transition: all 0.15s; border: 1px solid var(--border-subtle); }
+  .linked-convo:hover { border-color: var(--gladly-green); background: var(--gladly-green-bg); }
+  .linked-convo-icon { font-size: 16px; }
+  .linked-convo-text { font-size: 12px; color: var(--text-secondary); }
+  .linked-convo-text strong { color: var(--text-primary); font-weight: 500; }
+  .linked-convo-arrow { margin-left: auto; color: var(--text-muted); font-size: 14px; }
+
+  /* Task Status */
+  .task-status { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(255,190,0,0.06); border: 1px solid rgba(255,190,0,0.2); border-radius: 8px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .status-dot.pending { background: var(--yellow); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .status-text { font-size: 12px; font-weight: 500; color: var(--yellow); }
+  .status-timer { margin-left: auto; font-size: 11px; color: var(--text-muted); }
+
+  /* ── SUCCESS OVERLAY ── */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .overlay.show { opacity: 1; pointer-events: all; }
+  .overlay-card { background: var(--bg-secondary); border: 1px solid var(--gladly-green); border-radius: 16px; padding: 40px; text-align: center; max-width: 420px; transform: scale(0.95); transition: transform 0.3s; }
+  .overlay.show .overlay-card { transform: scale(1); }
+  .overlay-icon { font-size: 48px; margin-bottom: 16px; }
+  .overlay-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--gladly-green-tint); }
+  .overlay-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
+  .overlay-btn { padding: 10px 24px; border-radius: 8px; background: var(--gladly-green); color: white; border: none; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg-hover); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+  /* ── PROTOTYPE LABEL ── */
+  .proto-label { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); background: var(--gladly-purple); color: white; font-size: 11px; font-weight: 600; padding: 6px 16px; border-radius: 20px; z-index: 50; letter-spacing: 0.5px; opacity: 0.85; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ═══ LEFT SIDEBAR ═══ -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect width="18" height="18" rx="4" fill="#009B00"/><path d="M5 9h8M9 5v8" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      <h2>My Customers</h2>
+    </div>
+    <div class="sidebar-tabs">
+      <div class="sidebar-tab active">All</div>
+      <div class="sidebar-tab">Conversations</div>
+      <div class="sidebar-tab">Tasks</div>
+    </div>
+    <div class="customer-list">
+      <!-- AI-Generated Task (active) -->
+      <div class="customer-item ai-task active">
+        <div class="customer-avatar avatar-ai">AI</div>
+        <div class="customer-info">
+          <div class="customer-name">
+            Rachel Thompson
+            <span class="badge badge-ai">AI TASK</span>
+          </div>
+          <div class="customer-preview">Cancel order approval needed — $847.00</div>
+          <div class="customer-meta">
+            <span class="badge badge-urgent">URGENT</span>
+            <span class="badge badge-task">TASK</span>
+            <span class="time-label">2m ago</span>
+          </div>
+        </div>
+      </div>
+      <!-- Regular conversations -->
+      <div class="customer-item">
+        <div class="customer-avatar avatar-human">JM</div>
+        <div class="customer-info">
+          <div class="customer-name">James Mitchell</div>
+          <div class="customer-preview">I need help with my recent return...</div>
+          <div class="customer-meta">
+            <span class="badge badge-chat">CHAT</span>
+            <span class="time-label">5m ago</span>
+          </div>
+        </div>
+      </div>
+      <div class="customer-item">
+        <div class="customer-avatar avatar-human">SP</div>
+        <div class="customer-info">
+          <div class="customer-name">Sarah Patel</div>
+          <div class="customer-preview">Warranty claim for order #4821...</div>
+          <div class="customer-meta">
+            <span class="badge badge-chat">EMAIL</span>
+            <span class="time-label">12m ago</span>
+          </div>
+        </div>
+      </div>
+      <div class="customer-item">
+        <div class="customer-avatar avatar-ai">AI</div>
+        <div class="customer-info">
+          <div class="customer-name">
+            David Chen
+            <span class="badge badge-ai">AI TASK</span>
+          </div>
+          <div class="customer-preview">Shipping exception — reroute needed</div>
+          <div class="customer-meta">
+            <span class="badge badge-task">TASK</span>
+            <span class="time-label">18m ago</span>
+          </div>
+        </div>
+      </div>
+      <div class="customer-item">
+        <div class="customer-avatar avatar-human">LR</div>
+        <div class="customer-info">
+          <div class="customer-name">Lisa Rodriguez</div>
+          <div class="customer-preview">Where is my order? Tracking shows...</div>
+          <div class="customer-meta">
+            <span class="badge badge-chat">SMS</span>
+            <span class="time-label">24m ago</span>
+          </div>
+        </div>
+      </div>
+      <div class="customer-item">
+        <div class="customer-avatar avatar-human">MW</div>
+        <div class="customer-info">
+          <div class="customer-name">Mike Wilson</div>
+          <div class="customer-preview">I'd like to update my shipping address</div>
+          <div class="customer-meta">
+            <span class="badge badge-chat">CHAT</span>
+            <span class="time-label">31m ago</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CENTER: TASK TIMELINE ═══ -->
+  <div class="main">
+    <div class="main-header">
+      <div class="main-header-info">
+        <h1>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect width="16" height="16" rx="4" fill="#009B00"/><path d="M4.5 8.5l2.5 2.5 4.5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Task: Cancel order approval
+          <span class="badge badge-ai" style="font-size:9px;">CREATED BY GLADLY AI</span>
+        </h1>
+        <div class="subtitle">Rachel Thompson &middot; Order #ORD-2026-84721 &middot; Assigned to Tier 2 Approvals</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon" title="Transfer">&#8644;</button>
+        <button class="btn-icon" title="Follow">&#9734;</button>
+        <button class="btn-icon" title="More">&hellip;</button>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-label">Today &middot; 2:14 PM</div>
+
+      <!-- AI Context Card -->
+      <div class="timeline-item">
+        <div class="ai-context-card">
+          <div class="ai-context-header">
+            <div class="ai-icon">&#10024;</div>
+            <div class="ai-context-header-text">
+              <h3>Gladly AI recommendation</h3>
+              <span>Generated from chat conversation &middot; 2:12 PM</span>
+            </div>
+            <div class="confidence-badge">
+              <div class="confidence-dot"></div>
+              <span class="confidence-text">92% confidence</span>
+            </div>
+          </div>
+          <div class="ai-context-body">
+            <div class="ai-recommendation">
+              <div class="ai-rec-label">Recommended action</div>
+              <div class="ai-rec-text">Approve full cancellation of order #ORD-2026-84721 ($847.00) and issue a <strong>$25 courtesy credit</strong> to the customer for the inconvenience. The order has not yet shipped and is within the standard cancellation window.</div>
+            </div>
+            <div class="ai-reasoning">
+              <div class="ai-reasoning-label">
+                <span style="font-size:12px;">&#128270;</span> Reasoning
+              </div>
+              <ul>
+                <li>Order placed 3 hours ago, status: "Processing" — not yet shipped</li>
+                <li>Customer is a VIP loyalty member (4 years, $12,400 lifetime value)</li>
+                <li>Cancellation reason: found a better price — common for this product category</li>
+                <li>Customer expressed frustration about response time in the original chat</li>
+                <li>Cancellation policy allows full refund for unshipped orders</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task Details Card -->
+      <div class="timeline-item">
+        <div class="task-card">
+          <div class="task-card-header">
+            <div class="task-icon">&#9745;</div>
+            <span>Task details</span>
+            <span class="task-time">Created 2:14 PM</span>
+          </div>
+          <div class="task-card-body">
+            <div class="task-field">
+              <div class="task-field-label">Task type</div>
+              <div class="task-field-value">Order Cancellation Approval</div>
+            </div>
+            <div class="task-field">
+              <div class="task-field-label">Priority</div>
+              <div class="task-field-value" style="color: var(--red);">&#9679; Urgent — VIP customer, response time SLA</div>
+            </div>
+            <div class="task-field">
+              <div class="task-field-label">Due</div>
+              <div class="task-field-value">Today, 2:44 PM (30 min window)</div>
+            </div>
+            <div class="task-field">
+              <div class="task-field-label">Escalation</div>
+              <div class="task-field-value">Auto-reassigns to Supervisor inbox if unactioned in 20 min</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversation Summary -->
+      <div class="timeline-item">
+        <div class="task-card">
+          <div class="task-card-header">
+            <div class="task-icon" style="background: var(--blue);">&#128172;</div>
+            <span style="color: var(--blue);">Conversation summary</span>
+            <span class="task-time">4 messages &middot; Chat</span>
+          </div>
+          <div class="task-card-body">
+            <div class="task-field">
+              <div class="task-field-value" style="font-size: 12px; line-height: 1.6; color: var(--text-secondary);">
+                Customer Rachel Thompson initiated chat at 2:08 PM requesting cancellation of order #ORD-2026-84721 (Dyson V15 Detect, qty 1, $847.00). Reason: found a better price elsewhere. Gladly AI confirmed the order status is "Processing" and hasn't shipped. Customer requested the cancellation be processed quickly. AI noted the customer's VIP status and recommended routing to Tier 2 for approval of the high-value cancellation with a courtesy credit.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comment Box -->
+      <div class="timeline-item">
+        <div class="comment-box">
+          <textarea placeholder="Add a comment or note to this task..."></textarea>
+          <div class="comment-actions">
+            <button class="btn-small" style="background: var(--bg-tertiary); color: var(--text-secondary);">@ Mention</button>
+            <button class="btn-small" style="background: var(--bg-tertiary); color: var(--text-secondary);">&#128206; Attach</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RIGHT PANEL ═══ -->
+  <div class="right-panel">
+    <!-- Task Status -->
+    <div class="panel-section">
+      <div class="task-status">
+        <div class="status-dot pending"></div>
+        <span class="status-text">Awaiting your approval</span>
+        <span class="status-timer" id="timer">28:42</span>
+      </div>
+    </div>
+
+    <!-- Customer Profile -->
+    <div class="panel-section">
+      <div class="panel-section-header">&#128100; Customer profile</div>
+      <div class="customer-profile">
+        <div class="customer-profile-avatar">RT</div>
+        <div class="customer-profile-details">
+          <h3>Rachel Thompson</h3>
+          <p>rachel.thompson@email.com</p>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="stat-item">
+          <div class="stat-label">Lifetime value</div>
+          <div class="stat-value green">$12,400</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Loyalty tier</div>
+          <div class="stat-value yellow">VIP</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Customer since</div>
+          <div class="stat-value">2022</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Past orders</div>
+          <div class="stat-value">24</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Details -->
+    <div class="panel-section">
+      <div class="panel-section-header">&#128230; Order details</div>
+      <div class="order-detail">
+        <span class="order-detail-label">Order ID</span>
+        <span class="order-detail-value">#ORD-2026-84721</span>
+      </div>
+      <div class="order-detail">
+        <span class="order-detail-label">Item</span>
+        <span class="order-detail-value">Dyson V15 Detect</span>
+      </div>
+      <div class="order-detail">
+        <span class="order-detail-label">Amount</span>
+        <span class="order-detail-value highlight">$847.00</span>
+      </div>
+      <div class="order-detail">
+        <span class="order-detail-label">Status</span>
+        <span class="order-detail-value">Processing (not shipped)</span>
+      </div>
+      <div class="order-detail">
+        <span class="order-detail-label">Payment</span>
+        <span class="order-detail-value">Visa &bull;&bull;&bull;&bull; 4821</span>
+      </div>
+      <div class="order-detail">
+        <span class="order-detail-label">Placed</span>
+        <span class="order-detail-value">Today, 11:32 AM</span>
+      </div>
+    </div>
+
+    <!-- Linked Conversation -->
+    <div class="panel-section">
+      <div class="panel-section-header">&#128279; Linked conversation</div>
+      <div class="linked-convo" onclick="alert('Opens the originating chat conversation in a new tab')">
+        <span class="linked-convo-icon">&#128172;</span>
+        <div class="linked-convo-text">
+          <strong>Chat with Rachel Thompson</strong><br>
+          Started 2:08 PM &middot; 4 messages
+        </div>
+        <span class="linked-convo-arrow">&rsaquo;</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-panel">
+      <div class="action-panel-header">
+        <span class="ai-badge">AI</span>
+        <span>Take action</span>
+      </div>
+      <button class="action-btn action-btn-approve" onclick="handleApprove()">
+        <span class="action-btn-icon">&#10003;</span>
+        <span class="action-btn-text">Approve cancellation + $25 credit</span>
+        <span class="action-btn-shortcut">&#8984;&#9166;</span>
+      </button>
+      <button class="action-btn action-btn-modify" onclick="handleModify()">
+        <span class="action-btn-icon">&#9998;</span>
+        <span class="action-btn-text">Modify recommendation</span>
+        <span class="action-btn-shortcut">&#8984;M</span>
+      </button>
+      <button class="action-btn action-btn-reject" onclick="handleReject()">
+        <span class="action-btn-icon">&#10005;</span>
+        <span class="action-btn-text">Reject — escalate or reassign</span>
+        <span class="action-btn-shortcut">&#8984;R</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Overlay -->
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-icon" id="overlay-icon">&#10003;</div>
+    <div class="overlay-title" id="overlay-title">Cancellation approved</div>
+    <div class="overlay-text" id="overlay-text">
+      Gladly AI is processing the cancellation for order #ORD-2026-84721 and issuing a $25 courtesy credit. Rachel Thompson will be notified via chat automatically.
+    </div>
+    <button class="overlay-btn" onclick="closeOverlay()">Done</button>
+  </div>
+</div>
+
+<div class="proto-label">HITL TASK PROTOTYPE v1 &mdash; Gladly Connect Live 2026</div>
+
+<script>
+  // Countdown timer
+  let seconds = 28 * 60 + 42;
+  const timerEl = document.getElementById('timer');
+  setInterval(() => {
+    if (seconds > 0) {
+      seconds--;
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    }
+  }, 1000);
+
+  // Actions
+  function handleApprove() {
+    document.getElementById('overlay-icon').textContent = '\u2713';
+    document.getElementById('overlay-icon').style.color = '#009B00';
+    document.getElementById('overlay-title').textContent = 'Cancellation approved';
+    document.getElementById('overlay-title').style.color = '#CDEFCD';
+    document.getElementById('overlay-text').textContent = 'Gladly AI is processing the cancellation for order #ORD-2026-84721 and issuing a $25 courtesy credit. Rachel Thompson will be notified via chat automatically.';
+    document.getElementById('overlay').classList.add('show');
+  }
+
+  function handleModify() {
+    document.getElementById('overlay-icon').textContent = '\u270E';
+    document.getElementById('overlay-icon').style.color = '#FFBE00';
+    document.getElementById('overlay-title').textContent = 'Modify recommendation';
+    document.getElementById('overlay-title').style.color = '#FFBE00';
+    document.getElementById('overlay-text').textContent = 'You can adjust the cancellation terms, credit amount, or add conditions before approving. In production, this opens an editable form with the AI-suggested values pre-filled.';
+    document.getElementById('overlay').classList.add('show');
+  }
+
+  function handleReject() {
+    document.getElementById('overlay-icon').textContent = '\u2717';
+    document.getElementById('overlay-icon').style.color = '#FA183C';
+    document.getElementById('overlay-title').textContent = 'Task rejected';
+    document.getElementById('overlay-title').style.color = '#FA183C';
+    document.getElementById('overlay-text').textContent = 'The task will be reassigned or escalated. In production, you would select a rejection reason (e.g., "Needs more info," "Policy exception required") which feeds back into AI learning.';
+    document.getElementById('overlay').classList.add('show');
+  }
+
+  function closeOverlay() {
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.metaKey && e.key === 'Enter') { e.preventDefault(); handleApprove(); }
+    if (e.metaKey && e.key === 'm') { e.preventDefault(); handleModify(); }
+    if (e.metaKey && e.key === 'r') { e.preventDefault(); handleReject(); }
+    if (e.key === 'Escape') closeOverlay();
+  });
+</script>
+
+</body>
+</html>

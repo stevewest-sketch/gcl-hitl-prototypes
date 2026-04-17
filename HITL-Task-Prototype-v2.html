@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gladly Team — HITL Task Prototype v2</title>
+<style>
+  /* ========== RESET & BASE ========== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a;
+    font-size: 14px;
+    line-height: 1.5;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ========== TOP NAV ========== */
+  .top-nav {
+    height: 52px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 100;
+    position: relative;
+  }
+  .nav-left { display: flex; align-items: center; gap: 16px; }
+  .nav-left .hamburger { font-size: 20px; color: #666; cursor: pointer; }
+  .nav-left .back-link { font-size: 13px; color: #666; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+  .nav-left .back-link:hover { color: #333; }
+  .nav-center { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; }
+  .nav-center .logo-icon { width: 20px; height: 20px; background: #009B00; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; }
+  .nav-center .logo-text { font-size: 18px; font-weight: 600; color: #1a1a1a; letter-spacing: -0.3px; }
+  .nav-right { display: flex; align-items: center; gap: 8px; }
+  .nav-icon {
+    width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #666; font-size: 18px; position: relative;
+  }
+  .nav-icon:hover { background: #f0f0f0; }
+  .nav-icon .badge { position: absolute; top: 2px; right: 2px; background: #FA183C; color: #fff; font-size: 9px; font-weight: 700; border-radius: 8px; padding: 1px 4px; min-width: 16px; text-align: center; }
+  .next-btn {
+    padding: 6px 16px; border: 1px solid #ccc; border-radius: 16px; background: #fff;
+    font-size: 13px; color: #666; cursor: pointer; font-weight: 500;
+  }
+  .next-btn:hover { background: #f5f5f5; }
+  .avatar-nav { width: 32px; height: 32px; border-radius: 50%; background: #8C69F0; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; cursor: pointer; }
+
+  /* ========== ASSIGNMENT BANNER ========== */
+  .assignment-banner {
+    background: #FFF9E6;
+    border-bottom: 1px solid #F0E6C0;
+    padding: 6px 16px;
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+  }
+  .assignment-banner strong { color: #1a1a1a; }
+
+  /* ========== MAIN LAYOUT ========== */
+  .main-layout {
+    display: flex;
+    height: calc(100vh - 52px);
+  }
+
+  /* ========== LEFT PANEL ========== */
+  .left-panel {
+    width: 340px;
+    min-width: 340px;
+    background: #fff;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .customer-list {
+    flex: 0 0 auto;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  .customer-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; cursor: pointer; position: relative;
+  }
+  .customer-item:hover { background: #f8f8f8; }
+  .customer-item.active { background: #E8F5E8; }
+  .customer-item .item-avatar {
+    width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: #fff; flex-shrink: 0;
+  }
+  .customer-item .item-info { flex: 1; min-width: 0; }
+  .customer-item .item-name { font-weight: 600; font-size: 14px; color: #1a1a1a; }
+  .customer-item .item-preview { font-size: 12px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .customer-item .item-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+  .customer-item .item-time { font-size: 11px; color: #999; }
+  .customer-item .task-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+
+  /* Customer profile in left panel */
+  .customer-profile {
+    flex: 1; overflow-y: auto; padding: 0;
+  }
+  .profile-header {
+    padding: 20px 16px 16px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .profile-header-left { display: flex; align-items: center; gap: 12px; }
+  .profile-avatar {
+    width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 600; color: #fff; background: #5B8DEF;
+  }
+  .profile-name { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+  .profile-dots { color: #999; cursor: pointer; font-size: 18px; padding: 4px; }
+
+  .profile-section {
+    padding: 12px 16px; border-top: 1px solid #f0f0f0;
+  }
+  .profile-section-title {
+    font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;
+  }
+  .profile-field {
+    display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; font-size: 13px;
+  }
+  .profile-field .field-icon { color: #999; width: 16px; text-align: center; flex-shrink: 0; margin-top: 2px; }
+  .profile-field .field-value { color: #444; }
+  .profile-field .field-label { color: #999; min-width: 100px; }
+  .profile-field a { color: #009B00; text-decoration: none; }
+  .profile-field a:hover { text-decoration: underline; }
+  .profile-kv { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px; }
+  .profile-kv .kv-label { color: #999; }
+  .profile-kv .kv-value { color: #1a1a1a; font-weight: 500; }
+
+  .conversations-list { }
+  .conv-item {
+    display: flex; gap: 8px; padding: 6px 16px; font-size: 13px; align-items: flex-start;
+  }
+  .conv-item .conv-icon { color: #999; margin-top: 2px; }
+  .conv-item .conv-date { color: #999; min-width: 80px; }
+  .conv-item .conv-label { color: #444; }
+
+  .assigned-bar {
+    padding: 12px 16px; border-top: 1px solid #e8e8e8;
+    display: flex; align-items: center; gap: 8px; font-size: 13px;
+    background: #fff;
+  }
+  .assigned-bar .assigned-avatar {
+    width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; color: #fff; background: #E8913A;
+  }
+  .assigned-bar .collapse-arrows { color: #999; cursor: pointer; margin-right: 4px; }
+  .assigned-bar a { color: #009B00; text-decoration: none; font-weight: 500; }
+
+  /* ========== CENTER TIMELINE ========== */
+  .center-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-right: 1px solid #e0e0e0;
+    position: relative;
+  }
+  .timeline-header {
+    padding: 8px 16px;
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff;
+  }
+  .new-items-banner {
+    background: #009B00;
+    color: #fff;
+    text-align: center;
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .new-items-banner .close-banner { cursor: pointer; opacity: 0.8; }
+  .new-items-banner .close-banner:hover { opacity: 1; }
+
+  .timeline-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px;
+  }
+
+  /* Timeline date label */
+  .timeline-date {
+    text-align: center; font-size: 11px; color: #999; margin: 16px 0 8px;
+  }
+
+  /* Chat messages */
+  .chat-msg {
+    display: flex; gap: 10px; margin-bottom: 16px; max-width: 75%;
+  }
+  .chat-msg.customer { align-self: flex-start; }
+  .chat-msg.agent { margin-left: auto; flex-direction: row-reverse; }
+  .chat-msg .msg-avatar {
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: #fff; flex-shrink: 0;
+  }
+  .chat-msg .msg-bubble {
+    padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5;
+  }
+  .chat-msg.customer .msg-bubble { background: #f5f5f5; color: #1a1a1a; }
+  .chat-msg.agent .msg-bubble { background: #E8F5E8; color: #1a1a1a; }
+  .msg-meta { font-size: 11px; color: #999; margin-top: 4px; }
+  .msg-meta.agent-meta { text-align: right; }
+
+  /* Timeline system events */
+  .timeline-event {
+    text-align: center; font-size: 11px; color: #999; margin: 12px 0;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .timeline-event .event-icon { font-size: 12px; }
+  .timeline-event a { color: #009B00; font-weight: 500; text-decoration: none; }
+
+  /* ========== TASK CARD (inline in timeline) ========== */
+  .task-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    margin: 12px 0;
+    background: #fff;
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+  }
+  .task-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .task-card.selected { border-color: #009B00; box-shadow: 0 0 0 1px #009B00; }
+
+  .task-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px 8px;
+  }
+  .task-header-left { display: flex; align-items: center; gap: 8px; }
+  .task-status-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .task-status-dot.open { background: #009B00; }
+  .task-status-dot.closed { background: #009B00; }
+  .task-status-dot.overdue { background: #FA183C; }
+  .task-status-dot.ai { background: #8C69F0; }
+  .task-header-label { font-size: 14px; font-weight: 700; color: #1a1a1a; }
+  .task-header-label .task-assignee { color: #009B00; font-weight: 600; }
+  .task-header-label .task-chevron { font-size: 10px; color: #999; margin-left: 2px; }
+  .task-header-right { display: flex; align-items: center; gap: 8px; }
+  .task-close-btn {
+    padding: 4px 14px; border: 1px solid #009B00; border-radius: 14px; background: #fff;
+    color: #009B00; font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+  .task-close-btn:hover { background: #E8F5E8; }
+  .task-dots { color: #999; cursor: pointer; font-size: 16px; letter-spacing: 1px; }
+
+  /* AI badge on task */
+  .ai-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #F3EFFE; color: #8C69F0; font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 10px; margin-left: 8px;
+  }
+  .ai-badge .ai-icon { font-size: 12px; }
+
+  .task-card-body {
+    padding: 0 14px 12px;
+  }
+
+  /* AI Context block inside task */
+  .ai-context-block {
+    background: #FAFAFE;
+    border: 1px solid #E8E2FD;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .ai-context-header {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+  }
+  .ai-context-header .ai-avatar {
+    width: 24px; height: 24px; border-radius: 50%; background: #8C69F0; color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;
+  }
+  .ai-context-header .ai-name { font-weight: 700; font-size: 13px; color: #1a1a1a; }
+  .ai-context-header .ai-label { font-size: 11px; color: #8C69F0; font-weight: 600; }
+  .ai-recommendation {
+    font-size: 14px; color: #1a1a1a; font-weight: 600; margin-bottom: 6px;
+  }
+  .ai-confidence {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; color: #009B00; font-weight: 600; margin-bottom: 6px;
+  }
+  .ai-confidence-bar {
+    width: 60px; height: 4px; background: #e0e0e0; border-radius: 2px; overflow: hidden;
+  }
+  .ai-confidence-fill { height: 100%; background: #009B00; border-radius: 2px; }
+  .ai-reasoning { font-size: 13px; color: #666; line-height: 1.5; }
+
+  /* Task body text */
+  .task-body-text {
+    font-size: 14px; color: #1a1a1a; line-height: 1.5; margin-bottom: 8px;
+  }
+  .task-body-text .mention {
+    background: #D4EDDA; color: #009B00; padding: 1px 4px; border-radius: 3px; font-weight: 600;
+  }
+
+  .task-due-label {
+    font-size: 12px; color: #999; margin-bottom: 8px;
+  }
+  .task-due-label .due-time { font-weight: 500; }
+
+  /* Task comments */
+  .task-comments { margin-top: 8px; }
+  .task-show-previous { color: #009B00; font-size: 13px; cursor: pointer; margin-bottom: 8px; font-weight: 500; }
+  .task-show-previous:hover { text-decoration: underline; }
+  .task-comment {
+    display: flex; gap: 8px; margin-bottom: 10px;
+  }
+  .task-comment .comment-avatar {
+    width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; color: #fff; flex-shrink: 0;
+  }
+  .task-comment .comment-body { font-size: 13px; color: #1a1a1a; line-height: 1.5; }
+  .task-comment .comment-body strong { font-weight: 700; }
+  .task-comment .comment-body .mention { background: #D4EDDA; color: #009B00; padding: 1px 4px; border-radius: 3px; font-weight: 600; }
+
+  .task-comment-input {
+    display: flex; gap: 8px; align-items: flex-start; margin-top: 8px;
+  }
+  .task-comment-input .comment-field {
+    flex: 1; border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px 12px;
+    font-size: 13px; color: #999; background: #fff; cursor: text;
+  }
+
+  /* ========== RIGHT PANEL ========== */
+  .right-panel {
+    width: 380px;
+    min-width: 380px;
+    background: #fff;
+    overflow-y: auto;
+    display: none;
+    flex-direction: column;
+    border-left: 0;
+  }
+  .right-panel.open { display: flex; }
+
+  .right-task-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .right-task-title-row {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;
+  }
+  .right-task-title {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .right-task-title .task-header-label { font-size: 14px; }
+  .right-task-due { font-size: 13px; color: #666; }
+
+  .right-task-body {
+    padding: 16px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  /* AI context in right panel */
+  .right-ai-context {
+    background: #FAFAFE;
+    border: 1px solid #E8E2FD;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .right-ai-section-title {
+    font-size: 11px; font-weight: 700; color: #8C69F0; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 8px;
+  }
+  .right-ai-recommendation {
+    font-size: 15px; color: #1a1a1a; font-weight: 600; margin-bottom: 10px;
+  }
+  .right-ai-details {
+    font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 12px;
+  }
+  .right-ai-meta {
+    display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px;
+  }
+  .right-ai-meta-item {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .right-ai-meta-item .meta-label { color: #999; }
+  .right-ai-meta-item .meta-value { color: #1a1a1a; font-weight: 600; }
+
+  /* Order details in right panel */
+  .right-section {
+    margin-bottom: 16px;
+  }
+  .right-section-title {
+    font-size: 12px; font-weight: 700; color: #999; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 8px;
+  }
+  .right-detail-row {
+    display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px;
+  }
+  .right-detail-row .detail-label { color: #999; }
+  .right-detail-row .detail-value { color: #1a1a1a; font-weight: 500; }
+  .right-detail-row .detail-value a { color: #009B00; text-decoration: none; }
+  .right-detail-row .detail-value a:hover { text-decoration: underline; }
+
+  /* Linked conversation */
+  .linked-conv {
+    background: #f8f8f8; border-radius: 8px; padding: 10px 12px; margin-bottom: 16px;
+    cursor: pointer;
+  }
+  .linked-conv:hover { background: #f0f0f0; }
+  .linked-conv-title { font-size: 12px; color: #999; font-weight: 600; margin-bottom: 4px; }
+  .linked-conv-preview { font-size: 13px; color: #444; line-height: 1.4; }
+  .linked-conv-link { font-size: 12px; color: #009B00; margin-top: 4px; font-weight: 500; }
+
+  /* HITL Action buttons */
+  .hitl-actions {
+    padding: 16px;
+    border-top: 1px solid #f0f0f0;
+    background: #fff;
+  }
+  .hitl-actions-title {
+    font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 10px;
+  }
+  .hitl-btn-group {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .hitl-btn {
+    width: 100%; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.15s;
+  }
+  .hitl-btn.approve { background: #009B00; color: #fff; }
+  .hitl-btn.approve:hover { background: #008200; }
+  .hitl-btn.modify { background: #fff; color: #1a1a1a; border: 1px solid #e0e0e0; }
+  .hitl-btn.modify:hover { background: #f8f8f8; }
+  .hitl-btn.reject { background: #fff; color: #FA183C; border: 1px solid #f0d0d0; }
+  .hitl-btn.reject:hover { background: #FFF5F5; }
+
+  .hitl-shortcut { font-size: 11px; font-weight: 400; opacity: 0.6; margin-left: 4px; }
+
+  /* Right panel comment area */
+  .right-comments {
+    padding: 16px; border-top: 1px solid #f0f0f0;
+  }
+  .right-comment-item {
+    display: flex; gap: 8px; margin-bottom: 12px;
+  }
+  .right-comment-item .comment-avatar {
+    width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; color: #fff; flex-shrink: 0;
+  }
+  .right-comment-body { font-size: 13px; color: #1a1a1a; line-height: 1.5; }
+  .right-comment-body strong { font-weight: 700; }
+  .right-comment-body .mention { background: #D4EDDA; color: #009B00; padding: 1px 4px; border-radius: 3px; font-weight: 600; }
+  .view-in-timeline { font-size: 12px; color: #009B00; cursor: pointer; font-weight: 500; margin-top: 2px; }
+  .view-in-timeline:hover { text-decoration: underline; }
+
+  .right-comment-input {
+    display: flex; align-items: flex-start; gap: 8px; margin-top: 8px;
+  }
+  .right-comment-field {
+    flex: 1; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 12px;
+    font-size: 13px; color: #999; background: #fff;
+  }
+  .right-comment-toolbar {
+    display: flex; align-items: center; justify-content: space-between; margin-top: 6px;
+  }
+  .right-comment-icons { display: flex; gap: 12px; color: #999; font-size: 16px; }
+  .right-comment-icons span { cursor: pointer; }
+  .right-comment-icons span:hover { color: #666; }
+  .send-btn {
+    width: 28px; height: 28px; border-radius: 50%; background: #e0e0e0; color: #999;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-size: 14px;
+  }
+
+  /* ========== BOTTOM BAR ========== */
+  .bottom-bar {
+    padding: 8px 16px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+  }
+  .bottom-left { display: flex; align-items: center; gap: 12px; }
+  .bottom-icon {
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 16px;
+  }
+  .bottom-icon.green { background: #009B00; color: #fff; }
+  .bottom-icon.gray { color: #999; }
+  .bottom-icon.gray:hover { background: #f0f0f0; }
+  .reply-input {
+    flex: 1; padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 8px;
+    font-size: 13px; color: #666; margin: 0 12px;
+  }
+  .bottom-right { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #999; }
+
+  /* ========== TIMELINE ICONS (using text/emoji as lightweight icons) ========== */
+  .icon-task-list { color: #009B00; }
+
+  /* ========== TASK CARD ICONS on right edge of timeline ========== */
+  .timeline-task-icons {
+    position: absolute;
+    right: -36px;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .timeline-task-icon {
+    width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; cursor: pointer; border: 1px solid #e0e0e0; background: #fff;
+  }
+  .timeline-task-icon:hover { background: #f5f5f5; }
+  .timeline-task-icon.active { background: #E8F5E8; border-color: #009B00; }
+
+  /* ========== OVERLAY / MODAL ========== */
+  .modal-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: #fff; border-radius: 12px; padding: 24px; width: 440px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #1a1a1a; }
+  .modal-body { font-size: 14px; color: #444; line-height: 1.6; margin-bottom: 16px; }
+  .modal-textarea {
+    width: 100%; height: 80px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 12px;
+    font-size: 13px; resize: none; font-family: inherit; margin-bottom: 16px;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .modal-btn {
+    padding: 8px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none;
+  }
+  .modal-btn.cancel { background: #f0f0f0; color: #666; }
+  .modal-btn.confirm-approve { background: #009B00; color: #fff; }
+  .modal-btn.confirm-modify { background: #FFBE00; color: #1a1a1a; }
+  .modal-btn.confirm-reject { background: #FA183C; color: #fff; }
+
+  /* ========== COMPLETED STATE ========== */
+  .task-card.completed-state { opacity: 0.7; }
+  .task-card.completed-state .task-status-dot { position: relative; }
+  .completed-check { color: #009B00; font-weight: 700; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="nav-left">
+    <span class="hamburger">&#9776;</span>
+    <a class="back-link">&#8249; Home</a>
+  </div>
+  <div class="nav-center">
+    <div class="logo-icon">+</div>
+    <span class="logo-text">Gladly</span>
+  </div>
+  <div class="nav-right">
+    <div class="nav-icon" title="Phone">&#128222;</div>
+    <div class="nav-icon" title="Headset">&#127911;</div>
+    <div class="nav-icon" title="Chat">&#128172;</div>
+    <button class="next-btn">Next</button>
+    <div class="nav-icon" title="Search">&#128269;</div>
+    <div class="nav-icon" title="Notifications">
+      &#128276;
+      <span class="badge">3</span>
+    </div>
+    <div class="avatar-nav">LG</div>
+  </div>
+</nav>
+
+<!-- ASSIGNMENT BANNER -->
+<div class="assignment-banner">
+  This customer is currently assigned to <strong>Lisa Green</strong>
+</div>
+
+<div class="main-layout">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="customer-list">
+      <div class="customer-item active" onclick="selectCustomer(this)">
+        <div class="item-avatar" style="background:#5B8DEF">RT</div>
+        <div class="item-info">
+          <div class="item-name">Rachel Thompson</div>
+          <div class="item-preview">Order #ORD-2026-84721 — Cancel request</div>
+        </div>
+        <div class="item-meta">
+          <span class="item-time">2m ago</span>
+          <span style="color:#8C69F0; font-size:11px; font-weight:600;">AI Task</span>
+        </div>
+      </div>
+      <div class="customer-item" onclick="selectCustomer(this)">
+        <div class="item-avatar" style="background:#E8913A">JM</div>
+        <div class="item-info">
+          <div class="item-name">Jennifer Mueller</div>
+          <div class="item-preview">RE: Extension — course expiration update</div>
+        </div>
+        <div class="item-meta">
+          <span class="item-time">3h ago</span>
+        </div>
+      </div>
+      <div class="customer-item" onclick="selectCustomer(this)">
+        <div class="item-avatar" style="background:#CC6B8E">TC</div>
+        <div class="item-info">
+          <div class="item-name">Todd Chang</div>
+          <div class="item-preview">Alpha FL 20 Backpack — gear recommendation</div>
+        </div>
+        <div class="item-meta">
+          <span class="item-time">Dec 19</span>
+        </div>
+      </div>
+      <div class="customer-item" onclick="selectCustomer(this)">
+        <div class="item-avatar" style="background:#7BB86F">MS</div>
+        <div class="item-info">
+          <div class="item-name">Maria Santos</div>
+          <div class="item-preview">Shipping delay inquiry — priority</div>
+        </div>
+        <div class="item-meta">
+          <span class="item-time">1d ago</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="customer-profile">
+      <div class="profile-header">
+        <div class="profile-header-left">
+          <div class="profile-avatar" style="background:#5B8DEF">RT</div>
+          <div>
+            <div class="profile-name">Rachel Thompson</div>
+          </div>
+        </div>
+        <span class="profile-dots">&#8942;</span>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">Contact</div>
+        <div class="profile-field">
+          <span class="field-icon">&#9993;</span>
+          <span class="field-value">rachel.thompson@email.com</span>
+        </div>
+        <div class="profile-field">
+          <span class="field-icon">&#128222;</span>
+          <span class="field-value">415-555-0192</span>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">Customer Details</div>
+        <div class="profile-kv">
+          <span class="kv-label">Lifetime Value</span>
+          <span class="kv-value">$12,400.00</span>
+        </div>
+        <div class="profile-kv">
+          <span class="kv-label">Loyalty Tier</span>
+          <span class="kv-value">VIP</span>
+        </div>
+        <div class="profile-kv">
+          <span class="kv-label">Return Rate</span>
+          <span class="kv-value">3%</span>
+        </div>
+        <div class="profile-kv">
+          <span class="kv-label">Member Since</span>
+          <span class="kv-value">06/15/2022</span>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">Orders</div>
+        <div style="background:#f8f8f8; border-radius:8px; padding:10px 12px; margin-bottom:8px;">
+          <div style="font-size:13px;">
+            Order <a href="#" style="color:#009B00; font-weight:600; text-decoration:none;">ORD-2026-84721</a>
+          </div>
+          <div style="font-size:12px; color:#888;">
+            Processing &bull; $847.00
+          </div>
+          <div style="font-size:12px; color:#888;">Ordered on 03/28/2026</div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">Conversations</div>
+        <div class="conv-item">
+          <span class="conv-icon">&#128197;</span>
+          <span class="conv-date">Today</span>
+          <span class="conv-label">Cancel order request</span>
+        </div>
+        <div class="conv-item">
+          <span class="conv-icon">&#128197;</span>
+          <span class="conv-date">Mar 15</span>
+          <span class="conv-label">Shipping address change</span>
+        </div>
+        <div class="conv-item">
+          <span class="conv-icon">&#128197;</span>
+          <span class="conv-date">Feb 2</span>
+          <span class="conv-label">Product question — Dyson</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="assigned-bar">
+      <span class="collapse-arrows">&raquo;</span>
+      <div class="assigned-avatar">LG</div>
+      Assigned to <a href="#">Lisa Green (You) in Support</a>
+    </div>
+  </div>
+
+  <!-- CENTER PANEL -->
+  <div class="center-panel">
+    <div class="timeline-header">
+      Apr 1 &bull; Cancel Order &bull; Waiting
+    </div>
+    <div class="new-items-banner" id="newItemsBanner" onclick="this.style.display='none'">
+      1 new AI Task since 2:14 PM
+      <span class="close-banner">&times;</span>
+    </div>
+
+    <div class="timeline-scroll">
+      <!-- Customer message -->
+      <div class="msg-meta">&#128172; Rachel Thompson sent a chat &mdash; Apr 1, 2026</div>
+      <div class="chat-msg customer">
+        <div class="msg-avatar" style="background:#5B8DEF">RT</div>
+        <div class="msg-bubble">
+          Hi, I need to cancel my order #ORD-2026-84721. I ordered the Dyson V15 Detect but I just found out my apartment building doesn't allow vacuum use after 9pm and I work late shifts. Can I get a full refund?
+        </div>
+      </div>
+
+      <!-- AI auto-response -->
+      <div class="msg-meta agent-meta">Gladly AI responded via chat &mdash; Apr 1, 2026 &bull; Delivered</div>
+      <div class="chat-msg agent">
+        <div class="msg-avatar" style="background:#8C69F0">AI</div>
+        <div class="msg-bubble">
+          Hi Rachel! I understand you'd like to cancel your order. I'm looking into this for you right now. Since this is a high-value order that's already in processing, I'm going to have one of our team members review this to make sure we get you the best outcome. You'll hear back very shortly!
+        </div>
+      </div>
+
+      <!-- System event: AI created task -->
+      <div class="timeline-event">
+        <span class="event-icon">&#9201;</span>
+        Gladly AI created a task &mdash; Apr 1, 2026
+      </div>
+
+      <!-- ============ HITL TASK CARD (the key element) ============ -->
+      <div class="task-card" id="hitlTaskCard" onclick="openTaskPanel()">
+        <div class="task-card-header">
+          <div class="task-header-left">
+            <div class="task-status-dot ai"></div>
+            <span class="task-header-label">
+              Task for <span class="task-assignee">Tier 2 Support</span> <span class="task-chevron">&#8964;</span>
+              <span class="ai-badge"><span class="ai-icon">&#10024;</span> AI Created</span>
+            </span>
+          </div>
+          <div class="task-header-right">
+            <button class="task-close-btn" onclick="event.stopPropagation()">Close</button>
+            <span class="task-dots" onclick="event.stopPropagation()">&#8942;</span>
+          </div>
+        </div>
+
+        <div class="task-card-body">
+          <!-- AI Context Block -->
+          <div class="ai-context-block">
+            <div class="ai-context-header">
+              <div class="ai-avatar">AI</div>
+              <span class="ai-name">Gladly AI</span>
+              <span class="ai-label">&bull; Recommendation</span>
+            </div>
+            <div class="ai-recommendation">Approve full cancellation + $25 loyalty credit</div>
+            <div class="ai-confidence">
+              <span>92% confidence</span>
+              <div class="ai-confidence-bar"><div class="ai-confidence-fill" style="width:92%"></div></div>
+            </div>
+            <div class="ai-reasoning">
+              VIP customer (LTV $12,400) &bull; Order still in processing &bull; Within cancellation window &bull; Low return rate (3%) &bull; Loyalty credit aligns with retention policy
+            </div>
+          </div>
+
+          <div class="task-body-text">
+            Cancel order #ORD-2026-84721 (Dyson V15 Detect, $847.00) for Rachel Thompson. Customer requesting full cancellation due to apartment restrictions. Order is still in processing — within cancellation window.
+          </div>
+
+          <!-- Comments area -->
+          <div class="task-comments">
+            <div class="task-comment-input">
+              <div class="comment-avatar" style="background:#E8913A; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:#fff;">LG</div>
+              <div class="comment-field" onclick="event.stopPropagation()">Comment on this task</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task routing event -->
+      <div class="timeline-event">
+        <span class="event-icon">&#9201;</span>
+        Task routed from <a href="#">Gladly AI</a> to <a href="#">Tier 2 Support</a> by <strong>rule</strong> &mdash; Apr 1, 2026
+      </div>
+      <div class="timeline-event">
+        <span class="event-icon">&#9201;</span>
+        Task became due &mdash; Apr 1, 2026
+      </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar">
+      <div class="bottom-left">
+        <div class="bottom-icon green">+</div>
+        <div class="bottom-icon gray">&#128172;</div>
+        <div class="bottom-icon gray">&#9742;</div>
+        <div class="bottom-icon gray" style="font-size:14px;">&#9997;</div>
+      </div>
+      <div class="reply-input">Reply with a chat</div>
+      <div class="bottom-right">
+        <span>Add a Topic</span>
+        <span style="margin: 0 4px;">&#8743;</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL (opens on task click) -->
+  <div class="right-panel" id="rightPanel">
+    <div class="right-task-header">
+      <div class="right-task-title-row">
+        <div class="right-task-title">
+          <div class="task-status-dot ai"></div>
+          <span class="task-header-label">
+            Task for <span class="task-assignee">Tier 2 Support</span> <span class="task-chevron">&#8964;</span>
+          </span>
+        </div>
+        <div class="task-header-right">
+          <button class="task-close-btn" id="rightCloseBtn">Close</button>
+          <span class="task-dots">&#8942;</span>
+        </div>
+      </div>
+      <div class="right-task-due">Due Apr 1, 2026 3:14pm</div>
+    </div>
+
+    <div class="right-task-body">
+      <!-- AI Context section -->
+      <div class="right-ai-context">
+        <div class="right-ai-section-title">&#10024; AI Recommendation</div>
+        <div class="right-ai-recommendation">Approve full cancellation + $25 loyalty credit</div>
+        <div class="right-ai-details">
+          VIP customer with $12,400 lifetime value. Order #ORD-2026-84721 (Dyson V15 Detect, $847.00) is still in processing and within the cancellation window. Customer's reason is legitimate — apartment building restrictions. Low return rate of 3% supports good-faith cancellation. Loyalty credit of $25 aligns with the VIP retention playbook.
+        </div>
+        <div class="right-ai-meta">
+          <div class="right-ai-meta-item">
+            <span class="meta-label">Confidence:</span>
+            <span class="meta-value" style="color:#009B00">92%</span>
+          </div>
+          <div class="right-ai-meta-item">
+            <span class="meta-label">Policy:</span>
+            <span class="meta-value">VIP Retention</span>
+          </div>
+          <div class="right-ai-meta-item">
+            <span class="meta-label">Threshold:</span>
+            <span class="meta-value">$500+</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task body -->
+      <div style="font-size:14px; color:#1a1a1a; line-height:1.6; margin-bottom:16px; padding:12px; background:#f8f8f8; border-radius:8px;">
+        Cancel order #ORD-2026-84721 (Dyson V15 Detect, $847.00) for Rachel Thompson. Customer requesting full cancellation due to apartment restrictions. Order is still in processing — within cancellation window.
+      </div>
+
+      <!-- Order Details -->
+      <div class="right-section">
+        <div class="right-section-title">Order Details</div>
+        <div class="right-detail-row">
+          <span class="detail-label">Order</span>
+          <span class="detail-value"><a href="#">#ORD-2026-84721</a></span>
+        </div>
+        <div class="right-detail-row">
+          <span class="detail-label">Item</span>
+          <span class="detail-value">Dyson V15 Detect</span>
+        </div>
+        <div class="right-detail-row">
+          <span class="detail-label">Amount</span>
+          <span class="detail-value">$847.00</span>
+        </div>
+        <div class="right-detail-row">
+          <span class="detail-label">Status</span>
+          <span class="detail-value">Processing</span>
+        </div>
+        <div class="right-detail-row">
+          <span class="detail-label">Payment</span>
+          <span class="detail-value">Visa ending 4821</span>
+        </div>
+      </div>
+
+      <!-- Customer snapshot -->
+      <div class="right-section">
+        <div class="right-section-title">Customer</div>
+        <div class="right-detail-row">
+          <span class="detail-label">Name</span>
+          <span class="detail-value">Rachel Thompson</span>
+        </div>
+        <div class="right-detail-row">
+          <span class="detail-label">Tier</span>
+          <span class="detail-value" style="color:#009B00; font-weight:700;">VIP</span>
+        </div>
+        <div class="right-detail-row">
+          <span class="detail-label">LTV</span>
+          <span class="detail-value">$12,400</span>
+        </div>
+        <div class="right-detail-row">
+          <span class="detail-label">Return Rate</span>
+          <span class="detail-value">3%</span>
+        </div>
+      </div>
+
+      <!-- Linked conversation -->
+      <div class="linked-conv">
+        <div class="linked-conv-title">LINKED CONVERSATION</div>
+        <div class="linked-conv-preview">"I need to cancel my order #ORD-2026-84721. I ordered the Dyson V15 Detect but I just found out..."</div>
+        <div class="linked-conv-link">View in timeline</div>
+      </div>
+    </div>
+
+    <!-- Comments in right panel -->
+    <div class="right-comments">
+      <div class="right-comment-item">
+        <div class="comment-avatar" style="background:#8C69F0">AI</div>
+        <div>
+          <div class="right-comment-body">
+            <strong>Gladly AI</strong> created this task with recommendation: Approve full cancellation + $25 loyalty credit.
+          </div>
+          <div class="view-in-timeline">View in timeline</div>
+        </div>
+      </div>
+
+      <div class="right-comment-input">
+        <div class="comment-avatar" style="background:#E8913A; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:#fff; flex-shrink:0;">LG</div>
+        <div style="flex:1;">
+          <div class="right-comment-field">Comment on this task</div>
+          <div class="right-comment-toolbar">
+            <div class="right-comment-icons">
+              <span>&#9786;</span>
+              <span>@</span>
+              <span style="font-size:13px; font-weight:600;">Aa</span>
+            </div>
+            <button class="send-btn">&#9654;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HITL Action Buttons -->
+    <div class="hitl-actions">
+      <div class="hitl-actions-title">Review Decision</div>
+      <div class="hitl-btn-group">
+        <button class="hitl-btn approve" onclick="showModal('approve')">
+          &#10003; Approve Cancellation
+          <span class="hitl-shortcut">&#8984;+Enter</span>
+        </button>
+        <button class="hitl-btn modify" onclick="showModal('modify')">
+          &#9998; Modify &amp; Approve
+          <span class="hitl-shortcut">&#8984;+M</span>
+        </button>
+        <button class="hitl-btn reject" onclick="showModal('reject')">
+          Reject
+          <span class="hitl-shortcut">&#8984;+R</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="approveModal">
+  <div class="modal-box">
+    <div class="modal-title">Approve Cancellation</div>
+    <div class="modal-body">
+      You're approving the full cancellation of order #ORD-2026-84721 ($847.00) with a $25 loyalty credit for Rachel Thompson. The AI will process the refund and send confirmation to the customer.
+    </div>
+    <textarea class="modal-textarea" placeholder="Add a note (optional)..."></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal('approveModal')">Cancel</button>
+      <button class="modal-btn confirm-approve" onclick="completeAction('approved')">Approve &amp; Close Task</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modifyModal">
+  <div class="modal-box">
+    <div class="modal-title">Modify &amp; Approve</div>
+    <div class="modal-body">
+      Adjust the AI's recommendation before approving. You can change the refund amount, credit, or add conditions.
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px; font-weight:600; color:#999; display:block; margin-bottom:4px;">Refund Amount</label>
+      <input type="text" value="$847.00" style="width:100%; padding:8px 12px; border:1px solid #e0e0e0; border-radius:8px; font-size:14px;">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px; font-weight:600; color:#999; display:block; margin-bottom:4px;">Loyalty Credit</label>
+      <input type="text" value="$25.00" style="width:100%; padding:8px 12px; border:1px solid #e0e0e0; border-radius:8px; font-size:14px;">
+    </div>
+    <textarea class="modal-textarea" placeholder="Reason for modification..."></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal('modifyModal')">Cancel</button>
+      <button class="modal-btn confirm-modify" onclick="completeAction('modified')">Approve Modified &amp; Close Task</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal-box">
+    <div class="modal-title">Reject Recommendation</div>
+    <div class="modal-body">
+      Reject the AI's cancellation recommendation. The customer will remain in queue and you can handle this manually.
+    </div>
+    <textarea class="modal-textarea" placeholder="Reason for rejection (required)..."></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal('rejectModal')">Cancel</button>
+      <button class="modal-btn confirm-reject" onclick="completeAction('rejected')">Reject &amp; Close Task</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Open right panel when task card is clicked
+  function openTaskPanel() {
+    const panel = document.getElementById('rightPanel');
+    const card = document.getElementById('hitlTaskCard');
+    panel.classList.add('open');
+    card.classList.add('selected');
+  }
+
+  // Close right panel
+  function closeTaskPanel() {
+    const panel = document.getElementById('rightPanel');
+    const card = document.getElementById('hitlTaskCard');
+    panel.classList.remove('open');
+    card.classList.remove('selected');
+  }
+
+  // Select customer in left list
+  function selectCustomer(el) {
+    document.querySelectorAll('.customer-item').forEach(item => item.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // Show modals
+  function showModal(type) {
+    document.getElementById(type + 'Modal').classList.add('open');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  // Complete HITL action
+  function completeAction(action) {
+    // Close all modals
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+
+    const card = document.getElementById('hitlTaskCard');
+    const dot = card.querySelector('.task-status-dot');
+    const closeBtn = card.querySelector('.task-close-btn');
+    const rightDot = document.querySelector('#rightPanel .task-status-dot');
+    const rightCloseBtn = document.getElementById('rightCloseBtn');
+
+    if (action === 'approved') {
+      // Update task card to show approved/closed state
+      dot.classList.remove('ai');
+      dot.classList.add('closed');
+      dot.style.display = 'none';
+      dot.insertAdjacentHTML('afterend', '<span class="completed-check">&#10003;</span>');
+
+      rightDot.style.display = 'none';
+      rightDot.insertAdjacentHTML('afterend', '<span class="completed-check">&#10003;</span>');
+
+      closeBtn.textContent = 'Reopen';
+      rightCloseBtn.textContent = 'Reopen';
+
+      // Update header text
+      card.querySelector('.task-header-label').innerHTML = '<span class="completed-check" style="margin-right:4px;">&#10003;</span> <strong>Closed Task</strong> for <span class="task-assignee">Lisa Green in Tier 2 Support</span> <span class="ai-badge"><span class="ai-icon">&#10024;</span> AI Created</span>';
+
+      // Add approved comment to timeline
+      const timeline = document.querySelector('.timeline-scroll');
+      const approvedEvent = document.createElement('div');
+      approvedEvent.className = 'timeline-event';
+      approvedEvent.innerHTML = '<span class="event-icon">&#10003;</span> <strong>Lisa Green</strong> approved AI recommendation — Cancellation + $25 credit &mdash; just now';
+      timeline.appendChild(approvedEvent);
+
+      const closedEvent = document.createElement('div');
+      closedEvent.className = 'timeline-event';
+      closedEvent.innerHTML = '<span class="event-icon">&#10003;</span> Task closed &mdash; just now';
+      timeline.appendChild(closedEvent);
+
+      // Add a new AI response in timeline
+      const aiMsg = document.createElement('div');
+      aiMsg.innerHTML = `
+        <div class="msg-meta agent-meta">Gladly AI responded via chat — just now</div>
+        <div class="chat-msg agent">
+          <div class="msg-avatar" style="background:#8C69F0">AI</div>
+          <div class="msg-bubble">
+            Great news, Rachel! Your cancellation for order #ORD-2026-84721 has been approved. You'll receive a full refund of $847.00 to your Visa ending in 4821 within 3-5 business days. We've also added a $25 loyalty credit to your account for your next purchase. Thanks for being a valued VIP member!
+          </div>
+        </div>
+      `;
+      timeline.appendChild(aiMsg);
+
+      // Scroll to bottom
+      timeline.scrollTop = timeline.scrollHeight;
+
+      // Update HITL actions to show completed state
+      document.querySelector('.hitl-actions').innerHTML = `
+        <div style="text-align:center; padding:16px 0;">
+          <div style="font-size:32px; margin-bottom:8px;">&#10003;</div>
+          <div style="font-size:15px; font-weight:600; color:#009B00; margin-bottom:4px;">Approved</div>
+          <div style="font-size:13px; color:#888;">Full cancellation + $25 credit</div>
+          <div style="font-size:12px; color:#999; margin-top:8px;">Resolved by Lisa Green &bull; just now</div>
+        </div>
+      `;
+
+    } else if (action === 'modified') {
+      dot.classList.remove('ai');
+      dot.classList.add('closed');
+      dot.style.display = 'none';
+      dot.insertAdjacentHTML('afterend', '<span class="completed-check" style="color:#FFBE00;">&#10003;</span>');
+      closeBtn.textContent = 'Reopen';
+      rightCloseBtn.textContent = 'Reopen';
+
+      document.querySelector('.hitl-actions').innerHTML = `
+        <div style="text-align:center; padding:16px 0;">
+          <div style="font-size:32px; margin-bottom:8px; color:#FFBE00;">&#10003;</div>
+          <div style="font-size:15px; font-weight:600; color:#FFBE00; margin-bottom:4px;">Modified &amp; Approved</div>
+          <div style="font-size:13px; color:#888;">Approved with modifications</div>
+          <div style="font-size:12px; color:#999; margin-top:8px;">Resolved by Lisa Green &bull; just now</div>
+        </div>
+      `;
+
+    } else if (action === 'rejected') {
+      dot.classList.remove('ai');
+      dot.classList.add('overdue');
+      closeBtn.textContent = 'Reopen';
+      rightCloseBtn.textContent = 'Reopen';
+
+      document.querySelector('.hitl-actions').innerHTML = `
+        <div style="text-align:center; padding:16px 0;">
+          <div style="font-size:32px; margin-bottom:8px; color:#FA183C;">&#10007;</div>
+          <div style="font-size:15px; font-weight:600; color:#FA183C; margin-bottom:4px;">Rejected</div>
+          <div style="font-size:13px; color:#888;">AI recommendation was rejected</div>
+          <div style="font-size:12px; color:#999; margin-top:8px;">Manual handling required &bull; Lisa Green</div>
+        </div>
+      `;
+    }
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.metaKey && e.key === 'Enter') {
+      e.preventDefault();
+      if (document.getElementById('rightPanel').classList.contains('open')) {
+        showModal('approve');
+      }
+    }
+    if (e.metaKey && e.key === 'm') {
+      e.preventDefault();
+      if (document.getElementById('rightPanel').classList.contains('open')) {
+        showModal('modify');
+      }
+    }
+    if (e.metaKey && e.key === 'r') {
+      e.preventDefault();
+      if (document.getElementById('rightPanel').classList.contains('open')) {
+        showModal('reject');
+      }
+    }
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+    }
+  });
+</script>
+
+</body>
+</html>
