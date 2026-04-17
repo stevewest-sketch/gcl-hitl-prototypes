@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/HITL-Task-Prototype-v6.html",
+      "permanent": false
+    }
+  ]
+}
