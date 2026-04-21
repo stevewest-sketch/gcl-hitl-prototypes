@@ -215,40 +215,6 @@
   .msg-bub{padding: var(--sp-3) var(--sp-4); border-radius: 16px; font: var(--copy); color: var(--black); line-height: 1.62; box-shadow: 0 1px 2px rgba(0,0,0,.04); background: var(--white); border: 1px solid var(--gray-200)}
   .msg-dots{color: var(--gray-500); margin-top: var(--sp-2); cursor: pointer}
 
-  /* "Sent with Team Assist" badge — appears inside outbound AI bubbles triggered by approval */
-  .ai-badge{
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font: 700 9px/1 var(--ff);
-    letter-spacing: 0.5px;
-    color: var(--purple-assist);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--purple-100);
-  }
-  .ai-badge .sparkle{ font-size: 11px; }
-
-  /* ASSIST CHIP (timeline marker for an AI↔human decision) */
-  .assist-chip{
-    display:flex; align-items:center; gap: var(--sp-2);
-    padding: 8px 14px;
-    margin: var(--sp-3) auto;
-    max-width: 540px;
-    background: var(--purple-100);
-    border-radius: var(--radius-pill);
-    font: var(--copy-sm); color: var(--black);
-    cursor: pointer;
-    justify-content: center;
-    transition: background .15s;
-  }
-  .assist-chip:hover{background: #E6DEFC}
-  .assist-chip .sparkle{color: var(--purple-assist); font-weight: 700}
-  .assist-chip .who{color: var(--black); font-weight: 700}
-  .assist-chip .when{color: var(--gray-700)}
-  .assist-chip.handoff{background: var(--gray-100)}
-
   /* BOTTOM BAR */
   .bottom-bar{height: 48px; background: var(--white); border-top: 1px solid var(--gray-200); display:flex; align-items: center; padding: 0 var(--sp-4); gap: var(--sp-3); position: relative}
   .bb-assigned{display:flex; align-items:center; gap: var(--sp-3); padding-right: var(--sp-4); border-right: 1px solid var(--gray-200); min-width: 260px}
@@ -614,13 +580,20 @@ const JORDAN = {
     mode: 'refund'
   },
   decisions: {
-    approve: (s) => ({
-      copilotReply: `Done — I've issued a $189 refund${s.mode === 'credit' ? ' (store credit)' : ' to Jordan\'s Visa ···8204'} plus a $${s.creditAmount} thank-you credit, and emailed the return label. Wishing him a smooth recovery.`,
-      timelineReceipt: `<span class="check">✓</span> Gladly AI issued a $189 refund and emailed a return label — just now · <a href="#">View API call</a>`,
-      customerReply: `Hi Jordan — really sorry to hear about your injury. Good news: we're making this right. A full refund of $189 is on its way to your Visa ending 8204, and a prepaid UPS return label just landed in your inbox. We've also added a $${s.creditAmount} credit to your account for when you're back. Wishing you a smooth recovery.`,
-      customerChannel: 'email',
-      assistChip: (s) => `<span class="sparkle">⚡</span> <span class="who">Lisa</span> approved a return exception for <strong>$189</strong>${s.creditAmount !== 25 ? ` with a $${s.creditAmount} credit` : ''} <span class="when">· just now</span>`
-    }),
+    approve: (s) => {
+      const events = [`<strong>Lisa</strong> approved the return exception — just now`];
+      if (s.creditAmount !== 25) {
+        events.push(`<strong>Lisa</strong> updated the thank-you credit to $${s.creditAmount} — just now`);
+      }
+      events.push(`Gladly AI issued a $189 refund to Visa ···8204 — just now`);
+      events.push(`Gladly AI emailed a prepaid UPS return label to Jordan — just now`);
+      return {
+        copilotReply: `Done — $189 refund on its way to Jordan's Visa ···8204, a $${s.creditAmount} thank-you credit on the account, and the return label's in his inbox.`,
+        timelineEvents: events,
+        customerReply: `Hi Jordan — really sorry to hear about your injury. Good news: we're making this right. A full refund of $189 is on its way to your Visa ending 8204, and a prepaid UPS return label just landed in your inbox. We've also added a $${s.creditAmount} credit to your account for when you're back. Wishing you a smooth recovery.`,
+        customerChannel: 'email'
+      };
+    },
     raise: (s, amt) => ({
       copilotReply: `Bumped it to a $${amt} credit. Want me to go with that?`,
       reAsk: true,
@@ -633,8 +606,10 @@ const JORDAN = {
     }),
     handoff: (s) => ({
       copilotReply: "Got it — I'll stop responding to Jordan and hand the conversation to you.",
-      timelineHandoff: true,
-      assistChip: () => `<span class="sparkle">⚡</span> <span class="who">Lisa</span> took over the conversation <span class="when">· just now</span>`
+      timelineEvents: [
+        `<strong>Lisa</strong> took over the conversation — just now`,
+        `Gladly AI stopped responding — manual handling now`
+      ]
     })
   }
 };
@@ -710,13 +685,20 @@ const RACHEL = {
     mode: 'refund'
   },
   decisions: {
-    approve: (s) => ({
-      copilotReply: `Done — cancellation processed, $847 refund on its way to Rachel's Visa ···4821, and a $${s.creditAmount} credit on her account.`,
-      timelineReceipt: `<span class="check">✓</span> Gladly AI cancelled the order and issued a $847 refund — just now · <a href="#">View API call</a>`,
-      customerReply: `Great news, Rachel — your cancellation is approved. A full refund of $847.00 is on its way to your Visa ending 4821 within 3–5 business days. I've also added a $${s.creditAmount} thank-you credit to your account. Thanks for being a VIP!`,
-      customerChannel: 'chat',
-      assistChip: (s) => `<span class="sparkle">⚡</span> <span class="who">Lisa</span> approved a cancellation for <strong>$847</strong>${s.creditAmount !== 25 ? ` with a $${s.creditAmount} credit` : ''} <span class="when">· just now</span>`
-    }),
+    approve: (s) => {
+      const events = [`<strong>Lisa</strong> approved the cancellation — just now`];
+      if (s.creditAmount !== 25) {
+        events.push(`<strong>Lisa</strong> updated the thank-you credit to $${s.creditAmount} — just now`);
+      }
+      events.push(`Gladly AI cancelled the order — just now`);
+      events.push(`Gladly AI issued a $847 refund to Visa ···4821 — just now`);
+      return {
+        copilotReply: `Done — order cancelled, $847 refund on its way to Rachel's Visa ···4821, and a $${s.creditAmount} thank-you credit on her account.`,
+        timelineEvents: events,
+        customerReply: `Great news, Rachel — your cancellation is approved. A full refund of $847.00 is on its way to your Visa ending 4821 within 3–5 business days. I've also added a $${s.creditAmount} thank-you credit to your account. Thanks for being a VIP!`,
+        customerChannel: 'chat'
+      };
+    },
     raise: (s, amt) => ({
       copilotReply: `Bumped it to a $${amt} credit. Still within discretion. Go?`,
       reAsk: true,
@@ -729,8 +711,10 @@ const RACHEL = {
     }),
     handoff: (s) => ({
       copilotReply: "Got it — I'll stop responding to Rachel and hand the conversation to you.",
-      timelineHandoff: true,
-      assistChip: () => `<span class="sparkle">⚡</span> <span class="who">Lisa</span> took over the conversation <span class="when">· just now</span>`
+      timelineEvents: [
+        `<strong>Lisa</strong> took over the conversation — just now`,
+        `Gladly AI stopped responding — manual handling now`
+      ]
     })
   }
 };
@@ -1005,21 +989,18 @@ function runDecision(action, arg) {
 
     const tl = document.getElementById('timeline');
 
-    // CHRONOLOGICAL ORDER:
-    // 1) Assist chip — the human's decision, the first thing that happened
-    const chipHtml = res.assistChip(session);
-    tl.insertAdjacentHTML('beforeend', `<div class="assist-chip" onclick="focusCopilotOnLast()">${chipHtml}</div>`);
+    // Chronological: each thing that happened becomes its own plain timeline event.
+    res.timelineEvents.forEach(text => {
+      tl.insertAdjacentHTML('beforeend', `<div class="tl-event">${text}</div>`);
+    });
 
-    // 2) API receipt — AI executed the action
-    tl.insertAdjacentHTML('beforeend', `<div class="tl-event">${res.timelineReceipt}</div>`);
-
-    // 3) AI's customer-facing reply — sent with the Team Assist badge
+    // AI's customer-facing reply — clean bubble, no badge.
     const chIcon = res.customerChannel === 'email'
       ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>'
       : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
     tl.insertAdjacentHTML('beforeend',
       `<div class="msg-meta right">Gladly AI replied — just now<span class="ch-icon">${chIcon}</span></div>
-       <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub"><div class="ai-badge"><span class="sparkle">⚡</span> Sent with Team Assist</div>${res.customerReply}</div><span class="msg-dots">⋮</span></div>`);
+       <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${res.customerReply}</div><span class="msg-dots">⋮</span></div>`);
 
     session.decided = true;
     document.getElementById('conv-status').textContent = 'Resolved by AI';
@@ -1031,8 +1012,9 @@ function runDecision(action, arg) {
     const res = handler(session);
     pushAIMsg(res.copilotReply);
     const tl = document.getElementById('timeline');
-    const chipHtml = res.assistChip();
-    tl.insertAdjacentHTML('beforeend', `<div class="assist-chip handoff" onclick="focusCopilotOnLast()">${chipHtml}</div>`);
+    res.timelineEvents.forEach(text => {
+      tl.insertAdjacentHTML('beforeend', `<div class="tl-event">${text}</div>`);
+    });
     document.getElementById('conv-status').textContent = 'Handed off to Lisa';
     session.decided = true;
     scrollTimeline();
