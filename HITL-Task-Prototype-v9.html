@@ -740,15 +740,11 @@ const JORDAN = {
       },
       draft: {
         reply: "Here's a first pass — procedural and clear.",
-        draftCard: { label: 'Draft', body: `Hi Jordan,
+        draftCard: { label: 'Draft', body: `Thanks for the context — really sorry about the ACL.
 
-Thanks for reaching out and explaining your situation. I'm sorry to hear about the ACL.
+Good news: I can approve the return on your Clifton 9s. Full refund to your original payment method in 5–7 business days, and a prepaid return label will land in your email shortly.
 
-I've reviewed your account and can approve the return on your Clifton 9s. Full refund to your original payment method — expect it in 5–7 business days. A prepaid return label will land in your email shortly.
-
-Let me know if you need anything else.
-
-— Joseph` },
+Anything else I can sort out for you?` },
         followup: "Want me to warm it up?",
         nextChips: [
           { text: "Make it warmer",  kind: 'primary',   action: 'warmer' },
@@ -757,15 +753,11 @@ Let me know if you need anything else.
       },
       warmer: {
         reply: "How's this — warmer:",
-        draftCard: { label: 'Draft · warmer', body: `Hi Jordan,
+        draftCard: { label: 'Draft · warmer', body: `Really sorry about the ACL — a year of training and then having the race taken away is brutal. Hoping surgery goes smoothly and recovery is quick.
 
-I'm really sorry about your ACL. A year of training for your first marathon and then having race day taken away — that's heartbreaking. I hope surgery goes smoothly and recovery is quick.
+Good news on the shoes: you're all set. Full refund on the Clifton 9s to your original payment method in 5–7 business days, and a prepaid return label will hit your email shortly.
 
-I've looked into your return and you're all set. Full refund on the Clifton 9s to your original payment method — expect it in 5–7 business days. A prepaid return label will land in your email shortly.
-
-When you're ready to lace up again, we'll be here. Take care of yourself.
-
-— Joseph` },
+When you're ready to lace up again, we'll be here.` },
         nextChips: [
           { text: "Use this draft",  kind: 'primary',   action: 'useDraft' },
           { text: "Back to the first draft", kind: 'secondary', action: 'draft' }
@@ -837,10 +829,10 @@ No rush — they'll be here when you are.
         nextChips: []
       }
     },
-    // Outbound body used when useDraft fires. Posts to the customer timeline.
+    // Outbound body used when useDraft fires. Posts to the customer timeline as a chat.
     outboundBodies: {
-      draft: `Hi Jordan, Thanks for reaching out and explaining your situation. I'm sorry to hear about the ACL. I've reviewed your account and can approve the return on your Clifton 9s. Full refund to your original payment method — expect it in 5–7 business days. A prepaid return label will land in your email shortly. Let me know if you need anything else. — Joseph`,
-      warmer: `Hi Jordan, I'm really sorry about your ACL. A year of training for your first marathon and then having race day taken away — that's heartbreaking. I hope surgery goes smoothly and recovery is quick. I've looked into your return and you're all set. Full refund on the Clifton 9s to your original payment method — expect it in 5–7 business days. A prepaid return label will land in your email shortly. When you're ready to lace up again, we'll be here. Take care of yourself. — Joseph`
+      draft: `Thanks for the context — really sorry about the ACL. Good news: I can approve the return on your Clifton 9s. Full refund to your original payment method in 5–7 business days, and a prepaid return label will land in your email shortly. Anything else I can sort out for you?`,
+      warmer: `Really sorry about the ACL — a year of training and then having the race taken away is brutal. Hoping surgery goes smoothly and recovery is quick. Good news on the shoes: you're all set. Full refund on the Clifton 9s to your original payment method in 5–7 business days, and a prepaid return label will hit your email shortly. When you're ready to lace up again, we'll be here.`
     },
     outboundSMSBody: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:\n• Ora Recovery Slide — hoka.com/ora\n• Bondi 8 — hoka.com/bondi8\n• Clifton Recovery Socks — hoka.com/clifton-socks\nNo rush — they'll be here when you are. — Joseph`
   }
