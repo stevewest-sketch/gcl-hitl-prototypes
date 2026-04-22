@@ -457,6 +457,33 @@
   .cm .cb{max-width: 420px; padding: var(--sp-3) var(--sp-4); border-radius: 16px; font: var(--copy); color: var(--black)}
   .cm.agent .cb{background: var(--gray-100)}
   .cm.ai .cb{background: transparent; padding-left: 0; padding-right: 0}
+  .cm.ai .cb.draft{ white-space: pre-wrap; }
+
+  /* Inline feedback row under every streaming AI message. Drafts also get a primary Use button. */
+  .cm.ai .cb-actions{
+    display: flex; align-items: center; gap: 4px;
+    margin-top: 10px; padding-left: 2px;
+  }
+  .cm.ai .cb-use{
+    background: var(--green-400); color: #fff;
+    padding: 7px 18px;
+    border: none; border-radius: var(--radius-pill);
+    font: var(--button); cursor: pointer;
+    margin-right: 10px;
+  }
+  .cm.ai .cb-use:hover{ background: var(--green-500); }
+  .cm.ai .cb-icon{
+    width: 28px; height: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--gray-500);
+    border: none; background: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .cm.ai .cb-icon:hover{ color: var(--gray-900); background: var(--gray-100); }
+  .cm.ai .cb-icon.thumb.up.active{ color: var(--green-400); }
+  .cm.ai .cb-icon.thumb.down.active{ color: var(--red-400); }
+  .cm.ai .cb-icon.copied{ color: var(--green-400); }
   body.focus-copilot .cm .cb{max-width: 540px}
 
   .typing{display:flex; gap: 4px; padding: 4px 0}
@@ -739,28 +766,23 @@ const JORDAN = {
         unlockChips: ['draft']
       },
       draft: {
-        reply: "Here's a first pass — procedural and clear.",
         draftCard: { label: 'Draft', body: `Thanks for the context — really sorry about the ACL.
 
 Good news: I can approve the return on your Clifton 9s. Full refund to your original payment method in 5–7 business days, and a prepaid return label will land in your email shortly.
 
 Anything else I can sort out for you?` },
-        followup: "Want me to warm it up?",
         nextChips: [
-          { text: "Make it warmer",  kind: 'primary',   action: 'warmer' },
-          { text: "Use this draft",  kind: 'secondary', action: 'useDraft' }
+          { text: "Make it warmer", kind: 'secondary', action: 'warmer' }
         ]
       },
       warmer: {
-        reply: "How's this — warmer:",
         draftCard: { label: 'Draft · warmer', body: `Really sorry about the ACL — a year of training and then having the race taken away is brutal. Hoping surgery goes smoothly and recovery is quick.
 
 Good news on the shoes: you're all set. Full refund on the Clifton 9s to your original payment method in 5–7 business days, and a prepaid return label will hit your email shortly.
 
 When you're ready to lace up again, we'll be here.` },
         nextChips: [
-          { text: "Use this draft",  kind: 'primary',   action: 'useDraft' },
-          { text: "Back to the first draft", kind: 'secondary', action: 'draft' }
+          { text: "Back to first draft", kind: 'secondary', action: 'draft' }
         ]
       },
       useDraft: {
@@ -805,19 +827,15 @@ When you're ready to lace up again, we'll be here.` },
         ]
       },
       draftRecSMS: {
-        reply: "Here's the SMS — short, no pressure:",
         draftCard: { label: 'SMS draft · to Jordan', body: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:
 
 • Ora Recovery Slide — hoka.com/ora
 • Bondi 8 — hoka.com/bondi8
 • Clifton Recovery Socks — hoka.com/clifton-socks
 
-No rush — they'll be here when you are.
-— Joseph` },
-        nextChips: [
-          { text: "Send SMS", kind: 'primary',   action: 'sendRecSMS' },
-          { text: "Edit it",  kind: 'secondary', action: 'draftRecSMS' }
-        ]
+No rush — they'll be here when you are.` },
+        useAction: 'sendRecSMS',
+        nextChips: []
       },
       sendRecSMS: {
         reply: "Sent via SMS. Nice finish.",
@@ -1294,30 +1312,25 @@ function runScript(action) {
   const beat = s.copilot.script[action];
   if (!beat) { pushAIMsg("Not sure how to handle that yet."); return; }
 
-  // Build extra content (draft card, action card, product list) if this beat has one
-  let extra = '';
-  if (beat.productList) {
-    extra += renderProductList(beat.productList);
-  }
+  // DRAFT beats: render the draft body AS the AI message (no preface, no outer container).
+  // The message gets an inline Use button + feedback icons via pushAIMsg({draft:true}).
   if (beat.draftCard) {
-    extra += renderDraftCard(beat.draftCard);
     session.jordanLastDraft = (action === 'warmer') ? 'warmer' : 'draft';
-  }
-  if (beat.actionCard) {
-    extra += renderActionCard(beat.actionCard);
-    session.jordanActionCard = beat.actionCard;
-  }
-
-  // Build reply text (with optional followup after a draft card)
-  let replyHtml = '';
-  if (beat.reply) replyHtml = beat.reply;
-  if (beat.followup) {
-    replyHtml = (replyHtml ? replyHtml + '<br><br>' : '') + beat.followup;
-  }
-
-  // Render the AI turn
-  if (replyHtml || extra) {
-    pushAIMsg(replyHtml, extra);
+    const body = escapeHtml(beat.draftCard.body).replace(/\n/g, '<br>');
+    pushAIMsg(body, { draft: true, useAction: beat.useAction || 'useDraft' });
+  } else {
+    // Build extra content (action card, product list) + optional followup for non-draft beats
+    let extra = '';
+    if (beat.productList) extra += renderProductList(beat.productList);
+    if (beat.actionCard) {
+      extra += renderActionCard(beat.actionCard);
+      session.jordanActionCard = beat.actionCard;
+    }
+    let replyHtml = beat.reply || '';
+    if (beat.followup) {
+      replyHtml = (replyHtml ? replyHtml + '<br><br>' : '') + beat.followup;
+    }
+    if (replyHtml || extra) pushAIMsg(replyHtml, { extra });
   }
 
   // Side effects
@@ -1464,19 +1477,79 @@ function pushAgentMsg(text) {
   box.appendChild(el);
   scrollRP();
 }
-function pushAIMsg(text, extra) {
+function pushAIMsg(text, extraOrOpts) {
+  let opts = {};
+  if (typeof extraOrOpts === 'string') opts.extra = extraOrOpts;
+  else if (extraOrOpts) opts = extraOrOpts;
+
   const box = document.getElementById('chat-msgs');
   const el = document.createElement('div');
   el.className = 'cm ai';
-  const body = text ? `<div class="cb">${text}</div>` : '';
-  el.innerHTML = body + (extra || '');
+  const cbClass = opts.draft ? 'cb draft' : 'cb';
+  const body = text ? `<div class="${cbClass}">${text}</div>` : '';
+  const extra = opts.extra || '';
+  // Every streaming AI message gets an inline feedback row; drafts also get a primary Use button.
+  const actions = (opts.noActions) ? '' : renderMessageActions(!!opts.draft, opts.useAction || 'useDraft');
+  el.innerHTML = body + extra + actions;
   box.appendChild(el);
   scrollRP();
   return el;
 }
 
-function renderDraftCard(card) {
-  return `<div class="draft-card"><div class="dc-label">${card.label}</div><div class="dc-body">${escapeHtml(card.body)}</div></div>`;
+function renderMessageActions(isDraft, useAction) {
+  const useBtn = isDraft
+    ? `<button class="cb-use" onclick="onUse(this, '${useAction || 'useDraft'}')">Use</button>`
+    : '';
+  return `<div class="cb-actions">
+    ${useBtn}
+    <button class="cb-icon regen" title="Regenerate" onclick="onRegen(this)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 8a5.5 5.5 0 11-1.6-3.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M13.5 2.5v2.5H11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+    <button class="cb-icon copy" title="Copy" onclick="onCopy(this)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="5" y="3" width="8" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="3" y="5" width="8" height="10" rx="1" stroke="currentColor" stroke-width="1.3" fill="#fff"/></svg></button>
+    <button class="cb-icon thumb up" title="Helpful" onclick="onThumb(this, 'up')"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 7v6h7l2-5V6h-4V3a1 1 0 00-2 0l-1 4H4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></button>
+    <button class="cb-icon thumb down" title="Not helpful" onclick="onThumb(this, 'down')"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 9V3h7l2 5v2h-4v3a1 1 0 01-2 0l-1-4H4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></button>
+  </div>`;
+}
+
+function onUse(btn, action) {
+  const actions = btn.closest('.cb-actions');
+  if (actions) actions.remove(); // Use can't be clicked twice
+  runScript(action || 'useDraft');
+}
+
+function onCopy(btn) {
+  const msg = btn.closest('.cm.ai');
+  const cb = msg && msg.querySelector('.cb');
+  if (!cb) return;
+  const text = cb.innerText.replace(/\s+$/, '');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).catch(() => {});
+  }
+  btn.classList.add('copied');
+  showToast('Copied to clipboard');
+  setTimeout(() => btn.classList.remove('copied'), 900);
+}
+
+function onThumb(btn, dir) {
+  const row = btn.closest('.cb-actions');
+  if (!row) return;
+  const other = row.querySelector(dir === 'up' ? '.thumb.down' : '.thumb.up');
+  if (btn.classList.contains('active')) {
+    btn.classList.remove('active');
+  } else {
+    btn.classList.add('active');
+    if (other) other.classList.remove('active');
+  }
+}
+
+function onRegen(btn) {
+  // For draft messages, regenerating re-runs the same script beat; otherwise a quick toast.
+  const msg = btn.closest('.cm.ai');
+  if (msg && msg.querySelector('.cb.draft')) {
+    // Find whether this is the first draft or the warmer
+    const label = msg.querySelector('.cb.draft');
+    showToast("That's my best pass — try 'Make it warmer' for a different tone.");
+    return;
+  }
+  showToast("That's my take — let me know if you want a different angle.");
 }
 
 function renderActionCard(card) {
