@@ -412,6 +412,38 @@
   }
   .action-card .ac-done .check{ color: var(--green-400); margin-right: 6px; font-weight: 700; }
 
+  /* Product list — Team Assist's injury-recovery recommendations for Jordan */
+  .prod-list{
+    display: flex; flex-direction: column; gap: 6px;
+    margin-top: 8px;
+  }
+  .prod-row{
+    display: flex;
+    padding: 10px 12px;
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+  }
+  .prod-row .prod-name{
+    font: var(--copy-bold);
+    color: var(--black);
+    margin-bottom: 2px;
+  }
+  .prod-row .prod-price{
+    font: 400 12px/1.4 var(--ff);
+    color: var(--gray-700);
+    margin-left: 6px;
+  }
+  .prod-row .prod-reason{
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.5;
+  }
+  .prod-row .prod-link{
+    font: 400 11px/1.4 var(--ff);
+    color: var(--green-400);
+    margin-top: 4px;
+  }
+
   .cite{display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; vertical-align: super; font: 700 9px/1 var(--ff); color: var(--green-400); border: 1px solid var(--green-400); border-radius: 8px; margin-left: 2px; cursor: pointer; background: var(--white)}
   .cite:hover{background: var(--green-50)}
   .cite-pop{position: absolute; z-index: 50; background: var(--white); border: 1px solid var(--gray-300); border-radius: var(--radius-md); box-shadow: 0 4px 14px rgba(0,0,0,.12); padding: var(--sp-3); width: 280px; font: var(--copy-sm); color: var(--black); display: none}
@@ -621,7 +653,7 @@ const JORDAN = {
     avatarColor: '#6B8E6F',
     preview: "Return request — Clifton 9, 37 days past window. ACL injury, no race.",
     time: '5m',
-    channel: 'Email',
+    channel: 'Chat',
     priority: 'high'
   },
   profile: {
@@ -657,13 +689,27 @@ const JORDAN = {
   convHeader: { title: 'Apr 14 · Return request', status: 'Assigned to Joseph' },
   topic: 'Return request',
   events: [
-    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:02 AM', channel: 'email',
+    // ---- Prior conversation: Feb 8 — Jordan chats with Gladly AI to pick the Clifton 9 for Austin Marathon ----
+    { kind: 'event', text: '<strong>Feb 8</strong> · 2 months ago · Product consultation' },
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Feb 8, 7:42 PM', channel: 'chat',
+      text: "Hey — thinking about the Clifton 9 for the Austin Marathon in April. I've been in Bondi 7s for the last year. Worth the switch for race day?" },
+    { kind: 'amsg', time: 'Feb 8, 7:42 PM', channel: 'chat',
+      text: "Great pick for race day. The <strong>Clifton 9</strong> is ~30% lighter than the Bondi 7 with the same cushion DNA. Runners switching from the Bondi say it feels familiar but faster — the meta-rocker geometry keeps your stride efficient when fatigue sets in. Minimal break-in too, so you'll be ready for long runs right away. Want me to pull it up in your size?" },
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Feb 8, 7:44 PM', channel: 'chat',
+      text: "Yeah — men's 10.5, black/white." },
+    { kind: 'amsg', time: 'Feb 8, 7:44 PM', channel: 'chat',
+      text: "Done — order <strong>#GCL-55892</strong>, shipping to 2721 Maple. Good luck in Austin." },
+    { kind: 'event', text: 'Conversation closed — Feb 8, 7:45 PM' },
+
+    // ---- Current conversation: Apr 14 — Jordan asks to return, AI auto-rejects, he escalates, routed to Joseph ----
+    { kind: 'event', text: '<strong>Apr 14</strong> · Today · Return request' },
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:02 AM', channel: 'chat',
       text: "Hi, I need to return a pair of shoes — Order #GCL-55892. I bought them for a marathon I can no longer run. Is there a way to send them back?" },
-    { kind: 'amsg', time: 'Apr 14, 9:03 AM',
+    { kind: 'amsg', time: 'Apr 14, 9:03 AM', channel: 'chat',
       text: "Hi Jordan, thanks for reaching out. I looked at your order and unfortunately this is past our 30-day return window, so I'm not able to process a return on this one. Let me know if there's anything else I can help with." },
-    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:04 AM', channel: 'email',
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:04 AM', channel: 'chat',
       text: "It's not a defect issue. I've been training for my first marathon for over a year. I bought these specifically for race day. Last week I found out I have a torn ACL — I'm looking at surgery and months of recovery. The race is gone. I honestly don't even want to look at the shoes right now." },
-    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:05 AM', channel: 'email',
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:05 AM', channel: 'chat',
       text: "They've never been worn outside, just tried on at home. I get that the window is the window, but this isn't me changing my mind. Everything changed. Is there any way to make an exception?" },
     { kind: 'event', text: 'Routed from <a href="#">Gladly AI</a> to <a href="#">Joseph Ansanelli</a> — Apr 14, 9:06 AM' }
   ],
@@ -698,11 +744,11 @@ const JORDAN = {
 
 Thanks for reaching out and explaining your situation. I'm sorry to hear about the ACL.
 
-I've reviewed your account and can approve the return on your Clifton 9s. Full refund to your original payment method — expect it in 5–7 business days. Prepaid return label is on the way to your email.
+I've reviewed your account and can approve the return on your Clifton 9s. Full refund to your original payment method — expect it in 5–7 business days. A prepaid return label will land in your email shortly.
 
 Let me know if you need anything else.
 
-Joseph` },
+— Joseph` },
         followup: "Want me to warm it up?",
         nextChips: [
           { text: "Make it warmer",  kind: 'primary',   action: 'warmer' },
@@ -715,11 +761,11 @@ Joseph` },
 
 I'm really sorry about your ACL. A year of training for your first marathon and then having race day taken away — that's heartbreaking. I hope surgery goes smoothly and recovery is quick.
 
-I've looked into your return and you're all set. Full refund on the Clifton 9s to your original payment method — expect it in 5–7 business days. Sending a prepaid return label to your email now.
+I've looked into your return and you're all set. Full refund on the Clifton 9s to your original payment method — expect it in 5–7 business days. A prepaid return label will land in your email shortly.
 
 When you're ready to lace up again, we'll be here. Take care of yourself.
 
-Joseph` },
+— Joseph` },
         nextChips: [
           { text: "Use this draft",  kind: 'primary',   action: 'useDraft' },
           { text: "Back to the first draft", kind: 'secondary', action: 'draft' }
@@ -727,7 +773,7 @@ Joseph` },
       },
       useDraft: {
         reply: "Sent. Want me to process the return next?",
-        sideEffect: 'sendOutboundEmail',
+        sideEffect: 'sendOutboundChat',
         nextChips: [
           { text: "Process the return", kind: 'primary', action: 'processReturn' }
         ]
@@ -746,16 +792,57 @@ Joseph` },
         nextChips: []
       },
       approveRun: {
-        // no reply text — the action card re-renders itself with checkmarks
+        // no reply text — the action card re-renders itself with checkmarks,
+        // and the next chip unlocks the product-consultation step
         sideEffect: 'approveRun',
+        nextChips: [
+          { text: "Recommend something for his recovery", kind: 'primary', action: 'recommend' }
+        ]
+      },
+      recommend: {
+        reply: "Based on what Jordan already owns (Bondi 7, Mach 5, and the Clifton 9 he just bought) and where he's at — torn ACL, 8–12 weeks of recovery — here are three that fit:",
+        productList: [
+          { name: "Hoka Ora Recovery Slide", price: "$59.99", reason: "Built for post-surgery — easy on/off, max cushion, low drop.", link: "hoka.com/ora" },
+          { name: "Hoka Bondi 8",            price: "$164.99", reason: "The cushion he already trusts, updated — walks before runs.",     link: "hoka.com/bondi8" },
+          { name: "Hoka Clifton Recovery Socks", price: "$24.99", reason: "Compression fit. A small kindness.",                           link: "hoka.com/clifton-socks" }
+        ],
+        followup: "He prefers SMS. Want me to draft a message?",
+        nextChips: [
+          { text: "Draft an SMS", kind: 'primary',   action: 'draftRecSMS' },
+          { text: "Skip it",      kind: 'secondary', action: 'skipRec' }
+        ]
+      },
+      draftRecSMS: {
+        reply: "Here's the SMS — short, no pressure:",
+        draftCard: { label: 'SMS draft · to Jordan', body: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:
+
+• Ora Recovery Slide — hoka.com/ora
+• Bondi 8 — hoka.com/bondi8
+• Clifton Recovery Socks — hoka.com/clifton-socks
+
+No rush — they'll be here when you are.
+— Joseph` },
+        nextChips: [
+          { text: "Send SMS", kind: 'primary',   action: 'sendRecSMS' },
+          { text: "Edit it",  kind: 'secondary', action: 'draftRecSMS' }
+        ]
+      },
+      sendRecSMS: {
+        reply: "Sent via SMS. Nice finish.",
+        sideEffect: 'sendOutboundSMS',
+        nextChips: []
+      },
+      skipRec: {
+        reply: "Skipping the follow-up. Good call if he's not ready.",
         nextChips: []
       }
     },
-    // Outbound email body used when useDraft fires. Picks up whichever draft was last shown.
+    // Outbound body used when useDraft fires. Posts to the customer timeline.
     outboundBodies: {
-      draft: `Hi Jordan, Thanks for reaching out and explaining your situation. I'm sorry to hear about the ACL. I've reviewed your account and can approve the return on your Clifton 9s. Full refund to your original payment method — expect it in 5–7 business days. Prepaid return label is on the way to your email. Let me know if you need anything else. — Joseph`,
-      warmer: `Hi Jordan, I'm really sorry about your ACL. A year of training for your first marathon and then having race day taken away — that's heartbreaking. I hope surgery goes smoothly and recovery is quick. I've looked into your return and you're all set. Full refund on the Clifton 9s to your original payment method — expect it in 5–7 business days. Sending a prepaid return label to your email now. When you're ready to lace up again, we'll be here. Take care of yourself. — Joseph`
-    }
+      draft: `Hi Jordan, Thanks for reaching out and explaining your situation. I'm sorry to hear about the ACL. I've reviewed your account and can approve the return on your Clifton 9s. Full refund to your original payment method — expect it in 5–7 business days. A prepaid return label will land in your email shortly. Let me know if you need anything else. — Joseph`,
+      warmer: `Hi Jordan, I'm really sorry about your ACL. A year of training for your first marathon and then having race day taken away — that's heartbreaking. I hope surgery goes smoothly and recovery is quick. I've looked into your return and you're all set. Full refund on the Clifton 9s to your original payment method — expect it in 5–7 business days. A prepaid return label will land in your email shortly. When you're ready to lace up again, we'll be here. Take care of yourself. — Joseph`
+    },
+    outboundSMSBody: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:\n• Ora Recovery Slide — hoka.com/ora\n• Bondi 8 — hoka.com/bondi8\n• Clifton Recovery Socks — hoka.com/clifton-socks\nNo rush — they'll be here when you are. — Joseph`
   }
   // No `decisions` — Jordan uses the `copilot.script` state machine.
 };
@@ -1038,7 +1125,10 @@ function renderEvent(e) {
       <div class="msg inbound"><div class="msg-av" style="background:${e.avColor}">${e.av}</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
   }
   if (e.kind === 'amsg') {
-    return `<div class="msg-meta right">Gladly AI replied — ${e.time}<span class="ch-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span></div>
+    const chIcon = e.channel === 'email'
+      ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>'
+      : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
+    return `<div class="msg-meta right">Gladly AI replied — ${e.time}<span class="ch-icon">${chIcon}</span></div>
       <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
   }
   return '';
@@ -1212,8 +1302,11 @@ function runScript(action) {
   const beat = s.copilot.script[action];
   if (!beat) { pushAIMsg("Not sure how to handle that yet."); return; }
 
-  // Build extra content (draft card or action card) if this beat has one
+  // Build extra content (draft card, action card, product list) if this beat has one
   let extra = '';
+  if (beat.productList) {
+    extra += renderProductList(beat.productList);
+  }
   if (beat.draftCard) {
     extra += renderDraftCard(beat.draftCard);
     session.jordanLastDraft = (action === 'warmer') ? 'warmer' : 'draft';
@@ -1236,8 +1329,9 @@ function runScript(action) {
   }
 
   // Side effects
-  if (beat.sideEffect === 'sendOutboundEmail') sideEffectSendOutbound();
-  if (beat.sideEffect === 'approveRun') sideEffectApproveRun();
+  if (beat.sideEffect === 'sendOutboundChat') sideEffectSendOutbound('chat');
+  if (beat.sideEffect === 'approveRun')       sideEffectApproveRun();
+  if (beat.sideEffect === 'sendOutboundSMS')  sideEffectSendOutboundSMS();
 
   // Update chip rail for progressive disclosure OR for explicit nextChips
   if (beat.nextChips !== undefined) {
@@ -1275,23 +1369,55 @@ const JORDAN_CHIP_DEFS = {
   processReturn: { text: "Process the return",      kind: 'primary',   action: 'processReturn' }
 };
 
-function sideEffectSendOutbound() {
+const CH_ICON = {
+  email: '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>',
+  chat:  '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>',
+  sms:   '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="10" height="12" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><circle cx="8" cy="12" r="0.8" fill="currentColor"/></svg>'
+};
+const CH_LABEL = { email: 'sent an email', chat: 'sent a chat', sms: 'sent an SMS' };
+
+function sideEffectSendOutbound(channel) {
+  channel = channel || 'chat';
   const s = currentScenario();
   const bodyKey = session.jordanLastDraft || 'warmer';
   const body = s.copilot.outboundBodies[bodyKey];
   const tl = document.getElementById('timeline');
-  const chIcon = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>';
+  const icon = CH_ICON[channel];
+  const label = CH_LABEL[channel];
   tl.insertAdjacentHTML('beforeend',
-    `<div class="msg-meta right">Joseph Ansanelli (You) sent an email — just now<span class="ch-icon">${chIcon}</span></div>
+    `<div class="msg-meta right">Joseph Ansanelli (You) ${label} — just now<span class="ch-icon">${icon}</span></div>
      <div class="msg outbound"><div class="msg-av" style="background:#7BB86F">JA</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
   scrollTimeline();
-  // Jordan replies one beat later
+  // Jordan replies one beat later (same channel)
   setTimeout(() => {
     tl.insertAdjacentHTML('beforeend',
-      `<div class="msg-meta"><span class="ch-icon">${chIcon}</span>Jordan Rivera sent an email — just now</div>
+      `<div class="msg-meta"><span class="ch-icon">${icon}</span>Jordan Rivera ${label} — just now</div>
        <div class="msg inbound"><div class="msg-av" style="background:#6B8E6F">JR</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
     scrollTimeline();
   }, 1500);
+}
+
+function sideEffectSendOutboundSMS() {
+  const s = currentScenario();
+  const body = (s.copilot.outboundSMSBody || '').replace(/\n/g, '<br>');
+  const tl = document.getElementById('timeline');
+  const icon = CH_ICON.sms;
+  tl.insertAdjacentHTML('beforeend',
+    `<div class="msg-meta right">Joseph Ansanelli (You) sent an SMS — just now<span class="ch-icon">${icon}</span></div>
+     <div class="msg outbound"><div class="msg-av" style="background:#7BB86F">JA</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
+  scrollTimeline();
+}
+
+function renderProductList(items) {
+  const rows = items.map(p => `
+    <div class="prod-row">
+      <div class="prod-body">
+        <div class="prod-name">${p.name} <span class="prod-price">${p.price}</span></div>
+        <div class="prod-reason">${p.reason}</div>
+        <div class="prod-link">${p.link}</div>
+      </div>
+    </div>`).join('');
+  return `<div class="prod-list">${rows}</div>`;
 }
 
 function sideEffectApproveRun() {
@@ -1435,14 +1561,18 @@ function sendMessage() {
 
     // Team Assist scripted flow (Jordan) — phrase → script key
     if (s.copilot.script) {
-      if (/catch.*up|summary|summarize|who is/.test(lc))       return runScript('catchMeUp');
-      if (/sentiment|feeling|mood|tone/.test(lc))              return runScript('sentiment');
+      if (/catch.*up|summary|summarize|who is/.test(lc))         return runScript('catchMeUp');
+      if (/sentiment|feeling|mood|tone/.test(lc))                return runScript('sentiment');
       if (/can i approve|policy|allowed|discretion|can we/.test(lc)) return runScript('canApprove');
-      if (/warm(er)?|friendl|kind/.test(lc))                    return runScript('warmer');
+      if (/send.*sms|text.*him|send it.*sms/.test(lc))           return runScript('sendRecSMS');
+      if (/sms|text message/.test(lc))                           return runScript('draftRecSMS');
+      if (/recommend|suggest|product|recovery|for him/.test(lc)) return runScript('recommend');
+      if (/warm(er)?|friendl|kind/.test(lc))                     return runScript('warmer');
       if (/^send|use this|use it|send it|send the draft/.test(lc)) return runScript('useDraft');
-      if (/process|refund|return|run.*plan/.test(lc))           return runScript('processReturn');
+      if (/process|refund|return|run.*plan/.test(lc))            return runScript('processReturn');
       if (/^(approve|yes|go|do it|run it|approve.*run)/.test(lc)) return runScript('approveRun');
-      if (/draft|write|respond/.test(lc))                       return runScript('draft');
+      if (/draft|write|respond/.test(lc))                        return runScript('draft');
+      if (/skip|nevermind|no thanks/.test(lc))                   return runScript('skipRec');
       pushAIMsg("Let me know — catch you up, check sentiment, draft a response, or process the return.");
       return;
     }
