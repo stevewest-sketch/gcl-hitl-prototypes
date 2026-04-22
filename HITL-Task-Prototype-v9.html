@@ -23,13 +23,14 @@
 <style>
   :root {
     --green-400: #009B00;
-    --green-500: #007A00;
+    --green-500: #0c7c0c;
+    --green-300: #64b964;
     --green-100: #D8F4D8;
     --green-50:  #EAF7EA;
     --navy:      #0F203C;
     --red-400:   #D50E0E;
     --red-50:    #FFF0F2;
-    --black:     #111111;   /* defaultFontBlack — softer than pure #000 per Gladly system */
+    --black:     #111111;
     --white:     #FFFFFF;
     --gray-50:   #FAFAFA;
     --gray-100:  #F6F6F6;
@@ -40,9 +41,9 @@
     --gray-600:  #919191;
     --gray-700:  #767676;
     --gray-800:  #484848;
-    --gray-900:  #1A1A1A;
+    --gray-900:  #242424;
     --purple-assist: #8C69F0;
-    --purple-100:    #F3EFFE;
+    --purple-100:    #e6dcff;
 
     --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
 
@@ -59,8 +60,8 @@
     --radius-pill: 20px;
     --radius-round: 9999px;
 
-    --shadow-sm: 0 2px 8px rgba(0,0,0,.08);
-    --shadow-soft: 5px 5px 25px rgba(0,0,0,.15);
+    --shadow-sm: 0 2px 8px 0 rgba(0,0,0,0.08);
+    --shadow-soft: 0 2px 4px 0 rgba(0,0,0,0.15);
   }
 
   *{margin:0;padding:0;box-sizing:border-box}
@@ -219,10 +220,10 @@
 
   /* CONVERSATION */
   .conv-wrap{flex:1; display:flex; flex-direction:column; overflow:hidden}
-  .conv-header{background: var(--white); border-bottom: 1px solid var(--gray-200); padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
+  .conv-header{background: none; border-bottom: 1px solid var(--gray-200); padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
   .conv-header .title{color: var(--black); font-weight: 700}
   .conv-header-right{position:absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); display:flex; gap: var(--sp-2); color: var(--gray-500)}
-  .conv-scroll{flex:1; overflow-y:auto; padding: var(--sp-6) var(--sp-6); background: var(--white)}
+  .conv-scroll{flex:1; overflow-y:auto; padding: var(--sp-6) var(--sp-6); background: none;}
   .tl-event{text-align:center; padding: var(--sp-3) 0; font: var(--copy-sm); color: var(--gray-700)}
   .tl-event strong{color: var(--black); font-weight: 700}
   .tl-event a{color: var(--green-400); font-weight: 500}
@@ -255,15 +256,15 @@
   .bb-topic .tval{color: var(--green-400)}
   .bb-split{display:flex; background: var(--green-400); border-radius: var(--radius-pill); overflow: hidden; height: 32px}
   .bb-split .bbs-main{padding: 0 var(--sp-4); color: #fff; font: 500 12px/1 var(--ff); display:flex; align-items:center; cursor:pointer}
-  .bb-split .bbs-main:hover{background: var(--green-500)}
+  .bb-split .bbs-main:hover{background: var(--green-300)}
   .bb-split .bbs-caret{padding: 0 var(--sp-2); border-left: 1px solid rgba(255,255,255,.25); display:flex; align-items:center; color: #fff; cursor: pointer}
 
   /* COPILOT */
-  .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200)}
-  .rp-gutter{width: 32px; padding: var(--sp-4) 0 var(--sp-6); display:flex; flex-direction:column; align-items: flex-end; gap: var(--sp-1); background: var(--gray-100)}
-  .rp-tab{width: 32px; height: 32px; border-radius: 8px 0 0 8px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer}
+  .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200); position: relative; overflow: visible}
+  .rp-gutter{width: 32px; padding: var(--sp-4) 0 var(--sp-6); display:flex; flex-direction:column; align-items: flex-end; gap: var(--sp-1); background: transparent; position: absolute; left: -32px; top: 0; bottom: 0; z-index: 1}
+  .rp-tab{width: 24px; height: 24px; border-radius: 12px 0 0 12px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer}
   .rp-tab.active{background: var(--purple-assist); color: #fff}
-  .rp-tab.expand{margin-bottom: var(--sp-2); background: var(--white); color: var(--gray-700)}
+  .rp-tab.expand{background: var(--white); color: var(--gray-700)}
   .rp-tab.expand:hover{background: var(--gray-200)}
   body.focus-copilot .rp-tab.expand{background: var(--purple-100); color: var(--purple-assist)}
   .rp-body{flex:1; display:flex; flex-direction:column; background: var(--white); overflow: hidden}
@@ -393,37 +394,31 @@
     padding-top: 10px;
     border-top: 1px solid var(--gray-200);
   }
-  /* Gladly primary button: green400 bg, white text, pill 20, min-width 80 */
   .action-card .ac-primary{
-    background: var(--green-400); color: var(--white);
-    padding: 7px 18px;
-    min-width: 80px;
+    background: var(--green-400); color: #fff;
+    padding: 7px 14px;
     border-radius: var(--radius-pill);
     font: var(--button);
     cursor: pointer;
-    border: 1px solid var(--green-400);
+    border: none;
   }
-  .action-card .ac-primary:hover{ background: var(--green-500); border-color: var(--green-500); }
-  .action-card .ac-primary:disabled{ background: var(--gray-300); border-color: var(--gray-300); color: var(--gray-500); cursor: not-allowed; }
-  /* Gladly secondary button: white bg, gray300 border, black text, pill 20 */
+  .action-card .ac-primary:hover{ background: var(--green-300); }
+  .action-card .ac-primary:disabled{ background: var(--gray-300); color: var(--gray-500); cursor: not-allowed; }
   .action-card .ac-secondary{
-    color: var(--black);
-    background: var(--white);
-    border: 1px solid var(--gray-300);
-    padding: 7px 18px;
-    border-radius: var(--radius-pill);
+    color: var(--gray-700);
     font: var(--button);
     cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
   }
-  .action-card .ac-secondary:hover{ background: var(--gray-100); }
   .action-card .ac-done{
     display: flex; flex-direction: column; gap: 4px;
     padding-top: 10px;
     border-top: 1px solid var(--gray-200);
     font: var(--copy); color: var(--black);
   }
-  .action-card .ac-done div{ display: flex; align-items: center; gap: 6px; }
-  .action-card .ac-done .check{ color: var(--green-400); display: inline-flex; align-items: center; }
+  .action-card .ac-done .check{ color: var(--green-400); margin-right: 6px; font-weight: 700; }
 
   /* Product list — Team Assist's injury-recovery recommendations for Jordan */
   .prod-list{
@@ -485,7 +480,7 @@
     font: var(--button); cursor: pointer;
     margin-right: 10px;
   }
-  .cm.ai .cb-use:hover{ background: var(--green-500); }
+  .cm.ai .cb-use:hover{ background: var(--green-300); }
   .cm.ai .cb-icon{
     width: 28px; height: 28px;
     display: inline-flex; align-items: center; justify-content: center;
@@ -507,8 +502,7 @@
   @keyframes blink{0%,60%,100%{opacity: .3}30%{opacity: 1}}
 
   /* Suggestion chips row above the input */
-  .rp-sugs{display:flex; gap: var(--sp-2); overflow-x: auto; padding: var(--sp-2) var(--sp-4); border-top: 1px solid var(--gray-200); background: var(--white)}
-  .rp-sugs::-webkit-scrollbar{display:none}
+  .rp-sugs{display:flex; flex-wrap: wrap; gap: var(--sp-2); padding: var(--sp-2) var(--sp-4); border-top: 1px solid var(--gray-200); background: var(--white)}
   .chip{
     white-space: nowrap;
     padding: 7px 14px;
@@ -525,12 +519,11 @@
     background: var(--green-400); color: #fff; border-color: var(--green-400);
     font-weight: 600;
   }
-  .chip.primary:hover{background: var(--green-500); border-color: var(--green-500)}
+  .chip.primary:hover{background: var(--green-300); border-color: var(--green-300)}
   .chip.secondary{border-color: var(--gray-400)}
 
   .rp-foot{padding: var(--sp-4); background: var(--white); display:flex; align-items: center; gap: var(--sp-2)}
-  .rp-input-wrap{flex: 1; display:flex; align-items: center; border: 1px solid var(--gray-300); border-radius: var(--radius-pill); padding: 4px 4px 4px 16px; background: var(--white); transition: border-color .15s}
-  .rp-input-wrap:focus-within{border-color: var(--gray-700)}
+  .rp-input-wrap{flex: 1; display:flex; align-items: center; border: 1px solid var(--gray-500); border-radius: 24px; box-shadow: var(--shadow-sm); padding: 4px 4px 4px 16px; background: var(--white)}
   .rp-input{flex:1; border: none; outline: none; background: transparent; font: var(--copy); color: var(--black); padding: 6px 0; resize: none; min-height: 24px; max-height: 120px; font-family: var(--ff)}
   .rp-input::placeholder{color: var(--gray-700)}
   .rp-send{width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; color: var(--gray-700); border-radius: var(--radius-round)}
@@ -542,7 +535,8 @@
   .toast.on{opacity: 1}
 
   .conv-scroll::-webkit-scrollbar, .rp-scroll::-webkit-scrollbar, .col-profile::-webkit-scrollbar, .cl-list::-webkit-scrollbar{width: 8px}
-  .conv-scroll::-webkit-scrollbar-thumb, .rp-scroll::-webkit-scrollbar-thumb, .col-profile::-webkit-scrollbar-thumb, .cl-list::-webkit-scrollbar-thumb{background: var(--gray-300); border-radius: 4px}
+  .conv-scroll::-webkit-scrollbar-thumb, .rp-scroll::-webkit-scrollbar-thumb, .col-profile::-webkit-scrollbar-thumb, .cl-list::-webkit-scrollbar-thumb{background: transparent; border-radius: 4px; transition: background .15s}
+  .conv-scroll:hover::-webkit-scrollbar-thumb, .rp-scroll:hover::-webkit-scrollbar-thumb, .col-profile:hover::-webkit-scrollbar-thumb, .cl-list:hover::-webkit-scrollbar-thumb{background: var(--gray-300)}
 </style>
 </head>
 <body>
@@ -562,7 +556,7 @@
     <div class="nav-divider"></div>
     <button class="icon-btn" title="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
     <button class="icon-btn bell" title="Notifications"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 014 4c0 3 1 4 1 6H3c0-2 1-3 1-6a4 4 0 014-4zM6.5 13a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg><span class="badge">7</span></button>
-    <div class="nav-av">LG</div>
+    <div class="nav-av">JA</div>
   </div>
 </nav>
 
@@ -756,7 +750,7 @@ const JORDAN = {
     { kind: 'event', text: 'Routed from <a href="#">Gladly AI</a> to <a href="#">Joseph Ansanelli</a> — Apr 14, 9:06 AM' }
   ],
   copilot: {
-    opening: `Hey Joseph — AI handed this one over after Jordan pushed back. No recommendation from me yet — ask me anything, or start with one of these.`,
+    opening: `👋 Hey Joseph — AI handed this one over after Jordan pushed back. No recommendation from me yet — ask me anything, or start with one of these.`,
     chips: [
       { text: "Catch me up on Jordan",      kind: 'primary',   action: 'catchMeUp' },
       { text: "What's his sentiment?",      kind: 'secondary', action: 'sentiment' },
@@ -920,7 +914,7 @@ const RACHEL = {
       text: "Hi Rachel — sorry to hear about the tendon. Let me sort this out for you. I'll be back in just a moment." }
   ],
   copilot: {
-    opening: `Hey Lisa — Rachel's asking to cancel her <strong>Hoka Race-Day Pro Pack ($847.99)</strong>. She's a VIP since 2022 — $12K+ lifetime, 3% return rate, zero prior cancellations. Order's still in processing, so cancelling is clean on our side.<span class="cite" onclick="togglePop(event, 1)">1</span>`,
+    opening: `👋 Hey Lisa — Rachel's asking to cancel her <strong>Hoka Race-Day Pro Pack ($847.99)</strong>. She's a VIP since 2022 — $12K+ lifetime, 3% return rate, zero prior cancellations. Order's still in processing, so cancelling is clean on our side.<span class="cite" onclick="togglePop(event, 1)">1</span>`,
     factsProse: [
       "Order is still in processing — nothing's shipped yet.",
       "Rachel's a VIP since 2022 — $12K+ lifetime, zero prior cancellations.",
@@ -1154,7 +1148,7 @@ function renderEvent(e) {
       ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>'
       : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
     return `<div class="msg-meta right">Gladly AI replied — ${e.time}<span class="ch-icon">${chIcon}</span></div>
-      <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
+      <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">JA</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
   }
   return '';
 }
@@ -1296,7 +1290,7 @@ function runDecision(action, arg) {
       : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
     tl.insertAdjacentHTML('beforeend',
       `<div class="msg-meta right">Gladly AI replied — just now<span class="ch-icon">${chIcon}</span></div>
-       <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${res.customerReply}</div><span class="msg-dots">⋮</span></div>`);
+       <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">JA</div><div class="msg-bub">${res.customerReply}</div><span class="msg-dots">⋮</span></div>`);
 
     session.decided = true;
     document.getElementById('conv-status').textContent = 'Resolved by AI';
@@ -1581,8 +1575,7 @@ function renderActionCard(card) {
 
 function renderActionCardComplete(card, completionLines) {
   const steps = card.steps.map(s => `<li>${s}</li>`).join('');
-  const checkSvg = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const done = completionLines.map(l => `<div><span class="check">${checkSvg}</span>${l}</div>`).join('');
+  const done = completionLines.map(l => `<div><span class="check">✓</span>${l}</div>`).join('');
   return `<div class="action-card">
     <div class="ac-label">${card.label}</div>
     <ol>${steps}</ol>
