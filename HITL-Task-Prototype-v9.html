@@ -226,6 +226,12 @@
   .tl-event strong{color: var(--black); font-weight: 700}
   .tl-event a{color: var(--green-400); font-weight: 500}
   .tl-event .check{color: var(--green-400); font-weight: 700; margin-right: 6px}
+
+  /* Activity acknowledgements — outbound-side actions (agent decisions, AI executions).
+     Right-aligned like outbound messages, not centered like routing/date dividers. */
+  .tl-activity{text-align:right; padding: var(--sp-1) 0; font: var(--copy-sm); color: var(--gray-700)}
+  .tl-activity strong{color: var(--black); font-weight: 700}
+  .tl-activity a{color: var(--green-400); font-weight: 500}
   .msg-meta{font: var(--copy-sm); color: var(--gray-700); margin-bottom: var(--sp-2); display:flex; align-items:center; gap: 6px}
   .msg-meta.right{justify-content: flex-end}
   .msg-meta .ch-icon{display:inline-flex; align-items:center; justify-content:center; width: 16px; height: 16px; color: var(--gray-600)}
@@ -1271,9 +1277,9 @@ function runDecision(action, arg) {
 
     const tl = document.getElementById('timeline');
 
-    // Chronological: each thing that happened becomes its own plain timeline event.
+    // Chronological: each thing that happened becomes its own plain, right-aligned activity line.
     res.timelineEvents.forEach(text => {
-      tl.insertAdjacentHTML('beforeend', `<div class="tl-event">${text}</div>`);
+      tl.insertAdjacentHTML('beforeend', `<div class="tl-activity">${text}</div>`);
     });
 
     // AI's customer-facing reply — clean bubble, no badge.
@@ -1295,7 +1301,7 @@ function runDecision(action, arg) {
     pushAIMsg(res.copilotReply);
     const tl = document.getElementById('timeline');
     res.timelineEvents.forEach(text => {
-      tl.insertAdjacentHTML('beforeend', `<div class="tl-event">${text}</div>`);
+      tl.insertAdjacentHTML('beforeend', `<div class="tl-activity">${text}</div>`);
     });
     document.getElementById('conv-status').textContent = 'Handed off to Lisa';
     session.decided = true;
@@ -1446,7 +1452,7 @@ function sideEffectApproveRun() {
     "Gladly AI issued a $189.99 refund to his original payment method — just now",
     "Gladly AI emailed a prepaid UPS return label to Jordan — just now"
   ];
-  events.forEach(text => tl.insertAdjacentHTML('beforeend', `<div class="tl-event">${text}</div>`));
+  events.forEach(text => tl.insertAdjacentHTML('beforeend', `<div class="tl-activity">${text}</div>`));
   scrollTimeline();
   document.getElementById('conv-status').textContent = 'Resolved';
 }
