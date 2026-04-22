@@ -29,7 +29,7 @@
     --navy:      #0F203C;
     --red-400:   #D50E0E;
     --red-50:    #FFF0F2;
-    --black:     #000000;
+    --black:     #111111;   /* defaultFontBlack — softer than pure #000 per Gladly system */
     --white:     #FFFFFF;
     --gray-50:   #FAFAFA;
     --gray-100:  #F6F6F6;
@@ -39,7 +39,8 @@
     --gray-500:  #B3B3B3;
     --gray-600:  #919191;
     --gray-700:  #767676;
-    --gray-900:  #242424;
+    --gray-800:  #484848;
+    --gray-900:  #1A1A1A;
     --purple-assist: #8C69F0;
     --purple-100:    #F3EFFE;
 
@@ -392,31 +393,37 @@
     padding-top: 10px;
     border-top: 1px solid var(--gray-200);
   }
+  /* Gladly primary button: green400 bg, white text, pill 20, min-width 80 */
   .action-card .ac-primary{
-    background: var(--green-400); color: #fff;
-    padding: 7px 14px;
+    background: var(--green-400); color: var(--white);
+    padding: 7px 18px;
+    min-width: 80px;
     border-radius: var(--radius-pill);
     font: var(--button);
     cursor: pointer;
-    border: none;
+    border: 1px solid var(--green-400);
   }
-  .action-card .ac-primary:hover{ background: var(--green-500); }
-  .action-card .ac-primary:disabled{ background: var(--gray-300); cursor: default; }
+  .action-card .ac-primary:hover{ background: var(--green-500); border-color: var(--green-500); }
+  .action-card .ac-primary:disabled{ background: var(--gray-300); border-color: var(--gray-300); color: var(--gray-500); cursor: not-allowed; }
+  /* Gladly secondary button: white bg, gray300 border, black text, pill 20 */
   .action-card .ac-secondary{
-    color: var(--gray-700);
+    color: var(--black);
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    padding: 7px 18px;
+    border-radius: var(--radius-pill);
     font: var(--button);
     cursor: pointer;
-    background: none;
-    border: none;
-    text-decoration: underline;
   }
+  .action-card .ac-secondary:hover{ background: var(--gray-100); }
   .action-card .ac-done{
     display: flex; flex-direction: column; gap: 4px;
     padding-top: 10px;
     border-top: 1px solid var(--gray-200);
     font: var(--copy); color: var(--black);
   }
-  .action-card .ac-done .check{ color: var(--green-400); margin-right: 6px; font-weight: 700; }
+  .action-card .ac-done div{ display: flex; align-items: center; gap: 6px; }
+  .action-card .ac-done .check{ color: var(--green-400); display: inline-flex; align-items: center; }
 
   /* Product list — Team Assist's injury-recovery recommendations for Jordan */
   .prod-list{
@@ -522,7 +529,8 @@
   .chip.secondary{border-color: var(--gray-400)}
 
   .rp-foot{padding: var(--sp-4); background: var(--white); display:flex; align-items: center; gap: var(--sp-2)}
-  .rp-input-wrap{flex: 1; display:flex; align-items: center; border: 1px solid var(--gray-500); border-radius: 24px; box-shadow: var(--shadow-sm); padding: 4px 4px 4px 16px; background: var(--white)}
+  .rp-input-wrap{flex: 1; display:flex; align-items: center; border: 1px solid var(--gray-300); border-radius: var(--radius-pill); padding: 4px 4px 4px 16px; background: var(--white); transition: border-color .15s}
+  .rp-input-wrap:focus-within{border-color: var(--gray-700)}
   .rp-input{flex:1; border: none; outline: none; background: transparent; font: var(--copy); color: var(--black); padding: 6px 0; resize: none; min-height: 24px; max-height: 120px; font-family: var(--ff)}
   .rp-input::placeholder{color: var(--gray-700)}
   .rp-send{width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; color: var(--gray-700); border-radius: var(--radius-round)}
@@ -748,7 +756,7 @@ const JORDAN = {
     { kind: 'event', text: 'Routed from <a href="#">Gladly AI</a> to <a href="#">Joseph Ansanelli</a> — Apr 14, 9:06 AM' }
   ],
   copilot: {
-    opening: `👋 Hey Joseph — AI handed this one over after Jordan pushed back. No recommendation from me yet — ask me anything, or start with one of these.`,
+    opening: `Hey Joseph — AI handed this one over after Jordan pushed back. No recommendation from me yet — ask me anything, or start with one of these.`,
     chips: [
       { text: "Catch me up on Jordan",      kind: 'primary',   action: 'catchMeUp' },
       { text: "What's his sentiment?",      kind: 'secondary', action: 'sentiment' },
@@ -912,7 +920,7 @@ const RACHEL = {
       text: "Hi Rachel — sorry to hear about the tendon. Let me sort this out for you. I'll be back in just a moment." }
   ],
   copilot: {
-    opening: `👋 Hey Lisa — Rachel's asking to cancel her <strong>Hoka Race-Day Pro Pack ($847.99)</strong>. She's a VIP since 2022 — $12K+ lifetime, 3% return rate, zero prior cancellations. Order's still in processing, so cancelling is clean on our side.<span class="cite" onclick="togglePop(event, 1)">1</span>`,
+    opening: `Hey Lisa — Rachel's asking to cancel her <strong>Hoka Race-Day Pro Pack ($847.99)</strong>. She's a VIP since 2022 — $12K+ lifetime, 3% return rate, zero prior cancellations. Order's still in processing, so cancelling is clean on our side.<span class="cite" onclick="togglePop(event, 1)">1</span>`,
     factsProse: [
       "Order is still in processing — nothing's shipped yet.",
       "Rachel's a VIP since 2022 — $12K+ lifetime, zero prior cancellations.",
@@ -1573,7 +1581,8 @@ function renderActionCard(card) {
 
 function renderActionCardComplete(card, completionLines) {
   const steps = card.steps.map(s => `<li>${s}</li>`).join('');
-  const done = completionLines.map(l => `<div><span class="check">✓</span>${l}</div>`).join('');
+  const checkSvg = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const done = completionLines.map(l => `<div><span class="check">${checkSvg}</span>${l}</div>`).join('');
   return `<div class="action-card">
     <div class="ac-label">${card.label}</div>
     <ol>${steps}</ol>
