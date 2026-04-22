@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440, initial-scale=1">
+<title>Gladly Team — HITL + Team Assist Prototype v9</title>
+<!--
+  v9 — Hoka stories, two flows (per GCL_Live_Service_Demo_-_v9.docx)
+  v8 foundation preserved. v9 changes:
+   1. Two distinct scenarios on the same UI:
+      - Jordan Rivera  → Team Assist demo (agent-driven, AI helps via chips + draft + actions)
+      - Rachel Thompson → HITL demo      (AI-driven ask, human approves/modifies)
+   2. Both customers are Hoka buyers. No credit-card references anywhere — payments say
+      "original payment method."
+   3. Default opens on Jordan (Team Assist demo); Rachel is selected by clicking her card.
+   4. Team Assist panel now extends full height of the stage; the bottom bar only covers
+      list + profile + conversation (narrowed, flush against the panel's left edge).
+   5. Two new copilot component types: draft-card (for Jordan's response drafts) and
+      action-card (for the 3-step return process with Approve & run).
+   6. Scripted multi-turn flow for Jordan's chip presses (catch me up → sentiment → can I
+      approve? → draft → warmer → use draft → process return → approve & run).
+-->
+<style>
+  :root {
+    --green-400: #009B00;
+    --green-500: #007A00;
+    --green-100: #D8F4D8;
+    --green-50:  #EAF7EA;
+    --navy:      #0F203C;
+    --red-400:   #D50E0E;
+    --red-50:    #FFF0F2;
+    --black:     #000000;
+    --white:     #FFFFFF;
+    --gray-50:   #FAFAFA;
+    --gray-100:  #F6F6F6;
+    --gray-200:  #F1F1F1;
+    --gray-300:  #E3E3E3;
+    --gray-400:  #CECECE;
+    --gray-500:  #B3B3B3;
+    --gray-600:  #919191;
+    --gray-700:  #767676;
+    --gray-900:  #242424;
+    --purple-assist: #8C69F0;
+    --purple-100:    #F3EFFE;
+
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+
+    --ff: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    --copy:       400 13px/1.62 var(--ff);
+    --copy-bold:  700 13px/1.62 var(--ff);
+    --copy-sm:    400 12px/1.3 var(--ff);
+    --copy-xs:    400 10px/1.3 var(--ff);
+    --h3:         700 16px/1 var(--ff);
+    --button:     500 13px/1 var(--ff);
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-pill: 20px;
+    --radius-round: 9999px;
+
+    --shadow-sm: 0 2px 8px rgba(0,0,0,.08);
+    --shadow-soft: 5px 5px 25px rgba(0,0,0,.15);
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font: var(--copy);
+    color: var(--black);
+    background: var(--gray-100);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    min-width: 1440px;
+  }
+  button{font-family: var(--ff); cursor: pointer; background: none; border: none; color: inherit}
+  a{color: var(--green-400); text-decoration: none}
+
+  /* NAV */
+  .nav{
+    position: relative; height: 56px; background: var(--white);
+    box-shadow: var(--shadow-soft);
+    display: flex; align-items: center; padding: 0 var(--sp-6);
+    z-index: 10;
+  }
+  .nav-l{display:flex; align-items:center; gap: var(--sp-4); flex: 1}
+  .icon-btn{width: 32px; height: 32px; display:inline-flex; align-items:center; justify-content:center; border-radius: var(--radius-round); color: var(--black)}
+  .icon-btn:hover{background: var(--gray-100)}
+  .home-link{display:flex; align-items:center; gap: var(--sp-2); font: var(--button); color: var(--black)}
+  .nav-c{position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap: 2px; font: 700 22px/1 var(--ff)}
+  .nav-c .plus{color: var(--green-400); font-weight: 700}
+  .nav-c .word{color: var(--black); letter-spacing: -.3px}
+  .nav-r{display:flex; align-items:center; gap: var(--sp-1); margin-left:auto}
+  .tog{width: 32px; height: 32px; border: 1px solid var(--gray-300); border-radius: var(--radius-round); display:inline-flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700)}
+  .nav-next{background: var(--gray-300); color: var(--gray-500); font: var(--button); padding: 8px 16px; border-radius: var(--radius-pill); margin-left: var(--sp-2)}
+  .nav-divider{width:1px; height: 32px; background: var(--gray-300); margin: 0 var(--sp-2)}
+  .bell{position: relative}
+  .bell .badge{position:absolute; top: -4px; right: -4px; background: var(--red-400); color: #fff; font: 700 9px/1 var(--ff); padding: 2px 5px; border-radius: var(--radius-round); min-width: 16px; text-align:center}
+  .nav-av{width:32px; height:32px; border-radius: var(--radius-round); box-shadow: var(--shadow-sm); overflow:hidden; display:flex; align-items:center; justify-content:center; background: #7BB86F; color: #fff; font: 700 11px/1 var(--ff)}
+
+  /* STAGE — flex row, Team Assist panel spans full stage height. Bottom bar narrows. */
+  .stage{
+    display:flex;
+    height: calc(100vh - 56px);
+    background: var(--gray-100);
+    overflow: hidden;
+  }
+  .left-zone{
+    flex: 1;
+    display:flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .layout{
+    display:flex;
+    flex: 1;
+    min-height: 0;
+    background: var(--gray-100);
+    overflow: hidden;
+  }
+  .col-cl{
+    width: 260px; min-width: 260px; background: var(--white);
+    border-right: 1px solid var(--gray-200);
+    display:flex; flex-direction: column;
+    transition: width .2s, min-width .2s;
+    overflow: hidden;
+  }
+  .col-cl.collapsed{ width: 80px; min-width: 80px }
+  .col-profile{width: 320px; min-width: 320px; background: var(--gray-100); padding: var(--sp-4); overflow-y: auto; transition: width .2s, min-width .2s, padding .2s}
+  .col-conv{flex:1; min-width: 420px; background: var(--gray-100); display:flex; flex-direction: column; overflow: hidden; transition: min-width .2s}
+  .col-right{width: 380px; min-width: 380px; display:flex; position: relative; background: var(--white); border-left: 1px solid var(--gray-200); transition: width .2s, min-width .2s}
+
+  /* Panel-weighted default for Needs-input scenarios: list 220 / profile 280 / conv flex / copilot 440 */
+  body.panel-weighted .col-cl{width: 220px; min-width: 220px}
+  body.panel-weighted .col-profile{width: 280px; min-width: 280px}
+  body.panel-weighted .col-right{width: 440px; min-width: 440px}
+
+  /* Focus-copilot: customer list collapses, profile KEEPS visible at 280, copilot grows to 580 */
+  body.focus-copilot .col-cl{width: 80px; min-width: 80px}
+  body.focus-copilot .col-cl .cl-htitle,
+  body.focus-copilot .col-cl .cl-filters,
+  body.focus-copilot .col-cl .cle-body{display:none}
+  body.focus-copilot .col-profile{width: 280px; min-width: 280px; padding: var(--sp-4); opacity: 1}
+  body.focus-copilot .col-conv{min-width: 360px}
+  body.focus-copilot .col-right{width: 580px; min-width: 580px}
+
+  /* CUSTOMER LIST */
+  .cl-header{
+    display:flex; align-items:center; gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--gray-200);
+    flex-shrink: 0;
+  }
+  .cl-htitle{font: 700 13px/1 var(--ff); color: var(--black); flex: 1; display:flex; align-items:center; gap: var(--sp-2)}
+  .cl-htitle .count{font: 700 10px/1 var(--ff); background: var(--gray-200); color: var(--gray-700); padding: 3px 6px; border-radius: 10px}
+  .cl-toggle{width: 28px; height: 28px; border-radius: 4px; display:flex; align-items:center; justify-content:center; color: var(--gray-700); cursor: pointer}
+  .cl-toggle:hover{background: var(--gray-100)}
+  .cl-filters{display:flex; gap: var(--sp-1); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--gray-200); flex-shrink: 0}
+  .cl-fil{font: 500 11px/1 var(--ff); padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--gray-300); background: var(--white); color: var(--black); cursor: pointer}
+  .cl-fil.on{background: var(--black); color: #fff; border-color: var(--black)}
+  .cl-list{flex: 1; overflow-y: auto}
+  .cle-card{display:flex; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--gray-100); cursor: pointer; border-left: 3px solid transparent; position: relative}
+  .cle-card:hover{background: var(--gray-50)}
+  .cle-card.active{background: var(--green-50); border-left-color: var(--green-400)}
+  .cle-left{position: relative; flex-shrink: 0; width: 40px; height: 40px}
+  .cle-priority-dot{position: absolute; left: -10px; top: 18px; width: 6px; height: 6px; border-radius: 50%; background: var(--green-400)}
+  .cle-av{width: 40px; height: 40px; border-radius: 50%; display:flex; align-items:center; justify-content:center; font: 700 13px/1 var(--ff); color: #fff; box-shadow: var(--shadow-sm); background: var(--gray-600)}
+  .cle-type-pip{position: absolute; right: -2px; bottom: -2px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; display:flex; align-items:center; justify-content:center}
+  .cle-type-pip.assist{background: var(--purple-assist); color: #fff}
+  .cle-type-pip.chat{background: var(--gray-700); color: #fff}
+  .cle-body{flex: 1; min-width: 0}
+  .cle-row1{display:flex; align-items:baseline; gap: var(--sp-2)}
+  .cle-name{font: var(--copy-bold); color: var(--black); flex:1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis}
+  .cle-time{font: var(--copy-sm); color: var(--gray-700); flex-shrink: 0}
+  .cle-preview{font: var(--copy); color: var(--gray-700); line-height: 1.4; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden}
+  .cle-meta-row{display:flex; align-items:center; gap: var(--sp-2); margin-top: 6px}
+  .cle-tag{display:inline-flex; align-items:center; gap: 3px; padding: 2px 6px; border-radius: 3px; font: 700 9px/1 var(--ff); letter-spacing: .4px; text-transform: uppercase}
+  .cle-tag.assist{background: var(--purple-100); color: var(--purple-assist)}
+  .cle-tag.chat{background: var(--gray-200); color: var(--gray-700)}
+  .cle-channel{font: var(--copy-sm); color: var(--gray-700)}
+  .col-cl.collapsed .cl-header{padding: var(--sp-3) 12px}
+  .col-cl.collapsed .cl-htitle{display:none}
+  .col-cl.collapsed .cl-filters{display:none}
+  .col-cl.collapsed .cle-body{display:none}
+  .col-cl.collapsed .cle-card{padding: 8px 12px; border-bottom: none; border-left: none; gap: 0}
+  .col-cl.collapsed .cle-card.active{background: var(--green-400); border-radius: var(--radius-sm); margin: 2px 8px; padding: 8px}
+  .col-cl.collapsed .cle-card.active .cle-av{box-shadow: 0 0 0 2px #fff}
+  .col-cl.collapsed .cle-priority-dot{left: 2px}
+
+  /* PROFILE */
+  .profile-card{background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: var(--sp-4); margin-bottom: var(--sp-3)}
+  .profile-head{display:flex; align-items:center; gap: var(--sp-3); margin-bottom: var(--sp-3)}
+  .profile-av{width: 56px; height: 56px; border-radius: var(--radius-round); color: #fff; display:flex; align-items:center; justify-content:center; font: 700 18px/1 var(--ff); box-shadow: var(--shadow-sm); flex-shrink: 0}
+  .profile-name{font: var(--h3); color: var(--black)}
+  .profile-dots{margin-left:auto; color: var(--gray-500); font-size: 18px; cursor: pointer; padding: 0 var(--sp-1)}
+  .kv{display:flex; justify-content:space-between; padding: var(--sp-1) 0; font: var(--copy)}
+  .link-customer{display:flex; align-items:center; gap: var(--sp-2); padding: var(--sp-3) 0 0; font: var(--button); color: var(--green-400); border-top: 1px solid var(--gray-200); margin-top: var(--sp-3); cursor: pointer}
+  .link-customer .suggestion-count{margin-left:auto; color: var(--gray-500); font: var(--copy-sm)}
+  .sec-title{font: 700 16px/1 var(--ff); color: var(--black); margin-bottom: var(--sp-3); display:flex; align-items:center; justify-content:space-between}
+  .sec-title .add{color: var(--gray-500); font-size: 18px; font-weight: 400; cursor: pointer}
+  .contact-row{display:flex; align-items:center; gap: var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black)}
+  .contact-row .ci{color: var(--gray-500); width: 16px; height: 16px; flex-shrink: 0; display:inline-flex; align-items:center; justify-content:center}
+  .contact-row .tag{background: var(--black); color: #fff; font: 700 9px/1 var(--ff); padding: 3px 6px; border-radius: 3px; letter-spacing: .5px}
+  .contact-row .tag-grp{margin-left:auto; display:flex; gap: 4px}
+  .contact-sub{font: var(--copy-sm); color: var(--gray-700); padding-left: 28px}
+  .pref-row{display:flex; padding: 4px 0; font: var(--copy); color: var(--black)}
+  .pref-row .pl{color: var(--gray-700); min-width: 140px}
+  .order-card{display:flex; align-items:center; gap: var(--sp-3); padding: var(--sp-2) 0}
+  .order-thumb{width: 56px; height: 56px; border-radius: var(--radius-sm); background: var(--gray-200); flex-shrink: 0; display:flex; align-items:center; justify-content:center; overflow:hidden}
+  .order-info{flex:1}
+  .order-info .oid{font: var(--copy); color: var(--black)}
+  .order-info .oid a{font-weight: 700}
+  .order-info .ometa{font: var(--copy); color: var(--black)}
+  .order-chev{color: var(--gray-500); cursor: pointer}
+  .conv-row{display:flex; gap: var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black); border-bottom: 1px solid var(--gray-200)}
+  .conv-row:last-child{border-bottom: none}
+  .conv-row .when{color: var(--gray-700); min-width: 56px}
+
+  /* CONVERSATION */
+  .conv-wrap{flex:1; display:flex; flex-direction:column; overflow:hidden}
+  .conv-header{background: var(--white); border-bottom: 1px solid var(--gray-200); padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
+  .conv-header .title{color: var(--black); font-weight: 700}
+  .conv-header-right{position:absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); display:flex; gap: var(--sp-2); color: var(--gray-500)}
+  .conv-scroll{flex:1; overflow-y:auto; padding: var(--sp-6) var(--sp-6); background: var(--white)}
+  .tl-event{text-align:center; padding: var(--sp-3) 0; font: var(--copy-sm); color: var(--gray-700)}
+  .tl-event strong{color: var(--black); font-weight: 700}
+  .tl-event a{color: var(--green-400); font-weight: 500}
+  .tl-event .check{color: var(--green-400); font-weight: 700; margin-right: 6px}
+  .msg-meta{font: var(--copy-sm); color: var(--gray-700); margin-bottom: var(--sp-2); display:flex; align-items:center; gap: 6px}
+  .msg-meta.right{justify-content: flex-end}
+  .msg-meta .ch-icon{display:inline-flex; align-items:center; justify-content:center; width: 16px; height: 16px; color: var(--gray-600)}
+  .msg{display:flex; gap: var(--sp-3); margin-bottom: var(--sp-5); max-width: 82%}
+  .msg.outbound{margin-left: auto; flex-direction: row-reverse}
+  .msg-av{width: 32px; height: 32px; border-radius: var(--radius-round); display:flex; align-items:center; justify-content:center; font: 700 11px/1 var(--ff); color: #fff; flex-shrink: 0; box-shadow: var(--shadow-sm)}
+  .msg-bub{padding: var(--sp-3) var(--sp-4); border-radius: 16px; font: var(--copy); color: var(--black); line-height: 1.62; box-shadow: 0 1px 2px rgba(0,0,0,.04); background: var(--white); border: 1px solid var(--gray-200)}
+  .msg-dots{color: var(--gray-500); margin-top: var(--sp-2); cursor: pointer}
+
+  /* BOTTOM BAR */
+  .bottom-bar{height: 48px; flex-shrink: 0; background: var(--white); border-top: 1px solid var(--gray-200); display:flex; align-items: center; padding: 0 var(--sp-4); gap: var(--sp-3); position: relative}
+  .bb-assigned{display:flex; align-items:center; gap: var(--sp-3); padding-right: var(--sp-4); border-right: 1px solid var(--gray-200); min-width: 260px}
+  .bb-inbox{width: 24px; height: 24px; border-radius: var(--radius-round); background: var(--gray-200); display:flex; align-items:center; justify-content:center; color: var(--gray-700)}
+  .bb-assigned .at{font: var(--copy-sm); color: var(--black)}
+  .bb-assigned .at strong{color: var(--green-400); font-weight: 500; display:block}
+  .bb-fab{width: 32px; height: 32px; border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 700 18px/1 var(--ff)}
+  .bb-input{flex: 1; height: 32px; border: 1px solid var(--gray-400); border-radius: var(--radius-sm); padding: 0 var(--sp-3); font: var(--copy-sm); background: var(--white); color: var(--black)}
+  .bb-input:focus{outline: none; border-color: var(--green-400)}
+  .bb-topic{display:flex; align-items:center; gap: var(--sp-2); padding: 0 var(--sp-3); color: var(--black); font: var(--copy-sm); cursor: pointer}
+  .bb-topic .tval{color: var(--green-400)}
+  .bb-split{display:flex; background: var(--green-400); border-radius: var(--radius-pill); overflow: hidden; height: 32px}
+  .bb-split .bbs-main{padding: 0 var(--sp-4); color: #fff; font: 500 12px/1 var(--ff); display:flex; align-items:center; cursor:pointer}
+  .bb-split .bbs-main:hover{background: var(--green-500)}
+  .bb-split .bbs-caret{padding: 0 var(--sp-2); border-left: 1px solid rgba(255,255,255,.25); display:flex; align-items:center; color: #fff; cursor: pointer}
+
+  /* COPILOT */
+  .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200)}
+  .rp-gutter{width: 32px; padding: var(--sp-4) 0 var(--sp-6); display:flex; flex-direction:column; align-items: flex-end; gap: var(--sp-1); background: var(--gray-100)}
+  .rp-tab{width: 32px; height: 32px; border-radius: 8px 0 0 8px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer}
+  .rp-tab.active{background: var(--purple-assist); color: #fff}
+  .rp-tab.expand{margin-bottom: var(--sp-2); background: var(--white); color: var(--gray-700)}
+  .rp-tab.expand:hover{background: var(--gray-200)}
+  body.focus-copilot .rp-tab.expand{background: var(--purple-100); color: var(--purple-assist)}
+  .rp-body{flex:1; display:flex; flex-direction:column; background: var(--white); overflow: hidden}
+
+  .rp-scroll{flex:1; overflow-y: auto; padding: var(--sp-4) var(--sp-4) var(--sp-2); display:flex; flex-direction: column; gap: var(--sp-4)}
+
+  /* The opening AI message is structurally larger than a chat bubble — it holds
+     summary + facts + a minimal "what I'd do" block + the closing question, all as one AI turn. */
+  .ai-open{
+    display:flex; flex-direction: column; gap: var(--sp-3);
+  }
+  .ai-open .ao-text{font: var(--copy); color: var(--black); line-height: 1.62}
+  .ai-open .ao-text strong{font-weight: 700}
+  .ai-open .ao-ask{font: var(--copy-bold); color: var(--black); margin-top: var(--sp-1)}
+
+  /* Facts as prose bullets, not a 2-col attribute table */
+  .facts-prose{
+    padding: 12px 14px;
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+  }
+  .facts-prose .fp-label{
+    font: 700 11px/1 var(--ff);
+    color: var(--gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+  }
+  .facts-prose ul{ list-style: none; padding: 0; margin: 0; }
+  .facts-prose li{
+    padding: 4px 0 4px 18px;
+    position: relative;
+    line-height: 1.62;
+    color: var(--black);
+  }
+  .facts-prose li::before{
+    content: "•";
+    color: var(--green-400);
+    position: absolute;
+    left: 6px;
+    top: 4px;
+    font-weight: 700;
+  }
+
+  /* Toned-down "what I'd do" block — no border, no icon, no heart.
+     Just a thin green left-rule with a small uppercase label and two lines. */
+  .rec-lite{
+    padding: 6px 0 6px 14px;
+    border-left: 3px solid var(--green-400);
+    margin: 4px 0;
+  }
+  .rec-lite .rl-label{
+    font: 700 10px/1 var(--ff);
+    color: var(--green-400);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rec-lite .rl-label .pill-modified{
+    display: none;
+    font: 700 9px/1 var(--ff);
+    color: var(--green-400);
+    background: var(--green-100);
+    padding: 3px 6px;
+    border-radius: 10px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .rec-lite .rl-label .pill-modified.on{ display: inline-flex; }
+  .rec-lite .rl-title{ font: var(--copy-bold); color: var(--black); margin-bottom: 2px; }
+  .rec-lite .rl-line{ font: var(--copy); color: var(--black); line-height: 1.62; }
+
+  /* Draft card — for Team Assist's "here's a response draft" messages (Jordan flow) */
+  .draft-card{
+    border: 1px dashed var(--gray-400);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    margin-top: 8px;
+    background: var(--white);
+  }
+  .draft-card .dc-label{
+    font: 700 10px/1 var(--ff);
+    color: var(--gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .draft-card .dc-body{
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.62;
+    white-space: pre-wrap;
+  }
+
+  /* Action card — for Team Assist's "here's the plan, approve & run" messages */
+  .action-card{
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    margin-top: 8px;
+    background: var(--white);
+  }
+  .action-card .ac-label{
+    font: 700 10px/1 var(--ff);
+    color: var(--green-400);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 10px;
+  }
+  .action-card ol{
+    padding-left: 20px;
+    margin: 0 0 12px 0;
+  }
+  .action-card ol li{
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.62;
+    padding: 3px 0;
+  }
+  .action-card .ac-actions{
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid var(--gray-200);
+  }
+  .action-card .ac-primary{
+    background: var(--green-400); color: #fff;
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    font: var(--button);
+    cursor: pointer;
+    border: none;
+  }
+  .action-card .ac-primary:hover{ background: var(--green-500); }
+  .action-card .ac-primary:disabled{ background: var(--gray-300); cursor: default; }
+  .action-card .ac-secondary{
+    color: var(--gray-700);
+    font: var(--button);
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
+  }
+  .action-card .ac-done{
+    display: flex; flex-direction: column; gap: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--gray-200);
+    font: var(--copy); color: var(--black);
+  }
+  .action-card .ac-done .check{ color: var(--green-400); margin-right: 6px; font-weight: 700; }
+
+  .cite{display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; vertical-align: super; font: 700 9px/1 var(--ff); color: var(--green-400); border: 1px solid var(--green-400); border-radius: 8px; margin-left: 2px; cursor: pointer; background: var(--white)}
+  .cite:hover{background: var(--green-50)}
+  .cite-pop{position: absolute; z-index: 50; background: var(--white); border: 1px solid var(--gray-300); border-radius: var(--radius-md); box-shadow: 0 4px 14px rgba(0,0,0,.12); padding: var(--sp-3); width: 280px; font: var(--copy-sm); color: var(--black); display: none}
+  .cite-pop.open{display:block}
+  .cite-pop .ct-title{font-weight: 700; margin-bottom: var(--sp-1)}
+  .cite-pop .ct-link{color: var(--green-400); font-weight: 500}
+
+  .chat-msgs{display:flex; flex-direction: column; gap: var(--sp-3)}
+  .cm{display:flex}
+  .cm.agent{justify-content: flex-end}
+  .cm .cb{max-width: 420px; padding: var(--sp-3) var(--sp-4); border-radius: 16px; font: var(--copy); color: var(--black)}
+  .cm.agent .cb{background: var(--gray-100)}
+  .cm.ai .cb{background: transparent; padding-left: 0; padding-right: 0}
+  body.focus-copilot .cm .cb{max-width: 540px}
+
+  .typing{display:flex; gap: 4px; padding: 4px 0}
+  .typing span{width: 6px; height: 6px; border-radius: 50%; background: var(--gray-500); animation: blink 1.3s infinite}
+  .typing span:nth-child(2){animation-delay: .2s}
+  .typing span:nth-child(3){animation-delay: .4s; background: var(--gray-300)}
+  @keyframes blink{0%,60%,100%{opacity: .3}30%{opacity: 1}}
+
+  /* Suggestion chips row above the input */
+  .rp-sugs{display:flex; gap: var(--sp-2); overflow-x: auto; padding: var(--sp-2) var(--sp-4); border-top: 1px solid var(--gray-200); background: var(--white)}
+  .rp-sugs::-webkit-scrollbar{display:none}
+  .chip{
+    white-space: nowrap;
+    padding: 7px 14px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-pill);
+    background: var(--white);
+    font: var(--copy-sm);
+    color: var(--black);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .chip:hover{background: var(--gray-100); border-color: var(--gray-500)}
+  .chip.primary{
+    background: var(--green-400); color: #fff; border-color: var(--green-400);
+    font-weight: 600;
+  }
+  .chip.primary:hover{background: var(--green-500); border-color: var(--green-500)}
+  .chip.secondary{border-color: var(--gray-400)}
+
+  .rp-foot{padding: var(--sp-4); background: var(--white); display:flex; align-items: center; gap: var(--sp-2)}
+  .rp-input-wrap{flex: 1; display:flex; align-items: center; border: 1px solid var(--gray-500); border-radius: 24px; box-shadow: var(--shadow-sm); padding: 4px 4px 4px 16px; background: var(--white)}
+  .rp-input{flex:1; border: none; outline: none; background: transparent; font: var(--copy); color: var(--black); padding: 6px 0; resize: none; min-height: 24px; max-height: 120px; font-family: var(--ff)}
+  .rp-input::placeholder{color: var(--gray-700)}
+  .rp-send{width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; color: var(--gray-700); border-radius: var(--radius-round)}
+  .rp-send:hover{color: var(--green-400)}
+  .rp-attach{width: 46px; height: 30px; border-radius: 6px; background: linear-gradient(135deg, var(--gray-200), var(--gray-300)); display:flex; align-items:center; justify-content:center; color: var(--gray-700); flex-shrink: 0}
+
+  /* Toast */
+  .toast{position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); background: var(--black); color: #fff; padding: 10px 18px; border-radius: var(--radius-pill); font: var(--copy-sm); box-shadow: 0 4px 14px rgba(0,0,0,.2); opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 300}
+  .toast.on{opacity: 1}
+
+  .conv-scroll::-webkit-scrollbar, .rp-scroll::-webkit-scrollbar, .col-profile::-webkit-scrollbar, .cl-list::-webkit-scrollbar{width: 8px}
+  .conv-scroll::-webkit-scrollbar-thumb, .rp-scroll::-webkit-scrollbar-thumb, .col-profile::-webkit-scrollbar-thumb, .cl-list::-webkit-scrollbar-thumb{background: var(--gray-300); border-radius: 4px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-l">
+    <button class="icon-btn" title="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <a class="home-link" href="#"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M6 2L3 5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Home</a>
+  </div>
+  <div class="nav-c"><span class="plus">+</span><span class="word">Gladly</span></div>
+  <div class="nav-r">
+    <button class="tog" title="Email"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button>
+    <button class="tog" title="Voice"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3a2 2 0 012-2h1l2 3-1.5 1.5a8 8 0 003 3L10 7l3 2v1a2 2 0 01-2 2A10 10 0 013 3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button>
+    <button class="tog" title="Chat" style="background: var(--green-400); color: #fff; border-color: var(--green-400);"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button>
+    <button class="nav-next">Next</button>
+    <div class="nav-divider"></div>
+    <button class="icon-btn" title="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <button class="icon-btn bell" title="Notifications"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 014 4c0 3 1 4 1 6H3c0-2 1-3 1-6a4 4 0 014-4zM6.5 13a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg><span class="badge">7</span></button>
+    <div class="nav-av">LG</div>
+  </div>
+</nav>
+
+<div class="stage">
+
+ <div class="left-zone">
+  <div class="layout">
+
+  <!-- LEFT: customer list -->
+  <aside class="col-cl" id="col-cl">
+    <div class="cl-header">
+      <div class="cl-htitle">Your customers <span class="count" id="cl-count">6</span></div>
+      <div class="cl-toggle" id="cl-toggle" onclick="toggleList()" title="Collapse">
+        <svg id="cl-tog-svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="cl-filters">
+      <button class="cl-fil on">All</button>
+      <button class="cl-fil">Needs input</button>
+      <button class="cl-fil">Chats</button>
+    </div>
+    <div class="cl-list" id="cl-list"></div>
+  </aside>
+
+  <!-- PROFILE -->
+  <aside class="col-profile" id="col-profile"></aside>
+
+  <!-- CONVERSATION -->
+  <section class="col-conv">
+    <div class="conv-wrap">
+      <div class="conv-header" id="conv-header">
+        <span class="title" id="conv-title">Apr 21 · Return request</span> · <span id="conv-status">Waiting</span>
+        <div class="conv-header-right"><span title="More">⋮</span></div>
+      </div>
+      <div class="conv-scroll" id="timeline"></div>
+    </div>
+  </section>
+
+  </div><!-- /.layout -->
+
+  <!-- BOTTOM BAR (narrow, flush against panel left edge) -->
+  <div class="bottom-bar">
+    <div class="bb-assigned">
+      <div class="bb-inbox"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 10v3a1 1 0 001 1h10a1 1 0 001-1v-3m-4 0h-4a1 1 0 00-1 1v1h6v-1a1 1 0 00-1-1zM2 10l2-7h8l2 7" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></div>
+      <div class="at">Assigned to<strong>VIP Response Team — Lisa Green</strong></div>
+    </div>
+    <button class="bb-fab"><span>+</span></button>
+    <input class="bb-input" placeholder="">
+    <div class="bb-topic">
+      <div>Topic<div class="tval" id="bb-topic-val">Return request</div></div>
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div class="bb-split">
+      <div class="bbs-main">Close &amp; Next</div>
+      <div class="bbs-caret"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+    </div>
+  </div><!-- /.bottom-bar -->
+ </div><!-- /.left-zone -->
+
+  <!-- COPILOT (Team Assist) — full-height, flush against bottom of stage -->
+  <aside class="col-right">
+    <div class="rp">
+      <div class="rp-gutter">
+        <button class="rp-tab expand" id="expand-btn" onclick="toggleFocus()" title="Expand Team Assist">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" id="expand-svg"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="rp-tab active" title="Assist"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z" fill="currentColor"/></svg></button>
+        <button class="rp-tab" title="Answers"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2a1 1 0 011-1h7l2 2v11a1 1 0 01-1 1H4a1 1 0 01-1-1V2z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 5h5M5 8h5M5 11h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+        <button class="rp-tab" title="Library"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="4" y="2" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.3" fill="#fff"/></svg></button>
+      </div>
+      <div class="rp-body">
+        <div class="rp-scroll" id="rp-scroll">
+          <!-- Opening AI message (one turn, holds summary + prose facts + minimal rec block + ask) -->
+          <div class="ai-open" id="ai-open">
+            <div class="ao-text" id="ao-text"></div>
+            <div class="facts-prose" id="rp-facts">
+              <div class="fp-label">What I know</div>
+              <ul id="rp-facts-list"></ul>
+            </div>
+            <div class="rec-lite" id="rec-card">
+              <div class="rl-label">What I'd do<span class="pill-modified" id="pill-modified">Updated</span></div>
+              <div class="rl-title"><span id="rec-title-text"></span></div>
+              <div class="rl-line" id="rec-line1"></div>
+              <div class="rl-line" id="rec-line2"></div>
+            </div>
+            <div class="ao-ask" id="ao-ask"></div>
+          </div>
+
+          <div class="chat-msgs" id="chat-msgs"></div>
+        </div>
+
+        <div class="rp-sugs" id="rp-sugs"></div>
+
+        <div class="rp-foot">
+          <div class="rp-input-wrap">
+            <textarea class="rp-input" id="rp-input" rows="1" placeholder="Chat with Gladly AI" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
+            <button class="rp-send" onclick="sendMessage()" title="Send">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-5 13-2-5-5-2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
+            </button>
+          </div>
+          <div class="rp-attach" title="Attachment preview">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><path d="M3 17l5-5 4 4 3-3 6 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside><!-- /.col-right -->
+
+</div><!-- /.stage -->
+
+<!-- Citation popovers -->
+<div class="cite-pop" id="cite-pop-1"><div class="ct-title" id="pop1-title"></div><div id="pop1-body"></div><div style="margin-top:6px"><a class="ct-link" href="#">Open in Knowledge Base →</a></div></div>
+<div class="cite-pop" id="cite-pop-2"><div class="ct-title" id="pop2-title"></div><div id="pop2-body"></div><div style="margin-top:6px"><a class="ct-link" href="#">Open in Knowledge Base →</a></div></div>
+<div class="cite-pop" id="cite-pop-3"><div class="ct-title" id="pop3-title"></div><div id="pop3-body"></div><div style="margin-top:6px"><a class="ct-link" href="#">Open in Knowledge Base →</a></div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   SCENARIOS — v7
+   No "task" anywhere. Plain English. Copilot holds the decision moment.
+   ========================================================================= */
+
+const JORDAN = {
+  id: 'jordan',
+  type: 'chat',  // Team Assist demo (agent-driven), not HITL
+  listCard: {
+    name: 'Jordan Rivera',
+    initials: 'JR',
+    avatarColor: '#6B8E6F',
+    preview: "Return request — Clifton 9, 37 days past window. ACL injury, no race.",
+    time: '5m',
+    channel: 'Email',
+    priority: 'high'
+  },
+  profile: {
+    name: 'Jordan Rivera',
+    initials: 'JR',
+    avatarColor: '#6B8E6F',
+    customerSince: '2022',
+    ltv: '$4,280.00',
+    contact: {
+      address: '2721 Maple Ave<br>Austin, TX 78701',
+      email: 'jordan.rivera@gmail.com',
+      phone: '(512) 555-0192',
+      phoneSub: 'Mobile · SMS preferred'
+    },
+    preferences: [
+      { l: 'Loyalty tier',      v: 'Trailblazer' },
+      { l: 'Favorite category', v: 'Marathon running' },
+      { l: 'Sizing',            v: "Men's 10.5" },
+      { l: 'Brand preference',  v: 'Hoka Clifton · Bondi · Mach' }
+    ],
+    ordersLabel: '7 orders',
+    orders: [
+      { id: 'GCL-55892', title: 'Hoka Clifton 9 · Black/White · Size 10.5', status: 'Delivered', total: '$189.99', date: '02/14/2026', icon: 'shoe' },
+      { id: 'GCL-48201', title: 'Hoka Bondi 7 · Black · Size 10.5',          status: 'Delivered', total: '$159.99', date: '09/20/2025', icon: 'shoe' },
+      { id: 'GCL-39877', title: 'Hoka Mach 5 · White/Blue · Size 10.5',       status: 'Delivered', total: '$144.99', date: '04/27/2025', icon: 'shoe' }
+    ],
+    conversations: [
+      { when: 'Today',   text: 'Return request (Clifton 9)' },
+      { when: 'Feb 8',   text: 'Bought Clifton 9 for marathon' },
+      { when: 'Sep \'25', text: 'Order Bondi 7' }
+    ]
+  },
+  convHeader: { title: 'Apr 14 · Return request', status: 'Assigned to Joseph' },
+  topic: 'Return request',
+  events: [
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:02 AM', channel: 'email',
+      text: "Hi, I need to return a pair of shoes — Order #GCL-55892. I bought them for a marathon I can no longer run. Is there a way to send them back?" },
+    { kind: 'amsg', time: 'Apr 14, 9:03 AM',
+      text: "Hi Jordan, thanks for reaching out. I looked at your order and unfortunately this is past our 30-day return window, so I'm not able to process a return on this one. Let me know if there's anything else I can help with." },
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:04 AM', channel: 'email',
+      text: "It's not a defect issue. I've been training for my first marathon for over a year. I bought these specifically for race day. Last week I found out I have a torn ACL — I'm looking at surgery and months of recovery. The race is gone. I honestly don't even want to look at the shoes right now." },
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:05 AM', channel: 'email',
+      text: "They've never been worn outside, just tried on at home. I get that the window is the window, but this isn't me changing my mind. Everything changed. Is there any way to make an exception?" },
+    { kind: 'event', text: 'Routed from <a href="#">Gladly AI</a> to <a href="#">Joseph Ansanelli</a> — Apr 14, 9:06 AM' }
+  ],
+  copilot: {
+    opening: `👋 Hey Joseph — AI handed this one over after Jordan pushed back. No recommendation from me yet — ask me anything, or start with one of these.`,
+    chips: [
+      { text: "Catch me up on Jordan",      kind: 'primary',   action: 'catchMeUp' },
+      { text: "What's his sentiment?",      kind: 'secondary', action: 'sentiment' },
+      { text: "Can I approve this return?", kind: 'secondary', action: 'canApprove' }
+    ],
+    citations: [
+      { title: 'Return Exceptions',      body: "Agents may approve one-off return exceptions on a case-by-case basis, even outside the standard 30-day window, when there's a clear hardship reason and the product is unworn." },
+      { title: 'Return Eligibility',     body: "Unworn product in original condition is eligible for a full refund to the original payment method." },
+      { title: 'Loyalty Tier Benefits',  body: "Trailblazer-tier customers (3+ years, consistent spend) receive extended return flexibility at agent discretion." }
+    ],
+    script: {
+      catchMeUp: {
+        reply: "Loyal customer — <strong>Trailblazer tier since 2022, 7 orders, all Hoka</strong>. $4,280 lifetime. He bought the Clifton 9s on <strong>Feb 10</strong> for a marathon he was training for. He tore his ACL before the race and never wore them. <strong>Low risk to approve</strong> — high-value customer, narrow one-off ask, unworn product.",
+        unlockChips: ['sentiment', 'canApprove']
+      },
+      sentiment: {
+        reply: "<strong>Frustrated and disappointed.</strong> Lead with acknowledgment before getting to the return logistics.",
+        unlockChips: ['canApprove']
+      },
+      canApprove: {
+        reply: "<strong>Yes — this is within your discretion.</strong> He's 37 days past the 30-day window, but agents can approve one-off exceptions<span class='cite' onclick='togglePop(event, 1)'>1</span>. Shoes are unworn<span class='cite' onclick='togglePop(event, 2)'>2</span>, and Trailblazer tier extends return flexibility<span class='cite' onclick='togglePop(event, 3)'>3</span>. Recommend a full refund to his original payment method.",
+        unlockChips: ['draft']
+      },
+      draft: {
+        reply: "Here's a first pass — procedural and clear.",
+        draftCard: { label: 'Draft', body: `Hi Jordan,
+
+Thanks for reaching out and explaining your situation. I'm sorry to hear about the ACL.
+
+I've reviewed your account and can approve the return on your Clifton 9s. Full refund to your original payment method — expect it in 5–7 business days. Prepaid return label is on the way to your email.
+
+Let me know if you need anything else.
+
+Joseph` },
+        followup: "Want me to warm it up?",
+        nextChips: [
+          { text: "Make it warmer",  kind: 'primary',   action: 'warmer' },
+          { text: "Use this draft",  kind: 'secondary', action: 'useDraft' }
+        ]
+      },
+      warmer: {
+        reply: "How's this — warmer:",
+        draftCard: { label: 'Draft · warmer', body: `Hi Jordan,
+
+I'm really sorry about your ACL. A year of training for your first marathon and then having race day taken away — that's heartbreaking. I hope surgery goes smoothly and recovery is quick.
+
+I've looked into your return and you're all set. Full refund on the Clifton 9s to your original payment method — expect it in 5–7 business days. Sending a prepaid return label to your email now.
+
+When you're ready to lace up again, we'll be here. Take care of yourself.
+
+Joseph` },
+        nextChips: [
+          { text: "Use this draft",  kind: 'primary',   action: 'useDraft' },
+          { text: "Back to the first draft", kind: 'secondary', action: 'draft' }
+        ]
+      },
+      useDraft: {
+        reply: "Sent. Want me to process the return next?",
+        sideEffect: 'sendOutboundEmail',
+        nextChips: [
+          { text: "Process the return", kind: 'primary', action: 'processReturn' }
+        ]
+      },
+      processReturn: {
+        reply: "Here's the plan — review and approve.",
+        actionCard: {
+          label: 'Process the return',
+          steps: [
+            "Issue refund — $189.99 to his original payment method",
+            "Generate return label — UPS Ground, Austin",
+            "Email label + tracking — jordan.rivera@gmail.com"
+          ],
+          approveAction: 'approveRun'
+        },
+        nextChips: []
+      },
+      approveRun: {
+        // no reply text — the action card re-renders itself with checkmarks
+        sideEffect: 'approveRun',
+        nextChips: []
+      }
+    },
+    // Outbound email body used when useDraft fires. Picks up whichever draft was last shown.
+    outboundBodies: {
+      draft: `Hi Jordan, Thanks for reaching out and explaining your situation. I'm sorry to hear about the ACL. I've reviewed your account and can approve the return on your Clifton 9s. Full refund to your original payment method — expect it in 5–7 business days. Prepaid return label is on the way to your email. Let me know if you need anything else. — Joseph`,
+      warmer: `Hi Jordan, I'm really sorry about your ACL. A year of training for your first marathon and then having race day taken away — that's heartbreaking. I hope surgery goes smoothly and recovery is quick. I've looked into your return and you're all set. Full refund on the Clifton 9s to your original payment method — expect it in 5–7 business days. Sending a prepaid return label to your email now. When you're ready to lace up again, we'll be here. Take care of yourself. — Joseph`
+    }
+  }
+  // No `decisions` — Jordan uses the `copilot.script` state machine.
+};
+
+const RACHEL = {
+  id: 'rachel',
+  type: 'assist',
+  listCard: {
+    name: 'Rachel Thompson',
+    initials: 'RT',
+    avatarColor: '#5B8DEF',
+    preview: "Hoka Race-Day Pro Pack — can't use it, tendon tear. Wants a refund.",
+    time: '1m',
+    channel: 'Chat',
+    priority: 'high'
+  },
+  profile: {
+    name: 'Rachel Thompson',
+    initials: 'RT',
+    avatarColor: '#5B8DEF',
+    customerSince: '2022',
+    ltv: '$12,400.00',
+    contact: {
+      address: '148 Park Pl<br>Brooklyn, NY 11217',
+      email: 'rachel.thompson@gmail.com',
+      phone: '(212) 555-0147',
+      phoneSub: 'Mobile · Chat preferred'
+    },
+    preferences: [
+      { l: 'Favorite category', v: 'Long-distance running' },
+      { l: 'Sizing',            v: "Women's 8.5" },
+      { l: 'Brand preference',  v: 'Hoka Bondi · Clifton · Tecton X' }
+    ],
+    ordersLabel: '12 orders',
+    orders: [
+      { id: 'ORD-2026-84721', title: 'Hoka Race-Day Pro Pack', status: 'Processing', total: '$847.99', date: '04/19/2026', icon: 'shoe' }
+    ],
+    conversations: [
+      { when: 'Today',  text: 'Order cancellation request' },
+      { when: 'Mar 15', text: 'Size exchange (Clifton 9)' },
+      { when: 'Feb 2',  text: 'Product question — Bondi' }
+    ]
+  },
+  convHeader: { title: 'Apr 21 · Cancellation request', status: 'Waiting' },
+  topic: 'Cancellation request',
+  events: [
+    { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '2 min ago', channel: 'chat',
+      text: "Hi, I need to cancel my order #ORD-2026-84721 — the Hoka Race-Day Pro Pack. I signed up for the Chicago Marathon this year and picked up the bundle for training, but I just tore a tendon at a training run last weekend. 8–12 weeks off, no race for me. Is there any way to get a refund before it ships?" },
+    { kind: 'amsg', time: '1 min ago',
+      text: "Hi Rachel — sorry to hear about the tendon. Let me sort this out for you. I'll be back in just a moment." }
+  ],
+  copilot: {
+    opening: `👋 Hey Lisa — Rachel's asking to cancel her <strong>Hoka Race-Day Pro Pack ($847.99)</strong>. She's a VIP since 2022 — $12K+ lifetime, 3% return rate, zero prior cancellations. Order's still in processing, so cancelling is clean on our side.<span class="cite" onclick="togglePop(event, 1)">1</span>`,
+    factsProse: [
+      "Order is still in processing — nothing's shipped yet.",
+      "Rachel's a VIP since 2022 — $12K+ lifetime, zero prior cancellations.",
+      "Our VIP playbook covers this cleanly.<span class='cite' onclick='togglePop(event, 1)'>1</span>",
+      "Suggested thank-you credit is $25 for orders in the $500–$1K band.<span class='cite' onclick='togglePop(event, 2)'>2</span>"
+    ],
+    rec: {
+      title: '<span id="rec-title-inner">Cancel the order + $25 thank-you credit</span>',
+      line1: '$847.99 refund to her original payment method',
+      line2: '$25 loyalty credit on her account'
+    },
+    ask: "Want me to handle it, or would you like to tweak it?",
+    citations: [
+      { title: 'VIP Cancellation Playbook', body: "Full refund for VIPs on orders still in processing, no questions asked. A $25–$50 thank-you credit is suggested for $500–$1K orders to encourage a return visit." },
+      { title: 'Credit Guidelines', body: "For orders $500–$1K, $25 is the default thank-you credit. For $1K+, the default is $50. Agents can adjust between $10–$75 without escalation." }
+    ],
+    chips: [
+      { text: "Yes, go ahead",        kind: 'primary',   action: 'approve' },
+      { text: "Bump credit to $50",   kind: 'secondary', action: 'raise',   arg: 50 },
+      { text: "Lower credit to $10",  kind: 'secondary', action: 'lower',   arg: 10 },
+      { text: "No, I'll take it",     kind: 'secondary', action: 'handoff' }
+    ],
+    creditDefault: 25,
+    mode: 'refund'
+  },
+  decisions: {
+    approve: (s) => {
+      const events = [`<strong>Lisa</strong> approved the cancellation — just now`];
+      if (s.creditAmount !== 25) {
+        events.push(`<strong>Lisa</strong> updated the thank-you credit to $${s.creditAmount} — just now`);
+      }
+      events.push(`Gladly AI cancelled the order — just now`);
+      events.push(`Gladly AI issued a $847.99 refund to her original payment method — just now`);
+      return {
+        copilotReply: `Done — order cancelled, $847.99 refund on its way to Rachel's original payment method, and a $${s.creditAmount} thank-you credit on her account.`,
+        timelineEvents: events,
+        customerReply: `Great news, Rachel — your cancellation is approved. A full refund of $847.99 is on its way to your original payment method within 3–5 business days. I've also added a $${s.creditAmount} thank-you credit to your account for when you're back on your feet. Take care of that tendon — we'll be here when you're ready to lace up again.`,
+        customerChannel: 'chat'
+      };
+    },
+    raise: (s, amt) => ({
+      copilotReply: `Bumped it to a $${amt} credit. Still within discretion. Go?`,
+      reAsk: true,
+      mutate: { credit: amt }
+    }),
+    lower: (s, amt) => ({
+      copilotReply: `Lowered to a $${amt} credit. Go?`,
+      reAsk: true,
+      mutate: { credit: amt }
+    }),
+    handoff: (s) => ({
+      copilotReply: "Got it — I'll stop responding to Rachel and hand the conversation to you.",
+      timelineEvents: [
+        `<strong>Lisa</strong> took over the conversation — just now`,
+        `Gladly AI stopped responding — manual handling now`
+      ]
+    })
+  }
+};
+
+const STUB = (p) => ({ ...p, wired: false });
+
+const CUSTOMERS = [
+  STUB({ id: 'sarah', type: 'chat', listCard: {
+    name: 'Sarah Kim', initials: 'SK', avatarColor: '#A47BD4',
+    preview: "Hey, where's my order? It's been a week…", time: '1m', channel: 'Chat' }}),
+  { ...RACHEL, wired: true },
+  { ...JORDAN, wired: true },
+  STUB({ id: 'priya', type: 'assist', listCard: {
+    name: 'Priya Shah', initials: 'PS', avatarColor: '#0F203C',
+    preview: "AI wants your call on a VIP exchange ($380 → $420).", time: '6m', channel: 'SMS' }}),
+  STUB({ id: 'marcus', type: 'chat', listCard: {
+    name: 'Marcus Klein', initials: 'MK', avatarColor: '#0F203C',
+    preview: "Voice callback — follow-up on shipment.", time: '9m', channel: 'Voice' }}),
+  STUB({ id: 'kira', type: 'chat', listCard: {
+    name: 'Kira Fletcher', initials: 'KF', avatarColor: '#0F203C',
+    preview: "Question on sizing — jackets run true to size?", time: '14m', channel: 'Chat' }})
+];
+
+/* =========================================================================
+   STATE
+   ========================================================================= */
+
+let currentId = 'jordan';           // default open to Jordan — richer story
+let session = { creditAmount: 25, mode: 'refund', decided: false, awaitingReconfirm: false };
+
+function currentScenario() { return CUSTOMERS.find(c => c.id === currentId); }
+
+/* =========================================================================
+   RENDER: CUSTOMER LIST
+   ========================================================================= */
+
+function renderCustomerList() {
+  const list = document.getElementById('cl-list');
+  list.innerHTML = CUSTOMERS.map(c => `
+    <div class="cle-card ${c.id === currentId ? 'active' : ''}" data-id="${c.id}" onclick="selectCustomer('${c.id}')">
+      <div class="cle-left">
+        <span class="cle-priority-dot" style="${c.listCard.priority === 'high' ? '' : 'background: var(--gray-400)'}"></span>
+        <div class="cle-av" style="background:${c.listCard.avatarColor}">${c.listCard.initials}</div>
+        <div class="cle-type-pip ${c.type === 'assist' ? 'assist' : 'chat'}">
+          ${c.type === 'assist'
+            ? '<svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"/></svg>'
+            : '<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>'}
+        </div>
+      </div>
+      <div class="cle-body">
+        <div class="cle-row1"><span class="cle-name">${c.listCard.name}</span><span class="cle-time">${c.listCard.time}</span></div>
+        <div class="cle-preview">${c.listCard.preview}</div>
+        <div class="cle-meta-row">
+          <span class="cle-tag ${c.type === 'assist' ? 'assist' : 'chat'}">${c.type === 'assist' ? 'Needs input' : 'Chat'}</span>
+          <span class="cle-channel">${c.listCard.channel}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleList() {
+  const cl = document.getElementById('col-cl');
+  cl.classList.toggle('collapsed');
+  const svg = document.getElementById('cl-tog-svg');
+  if (cl.classList.contains('collapsed')) {
+    svg.innerHTML = '<path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    document.getElementById('cl-toggle').title = 'Expand';
+  } else {
+    svg.innerHTML = '<path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    document.getElementById('cl-toggle').title = 'Collapse';
+  }
+}
+
+function toggleFocus() {
+  document.body.classList.toggle('focus-copilot');
+  const svg = document.getElementById('expand-svg');
+  if (document.body.classList.contains('focus-copilot')) {
+    // compress icon
+    svg.innerHTML = '<path d="M6 2v4H2M10 2v4h4M6 14v-4H2M10 14v-4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>';
+    document.getElementById('expand-btn').title = 'Collapse Team Assist';
+  } else {
+    svg.innerHTML = '<path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>';
+    document.getElementById('expand-btn').title = 'Expand Team Assist';
+  }
+}
+
+/* =========================================================================
+   RENDER: PROFILE
+   ========================================================================= */
+
+function renderProfile(s) {
+  const p = s.profile;
+  const prefs = p.preferences ? `
+    <div class="profile-card">
+      <div class="sec-title">Preferences <span class="add">+</span></div>
+      ${p.preferences.map(r => `<div class="pref-row"><span class="pl">${r.l}</span><span>${r.v}</span></div>`).join('')}
+    </div>` : '';
+
+  const orders = p.orders.map(o => `
+    <div class="order-card">
+      <div class="order-thumb">${orderIcon(o.icon)}</div>
+      <div class="order-info">
+        <div class="oid">Order <a href="#">${o.id}</a></div>
+        <div class="ometa">${o.status} • ${o.total}</div>
+        <div class="ometa" style="color: var(--gray-700); font-size: 12px">Ordered ${o.date}</div>
+      </div>
+      <span class="order-chev">▾</span>
+    </div>`).join('');
+
+  const convos = p.conversations.map(c => `<div class="conv-row"><span class="when">${c.when}</span><span>${c.text}</span></div>`).join('');
+
+  document.getElementById('col-profile').innerHTML = `
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="profile-av" style="background:${p.avatarColor}">${p.initials}</div>
+        <div><div class="profile-name">${p.name}</div></div>
+        <span class="profile-dots">⋮</span>
+      </div>
+      <div class="kv"><span>Customer since</span><span>${p.customerSince}</span></div>
+      <div class="kv"><span>Lifetime Value</span><span>${p.ltv}</span></div>
+      <div class="link-customer">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 10l-2 2a2 2 0 102 2l2-2M10 6l2-2a2 2 0 10-2-2L8 4M6 10l4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
+        Link to customer <span class="suggestion-count">1 suggestion</span>
+      </div>
+    </div>
+    <div class="profile-card">
+      <div class="sec-title">Contact <span class="add">+</span></div>
+      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1a5 5 0 015 5c0 4-5 9-5 9S3 10 3 6a5 5 0 015-5z" stroke="currentColor" stroke-width="1.3" fill="none"/><circle cx="8" cy="6" r="1.8" fill="currentColor"/></svg></span>${p.contact.address}</div>
+      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span>${p.contact.email}<span class="tag-grp"><span class="tag">Main</span></span></div>
+      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 3a1.5 1.5 0 011-1h1.5l1.5 2-1 1a7 7 0 003 3l1-1 2 1.5V11a1.5 1.5 0 01-1 1A9 9 0 013 3z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span>${p.contact.phone}<span class="tag-grp"><span class="tag">SMS</span><span class="tag">Main</span></span></div>
+      <div class="contact-sub">${p.contact.phoneSub}</div>
+    </div>
+    ${prefs}
+    <div class="profile-card">
+      <div class="sec-title">${p.ordersLabel}</div>
+      ${orders}
+    </div>
+    <div class="profile-card">
+      <div class="sec-title">Conversations</div>
+      ${convos}
+    </div>
+  `;
+}
+
+function orderIcon(kind) {
+  if (kind === 'shoe') return '<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 20c0-2 2-4 4-5l3-1 2-3 6 1c3 1 9 3 9 7v3H4v-2z" stroke="#919191" stroke-width="1.3" fill="#F1F1F1"/><path d="M11 14l2 2M14 12l2 2M17 10l2 2" stroke="#919191" stroke-width="1.2" stroke-linecap="round"/></svg>';
+  return '<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="22" rx="2" fill="#E3E3E3"/><circle cx="16" cy="17" r="6" stroke="#919191" stroke-width="1.4" fill="none"/><path d="M12 6v-2h8v2" stroke="#919191" stroke-width="1.4" fill="none"/></svg>';
+}
+
+/* =========================================================================
+   RENDER: CONVERSATION
+   ========================================================================= */
+
+function renderConversation(s) {
+  document.getElementById('conv-title').textContent = s.convHeader.title;
+  document.getElementById('conv-status').textContent = s.convHeader.status;
+  document.getElementById('bb-topic-val').textContent = s.topic;
+
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = s.events.map(e => renderEvent(e, s)).join('');
+}
+
+function renderEvent(e) {
+  if (e.kind === 'cmsg') {
+    const chIcon = e.channel === 'email'
+      ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>'
+      : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
+    const ch = e.channel === 'email' ? 'sent an email' : 'sent a chat';
+    return `<div class="msg-meta"><span class="ch-icon">${chIcon}</span>${e.who} ${ch} — ${e.time}</div>
+      <div class="msg inbound"><div class="msg-av" style="background:${e.avColor}">${e.av}</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
+  }
+  if (e.kind === 'amsg') {
+    return `<div class="msg-meta right">Gladly AI replied — ${e.time}<span class="ch-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span></div>
+      <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
+  }
+  return '';
+}
+
+/* =========================================================================
+   RENDER: COPILOT (opening AI message + chips)
+   ========================================================================= */
+
+function renderCopilot(s) {
+  const c = s.copilot;
+  session.creditAmount = c.creditDefault || 25;
+  session.mode = c.mode || 'refund';
+  session.decided = false;
+  session.awaitingReconfirm = false;
+  session.jordanLastDraft = null;   // 'draft' or 'warmer' — used when useDraft fires
+
+  document.getElementById('ao-text').innerHTML = c.opening;
+
+  // HITL panel (Rachel) vs Team Assist panel (Jordan) — branch on scenario type
+  const factsEl  = document.getElementById('rp-facts');
+  const recEl    = document.getElementById('rec-card');
+  const askEl    = document.getElementById('ao-ask');
+
+  if (s.type === 'assist' && c.factsProse) {
+    factsEl.style.display = '';
+    recEl.style.display = '';
+    askEl.style.display = '';
+    document.getElementById('rp-facts-list').innerHTML = c.factsProse.map(f => `<li>${f}</li>`).join('');
+    document.getElementById('rec-title-text').innerHTML = c.rec.title;
+    document.getElementById('rec-line1').innerHTML = c.rec.line1;
+    document.getElementById('rec-line2').innerHTML = c.rec.line2;
+    document.getElementById('pill-modified').classList.remove('on');
+    askEl.textContent = c.ask;
+  } else {
+    factsEl.style.display = 'none';
+    recEl.style.display = 'none';
+    askEl.style.display = 'none';
+  }
+
+  // Citations — support up to 3 (Jordan has 3; Rachel has 2)
+  for (let i = 0; i < 3; i++) {
+    const popT = document.getElementById(`pop${i + 1}-title`);
+    const popB = document.getElementById(`pop${i + 1}-body`);
+    if (!popT) continue;
+    const cit = c.citations && c.citations[i];
+    if (cit) {
+      popT.textContent = cit.title;
+      popB.textContent = cit.body;
+    } else {
+      popT.textContent = '';
+      popB.textContent = '';
+    }
+  }
+
+  renderChips(c.chips);
+  document.getElementById('chat-msgs').innerHTML = '';
+}
+
+function renderChips(chips) {
+  document.getElementById('rp-sugs').innerHTML = chips.map((ch, i) =>
+    `<button class="chip ${ch.kind || ''}" onclick='handleChip(${i})'>${ch.text}</button>`
+  ).join('');
+  // stash for lookup
+  window._chipBank = chips;
+}
+
+function handleChip(i) {
+  const ch = window._chipBank[i];
+  if (!ch) return;
+  pushAgentMsg(ch.text);
+  clearChips();
+  pushTyping();
+  setTimeout(() => {
+    removeTyping();
+    runDecision(ch.action, ch.arg);
+  }, 700);
+}
+
+function clearChips() {
+  document.getElementById('rp-sugs').innerHTML = '';
+}
+
+/* =========================================================================
+   DECIDE — all decisions flow through here, no modals
+   ========================================================================= */
+
+function runDecision(action, arg) {
+  const s = currentScenario();
+
+  // Team Assist scripted flow (Jordan) — route through the script runner
+  if (s.copilot && s.copilot.script && s.copilot.script[action]) {
+    return runScript(action);
+  }
+
+  const handler = s.decisions && s.decisions[action];
+  if (!handler) { pushAIMsg("Not sure how to handle that yet."); return; }
+
+  if (action === 'raise' || action === 'lower') {
+    const res = handler(session, arg);
+    session.creditAmount = arg;
+    updateRecCard();
+    pushAIMsg(res.copilotReply);
+    // Re-ask: show primary Yes + revert chips
+    renderChips([
+      { text: "Yes, go ahead", kind: 'primary', action: 'approve' },
+      { text: `Change my mind`, kind: 'secondary', action: 'revert' },
+      { text: "No, I'll take it", kind: 'secondary', action: 'handoff' }
+    ]);
+    return;
+  }
+
+  if (action === 'revert') {
+    session.creditAmount = s.copilot.creditDefault;
+    updateRecCard(true);
+    pushAIMsg(`Back to a $${session.creditAmount} credit. Go?`);
+    renderChips([
+      { text: "Yes, go ahead", kind: 'primary', action: 'approve' },
+      { text: "Bump credit to $50", kind: 'secondary', action: 'raise', arg: 50 },
+      { text: "Lower credit to $10", kind: 'secondary', action: 'lower', arg: 10 },
+      { text: "No, I'll take it", kind: 'secondary', action: 'handoff' }
+    ]);
+    return;
+  }
+
+  if (action === 'approve') {
+    const res = handler(session);
+    pushAIMsg(res.copilotReply);
+
+    const tl = document.getElementById('timeline');
+
+    // Chronological: each thing that happened becomes its own plain timeline event.
+    res.timelineEvents.forEach(text => {
+      tl.insertAdjacentHTML('beforeend', `<div class="tl-event">${text}</div>`);
+    });
+
+    // AI's customer-facing reply — clean bubble, no badge.
+    const chIcon = res.customerChannel === 'email'
+      ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>'
+      : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
+    tl.insertAdjacentHTML('beforeend',
+      `<div class="msg-meta right">Gladly AI replied — just now<span class="ch-icon">${chIcon}</span></div>
+       <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${res.customerReply}</div><span class="msg-dots">⋮</span></div>`);
+
+    session.decided = true;
+    document.getElementById('conv-status').textContent = 'Resolved by AI';
+    scrollTimeline();
+    return;
+  }
+
+  if (action === 'handoff') {
+    const res = handler(session);
+    pushAIMsg(res.copilotReply);
+    const tl = document.getElementById('timeline');
+    res.timelineEvents.forEach(text => {
+      tl.insertAdjacentHTML('beforeend', `<div class="tl-event">${text}</div>`);
+    });
+    document.getElementById('conv-status').textContent = 'Handed off to Lisa';
+    session.decided = true;
+    scrollTimeline();
+    return;
+  }
+}
+
+/* =========================================================================
+   TEAM ASSIST SCRIPTED FLOW — Jordan's multi-turn conversation
+   ========================================================================= */
+
+function runScript(action) {
+  const s = currentScenario();
+  const beat = s.copilot.script[action];
+  if (!beat) { pushAIMsg("Not sure how to handle that yet."); return; }
+
+  // Build extra content (draft card or action card) if this beat has one
+  let extra = '';
+  if (beat.draftCard) {
+    extra += renderDraftCard(beat.draftCard);
+    session.jordanLastDraft = (action === 'warmer') ? 'warmer' : 'draft';
+  }
+  if (beat.actionCard) {
+    extra += renderActionCard(beat.actionCard);
+    session.jordanActionCard = beat.actionCard;
+  }
+
+  // Build reply text (with optional followup after a draft card)
+  let replyHtml = '';
+  if (beat.reply) replyHtml = beat.reply;
+  if (beat.followup) {
+    replyHtml = (replyHtml ? replyHtml + '<br><br>' : '') + beat.followup;
+  }
+
+  // Render the AI turn
+  if (replyHtml || extra) {
+    pushAIMsg(replyHtml, extra);
+  }
+
+  // Side effects
+  if (beat.sideEffect === 'sendOutboundEmail') sideEffectSendOutbound();
+  if (beat.sideEffect === 'approveRun') sideEffectApproveRun();
+
+  // Update chip rail for progressive disclosure OR for explicit nextChips
+  if (beat.nextChips !== undefined) {
+    renderChips(beat.nextChips);
+  } else if (beat.unlockChips) {
+    const currentChips = window._chipBank || [];
+    // Keep the chips not yet clicked this beat and add unlocked ones not already present
+    const clickedAction = action;
+    const nextChips = currentChips.filter(c => c.action !== clickedAction);
+    const scriptDef = s.copilot.script;
+    beat.unlockChips.forEach(a => {
+      if (!nextChips.find(c => c.action === a)) {
+        const chipDef = JORDAN_CHIP_DEFS[a];
+        if (chipDef) nextChips.push(chipDef);
+      }
+    });
+    // Always add "Draft a response" if it's an unlock and not yet shown
+    if (beat.unlockChips.includes('draft') && !nextChips.find(c => c.action === 'draft')) {
+      nextChips.push({ text: "Draft a response", kind: 'primary', action: 'draft' });
+    }
+    renderChips(nextChips);
+  } else {
+    renderChips([]); // clear
+  }
+}
+
+// Jordan's chip catalog (so runScript can rebuild any chip by action name)
+const JORDAN_CHIP_DEFS = {
+  catchMeUp:  { text: "Catch me up on Jordan",      kind: 'secondary', action: 'catchMeUp' },
+  sentiment:  { text: "What's his sentiment?",      kind: 'secondary', action: 'sentiment' },
+  canApprove: { text: "Can I approve this return?", kind: 'secondary', action: 'canApprove' },
+  draft:      { text: "Draft a response",           kind: 'primary',   action: 'draft' },
+  warmer:     { text: "Make it warmer",             kind: 'primary',   action: 'warmer' },
+  useDraft:   { text: "Use this draft",             kind: 'primary',   action: 'useDraft' },
+  processReturn: { text: "Process the return",      kind: 'primary',   action: 'processReturn' }
+};
+
+function sideEffectSendOutbound() {
+  const s = currentScenario();
+  const bodyKey = session.jordanLastDraft || 'warmer';
+  const body = s.copilot.outboundBodies[bodyKey];
+  const tl = document.getElementById('timeline');
+  const chIcon = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>';
+  tl.insertAdjacentHTML('beforeend',
+    `<div class="msg-meta right">Joseph Ansanelli (You) sent an email — just now<span class="ch-icon">${chIcon}</span></div>
+     <div class="msg outbound"><div class="msg-av" style="background:#7BB86F">JA</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
+  scrollTimeline();
+  // Jordan replies one beat later
+  setTimeout(() => {
+    tl.insertAdjacentHTML('beforeend',
+      `<div class="msg-meta"><span class="ch-icon">${chIcon}</span>Jordan Rivera sent an email — just now</div>
+       <div class="msg inbound"><div class="msg-av" style="background:#6B8E6F">JR</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
+    scrollTimeline();
+  }, 1500);
+}
+
+function sideEffectApproveRun() {
+  // Find the most recent action card and replace its actions row with checkmarks
+  const cards = document.querySelectorAll('.action-card');
+  const lastCard = cards[cards.length - 1];
+  const card = session.jordanActionCard;
+  if (!lastCard || !card) return;
+  const completionLines = [
+    "Refund queued · $189.99 to his original payment method",
+    "Label generated · UPS 1Z999AA10123456784",
+    "Email sent · jordan.rivera@gmail.com"
+  ];
+  lastCard.outerHTML = renderActionCardComplete(card, completionLines);
+
+  // Append chronological tl-events
+  const tl = document.getElementById('timeline');
+  const events = [
+    "<strong>Joseph</strong> approved the return exception — just now",
+    "Gladly AI issued a $189.99 refund to his original payment method — just now",
+    "Gladly AI emailed a prepaid UPS return label to Jordan — just now"
+  ];
+  events.forEach(text => tl.insertAdjacentHTML('beforeend', `<div class="tl-event">${text}</div>`));
+  scrollTimeline();
+  document.getElementById('conv-status').textContent = 'Resolved';
+}
+
+function updateRecCard(revert) {
+  const inner = document.getElementById('rec-title-inner');
+  const line2 = document.getElementById('rec-line2');
+  const s = currentScenario();
+  if (s.id === 'jordan') {
+    if (inner) inner.textContent = `Full refund + prepaid return label + $${session.creditAmount} credit`;
+    if (line2) line2.textContent = `Prepaid UPS label emailed to Jordan · $${session.creditAmount} thank-you credit`;
+  } else if (s.id === 'rachel') {
+    if (inner) inner.textContent = `Cancel the order + $${session.creditAmount} thank-you credit`;
+    if (line2) line2.textContent = `$${session.creditAmount} loyalty credit on her account`;
+  }
+  const pill = document.getElementById('pill-modified');
+  if (revert) pill.classList.remove('on'); else pill.classList.add('on');
+}
+
+/* =========================================================================
+   COPILOT CHAT PRIMITIVES
+   ========================================================================= */
+
+function pushAgentMsg(text) {
+  const box = document.getElementById('chat-msgs');
+  const el = document.createElement('div');
+  el.className = 'cm agent';
+  el.innerHTML = `<div class="cb">${escapeHtml(text)}</div>`;
+  box.appendChild(el);
+  scrollRP();
+}
+function pushAIMsg(text, extra) {
+  const box = document.getElementById('chat-msgs');
+  const el = document.createElement('div');
+  el.className = 'cm ai';
+  const body = text ? `<div class="cb">${text}</div>` : '';
+  el.innerHTML = body + (extra || '');
+  box.appendChild(el);
+  scrollRP();
+  return el;
+}
+
+function renderDraftCard(card) {
+  return `<div class="draft-card"><div class="dc-label">${card.label}</div><div class="dc-body">${escapeHtml(card.body)}</div></div>`;
+}
+
+function renderActionCard(card) {
+  const steps = card.steps.map(s => `<li>${s}</li>`).join('');
+  return `<div class="action-card" data-approve="${card.approveAction}">
+    <div class="ac-label">${card.label}</div>
+    <ol>${steps}</ol>
+    <div class="ac-actions">
+      <button class="ac-primary" onclick="runDecision('${card.approveAction}')">Approve &amp; run</button>
+      <button class="ac-secondary" onclick="showToast('Edit steps — not wired in this demo')">Edit steps</button>
+    </div>
+  </div>`;
+}
+
+function renderActionCardComplete(card, completionLines) {
+  const steps = card.steps.map(s => `<li>${s}</li>`).join('');
+  const done = completionLines.map(l => `<div><span class="check">✓</span>${l}</div>`).join('');
+  return `<div class="action-card">
+    <div class="ac-label">${card.label}</div>
+    <ol>${steps}</ol>
+    <div class="ac-done">${done}</div>
+  </div>`;
+}
+function pushTyping() {
+  const box = document.getElementById('chat-msgs');
+  const el = document.createElement('div');
+  el.className = 'cm ai';
+  el.id = 'tmp-typing';
+  el.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+  box.appendChild(el);
+  scrollRP();
+}
+function removeTyping() {
+  const t = document.getElementById('tmp-typing');
+  if (t) t.remove();
+}
+function scrollRP() {
+  const s = document.getElementById('rp-scroll');
+  s.scrollTop = s.scrollHeight;
+}
+function scrollTimeline() {
+  const t = document.querySelector('.conv-scroll');
+  t.scrollTop = t.scrollHeight;
+}
+
+/* Clicking an Assist chip in the timeline focuses the copilot (highlight last AI msg) */
+function focusCopilotOnLast() {
+  const rp = document.getElementById('rp-scroll');
+  rp.scrollTop = rp.scrollHeight;
+  const lastAI = [...document.querySelectorAll('#chat-msgs .cm.ai')].pop();
+  if (lastAI) {
+    lastAI.style.background = 'var(--purple-100)';
+    lastAI.style.borderRadius = '8px';
+    setTimeout(() => { lastAI.style.background = ''; lastAI.style.borderRadius = ''; }, 1200);
+  }
+}
+
+/* =========================================================================
+   FREE-TEXT INPUT
+   ========================================================================= */
+
+function sendMessage() {
+  const input = document.getElementById('rp-input');
+  const text = input.value.trim();
+  if (!text) return;
+  pushAgentMsg(text);
+  input.value = '';
+  autoGrow(input);
+  pushTyping();
+  setTimeout(() => {
+    removeTyping();
+    const lc = text.toLowerCase();
+    const s = currentScenario();
+
+    // Team Assist scripted flow (Jordan) — phrase → script key
+    if (s.copilot.script) {
+      if (/catch.*up|summary|summarize|who is/.test(lc))       return runScript('catchMeUp');
+      if (/sentiment|feeling|mood|tone/.test(lc))              return runScript('sentiment');
+      if (/can i approve|policy|allowed|discretion|can we/.test(lc)) return runScript('canApprove');
+      if (/warm(er)?|friendl|kind/.test(lc))                    return runScript('warmer');
+      if (/^send|use this|use it|send it|send the draft/.test(lc)) return runScript('useDraft');
+      if (/process|refund|return|run.*plan/.test(lc))           return runScript('processReturn');
+      if (/^(approve|yes|go|do it|run it|approve.*run)/.test(lc)) return runScript('approveRun');
+      if (/draft|write|respond/.test(lc))                       return runScript('draft');
+      pushAIMsg("Let me know — catch you up, check sentiment, draft a response, or process the return.");
+      return;
+    }
+
+    // HITL flow (Rachel) — natural-language decision inference
+    if (/^yes\b|^yep\b|^yeah\b|^go\b|go ahead|do it|approve/.test(lc)) {
+      runDecision('approve'); return;
+    }
+    if (/^no\b|i'?ll take|let me take|hand off|handoff|take over/.test(lc)) {
+      runDecision('handoff'); return;
+    }
+    const m = lc.match(/\$?(\d+)/);
+    if (m && (lc.includes('credit') || lc.includes('$') || lc.includes('loyalty') || lc.includes('bump') || lc.includes('raise') || lc.includes('lower') || lc.includes('drop'))) {
+      const n = parseInt(m[1], 10);
+      if (n >= 0 && n <= 100) {
+        const action = n > session.creditAmount ? 'raise' : 'lower';
+        runDecision(action, n);
+        return;
+      }
+    }
+    if (lc.includes('policy') || lc.includes('why')) {
+      pushAIMsg("Short version: she fits our playbook — clean history, legitimate reason, within our discretion. The citations in the summary have the details.");
+      return;
+    }
+    pushAIMsg("I'd still go with the recommendation as-is. Let me know — yes, no, or adjust the credit.");
+  }, 800);
+}
+
+function autoGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* =========================================================================
+   CITATIONS, TOAST
+   ========================================================================= */
+
+function togglePop(e, n) {
+  e.stopPropagation();
+  const pop = document.getElementById('cite-pop-' + n);
+  const rect = e.target.getBoundingClientRect();
+  document.querySelectorAll('.cite-pop.open').forEach(p => { if (p !== pop) p.classList.remove('open'); });
+  pop.style.left = Math.min(rect.left, window.innerWidth - 300) + 'px';
+  pop.style.top = (rect.bottom + 6) + 'px';
+  pop.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.classList.contains('cite')) {
+    document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+  }
+});
+
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('on');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.remove('on'), 2400);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+  }
+});
+
+/* =========================================================================
+   SELECT CUSTOMER
+   ========================================================================= */
+
+function selectCustomer(id) {
+  const s = CUSTOMERS.find(c => c.id === id);
+  if (!s) return;
+  if (!s.wired) { showToast(`${s.listCard.name} — this is a demo, only Rachel and Jordan are wired`); return; }
+
+  currentId = id;
+  document.querySelectorAll('.cle-card').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+
+  // Panel-weighted layout when a Needs-input customer is selected (copilot is primary surface)
+  document.body.classList.toggle('panel-weighted', s.type === 'assist');
+
+  renderProfile(s);
+  renderConversation(s);
+  renderCopilot(s);
+  document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+}
+
+/* =========================================================================
+   BOOT
+   ========================================================================= */
+
+renderCustomerList();
+selectCustomer('jordan');
+</script>
+</body>
+</html>
