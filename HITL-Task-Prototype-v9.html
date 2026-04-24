@@ -23,26 +23,27 @@
 <style>
   :root {
     --green-400: #009B00;
-    --green-500: #007A00;
+    --green-500: #0c7c0c;
+    --green-300: #64b964;
     --green-100: #D8F4D8;
     --green-50:  #EAF7EA;
     --navy:      #0F203C;
     --red-400:   #D50E0E;
     --red-50:    #FFF0F2;
-    --black:     #111111;   /* defaultFontBlack — softer than pure #000 per Gladly system */
+    --black:     #111111;
     --white:     #FFFFFF;
     --gray-50:   #FAFAFA;
     --gray-100:  #F6F6F6;
     --gray-200:  #F1F1F1;
-    --gray-300:  #E3E3E3;
+    --gray-300:  #CECECE;
     --gray-400:  #CECECE;
-    --gray-500:  #B3B3B3;
+    --gray-500:  #919191;
     --gray-600:  #919191;
     --gray-700:  #767676;
     --gray-800:  #484848;
-    --gray-900:  #1A1A1A;
+    --gray-900:  #242424;
     --purple-assist: #8C69F0;
-    --purple-100:    #F3EFFE;
+    --purple-100:    #e6dcff;
 
     --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
 
@@ -59,8 +60,8 @@
     --radius-pill: 20px;
     --radius-round: 9999px;
 
-    --shadow-sm: 0 2px 8px rgba(0,0,0,.08);
-    --shadow-soft: 5px 5px 25px rgba(0,0,0,.15);
+    --shadow-sm: 0 2px 8px 0 rgba(0,0,0,0.08);
+    --shadow-soft: 0 2px 4px 0 rgba(0,0,0,0.15);
   }
 
   *{margin:0;padding:0;box-sizing:border-box}
@@ -87,11 +88,15 @@
   .icon-btn{width: 32px; height: 32px; display:inline-flex; align-items:center; justify-content:center; border-radius: var(--radius-round); color: var(--black)}
   .icon-btn:hover{background: var(--gray-100)}
   .home-link{display:flex; align-items:center; gap: var(--sp-2); font: var(--button); color: var(--black)}
-  .nav-c{position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap: 2px; font: 700 22px/1 var(--ff)}
-  .nav-c .plus{color: var(--green-400); font-weight: 700}
+  .nav-c{position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap: 8px; font: 700 22px/1 var(--ff)}
+  .nav-c .plus-circle{width: 32px; height: 32px; border-radius: 50%; background: var(--green-400); display:inline-flex; align-items:center; justify-content:center; color: #fff; font: 700 20px/1 var(--ff); flex-shrink: 0}
   .nav-c .word{color: var(--black); letter-spacing: -.3px}
   .nav-r{display:flex; align-items:center; gap: var(--sp-1); margin-left:auto}
-  .tog{width: 32px; height: 32px; border: 1px solid var(--gray-300); border-radius: var(--radius-round); display:inline-flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700)}
+  .tog-wrap{position: relative; display:inline-flex}
+  .tog{width: 36px; height: 36px; border: 1px solid var(--gray-800); border-radius: var(--radius-round); display:inline-flex; align-items:center; justify-content:center; background: none; color: var(--gray-800)}
+  .tog:hover{background: var(--gray-100)}
+  .tog.active{color: var(--white); background-color: var(--green-400); border-color: var(--white);}
+  .tog-badge{position:absolute; top: -5px; right: -8px; background: var(--green-400); color: #fff; font: 700 9px/16px var(--ff); padding: 0 5px; border-radius: var(--radius-round); min-width: 16px; height: 16px; text-align:center; white-space: nowrap; pointer-events: none}
   .nav-next{background: var(--gray-300); color: var(--gray-500); font: var(--button); padding: 8px 16px; border-radius: var(--radius-pill); margin-left: var(--sp-2)}
   .nav-divider{width:1px; height: 32px; background: var(--gray-300); margin: 0 var(--sp-2)}
   .bell{position: relative}
@@ -129,7 +134,13 @@
   .col-cl.collapsed{ width: 80px; min-width: 80px }
   .col-profile{width: 320px; min-width: 320px; background: var(--gray-100); padding: var(--sp-4); overflow-y: auto; transition: width .2s, min-width .2s, padding .2s}
   .col-conv{flex:1; min-width: 420px; background: var(--gray-100); display:flex; flex-direction: column; overflow: hidden; transition: min-width .2s}
-  .col-right{width: 380px; min-width: 380px; display:flex; position: relative; background: var(--white); border-left: 1px solid var(--gray-200); transition: width .2s, min-width .2s}
+  .col-right{width: 380px; min-width: 280px; display:flex; position: relative; background: var(--white); border-left: 1px solid var(--gray-200); transition: none}
+  .col-right-drag{position:absolute; left: 0; top: 0; bottom: 0; width: 12px; cursor: col-resize; z-index: 20; display:flex; align-items:center; justify-content:center}
+  .col-right-drag-btn{width: 12px; height: 40px; background: var(--gray-300); border-radius: 6px; display:flex; align-items:center; justify-content:center; opacity: 0; transition: opacity .15s, background .15s; pointer-events: none}
+  .col-right-drag-btn svg{color: var(--gray-600)}
+  .col-right-drag:hover .col-right-drag-btn, .col-right-drag.dragging .col-right-drag-btn{opacity: 1}
+  .col-right-drag.dragging .col-right-drag-btn{background: var(--green-400)}
+  .col-right-drag.dragging .col-right-drag-btn svg{color: #fff}
 
   /* Panel-weighted default for Needs-input scenarios: list 220 / profile 280 / conv flex / copilot 440 */
   body.panel-weighted .col-cl{width: 220px; min-width: 220px}
@@ -199,7 +210,7 @@
   .link-customer .suggestion-count{margin-left:auto; color: var(--gray-500); font: var(--copy-sm)}
   .sec-title{font: 700 16px/1 var(--ff); color: var(--black); margin-bottom: var(--sp-3); display:flex; align-items:center; justify-content:space-between}
   .sec-title .add{color: var(--gray-500); font-size: 18px; font-weight: 400; cursor: pointer}
-  .contact-row{display:flex; align-items:center; gap: var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black)}
+  .contact-row{display:flex; flex-wrap: wrap; align-items:center; gap: var(--sp-2) var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black)}
   .contact-row .ci{color: var(--gray-500); width: 16px; height: 16px; flex-shrink: 0; display:inline-flex; align-items:center; justify-content:center}
   .contact-row .tag{background: var(--black); color: #fff; font: 700 9px/1 var(--ff); padding: 3px 6px; border-radius: 3px; letter-spacing: .5px}
   .contact-row .tag-grp{margin-left:auto; display:flex; gap: 4px}
@@ -219,10 +230,10 @@
 
   /* CONVERSATION */
   .conv-wrap{flex:1; display:flex; flex-direction:column; overflow:hidden}
-  .conv-header{background: var(--white); border-bottom: 1px solid var(--gray-200); padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
+  .conv-header{background: none; border-bottom: 1px solid var(--gray-200); padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
   .conv-header .title{color: var(--black); font-weight: 700}
   .conv-header-right{position:absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); display:flex; gap: var(--sp-2); color: var(--gray-500)}
-  .conv-scroll{flex:1; overflow-y:auto; padding: var(--sp-6) var(--sp-6); background: var(--white)}
+  .conv-scroll{flex:1; overflow-y:auto; padding: var(--sp-6) var(--sp-6); background: none;}
   .tl-event{text-align:center; padding: var(--sp-3) 0; font: var(--copy-sm); color: var(--gray-700)}
   .tl-event strong{color: var(--black); font-weight: 700}
   .tl-event a{color: var(--green-400); font-weight: 500}
@@ -239,8 +250,9 @@
   .msg{display:flex; gap: var(--sp-3); margin-bottom: var(--sp-5); max-width: 82%}
   .msg.outbound{margin-left: auto; flex-direction: row-reverse}
   .msg-av{width: 32px; height: 32px; border-radius: var(--radius-round); display:flex; align-items:center; justify-content:center; font: 700 11px/1 var(--ff); color: #fff; flex-shrink: 0; box-shadow: var(--shadow-sm)}
-  .msg-bub{padding: var(--sp-3) var(--sp-4); border-radius: 16px; font: var(--copy); color: var(--black); line-height: 1.62; box-shadow: 0 1px 2px rgba(0,0,0,.04); background: var(--white); border: 1px solid var(--gray-200)}
-  .msg-dots{color: var(--gray-500); margin-top: var(--sp-2); cursor: pointer}
+  .msg-bub{padding: var(--sp-3) var(--sp-4); border-radius: 0 10px 10px 10px; font: var(--copy); color: var(--black); line-height: 1.62; box-shadow: 0 1px 2px rgba(0,0,0,.04); background: var(--white); border: 1px solid var(--gray-200)}
+  .msg.outbound .msg-bub{border-radius: 10px 0 10px 10px}
+  .msg-dots{display: none}
 
   /* BOTTOM BAR */
   .bottom-bar{height: 48px; flex-shrink: 0; background: var(--white); border-top: 1px solid var(--gray-200); display:flex; align-items: center; padding: 0 var(--sp-4); gap: var(--sp-3); position: relative}
@@ -255,15 +267,15 @@
   .bb-topic .tval{color: var(--green-400)}
   .bb-split{display:flex; background: var(--green-400); border-radius: var(--radius-pill); overflow: hidden; height: 32px}
   .bb-split .bbs-main{padding: 0 var(--sp-4); color: #fff; font: 500 12px/1 var(--ff); display:flex; align-items:center; cursor:pointer}
-  .bb-split .bbs-main:hover{background: var(--green-500)}
+  .bb-split .bbs-main:hover{background: var(--green-300)}
   .bb-split .bbs-caret{padding: 0 var(--sp-2); border-left: 1px solid rgba(255,255,255,.25); display:flex; align-items:center; color: #fff; cursor: pointer}
 
   /* COPILOT */
-  .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200)}
-  .rp-gutter{width: 32px; padding: var(--sp-4) 0 var(--sp-6); display:flex; flex-direction:column; align-items: flex-end; gap: var(--sp-1); background: var(--gray-100)}
-  .rp-tab{width: 32px; height: 32px; border-radius: 8px 0 0 8px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer}
+  .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200); position: relative; overflow: visible}
+  .rp-gutter{width: 32px; padding: var(--sp-4) 0 var(--sp-6); display:flex; flex-direction:column; align-items: flex-end; gap: var(--sp-1); background: transparent; position: absolute; left: -32px; top: 0; bottom: 0; z-index: 1}
+  .rp-tab{width: 24px; height: 24px; border-radius: 12px 0 0 12px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer}
   .rp-tab.active{background: var(--purple-assist); color: #fff}
-  .rp-tab.expand{margin-bottom: var(--sp-2); background: var(--white); color: var(--gray-700)}
+  .rp-tab.expand{background: var(--white); color: var(--gray-700)}
   .rp-tab.expand:hover{background: var(--gray-200)}
   body.focus-copilot .rp-tab.expand{background: var(--purple-100); color: var(--purple-assist)}
   .rp-body{flex:1; display:flex; flex-direction:column; background: var(--white); overflow: hidden}
@@ -294,7 +306,7 @@
   }
   .facts-prose ul{ list-style: none; padding: 0; margin: 0; }
   .facts-prose li{
-    padding: 4px 0 4px 18px;
+    padding: 2px 0 2px 18px;
     position: relative;
     line-height: 1.62;
     color: var(--black);
@@ -393,37 +405,31 @@
     padding-top: 10px;
     border-top: 1px solid var(--gray-200);
   }
-  /* Gladly primary button: green400 bg, white text, pill 20, min-width 80 */
   .action-card .ac-primary{
-    background: var(--green-400); color: var(--white);
-    padding: 7px 18px;
-    min-width: 80px;
+    background: var(--green-400); color: #fff;
+    padding: 7px 14px;
     border-radius: var(--radius-pill);
     font: var(--button);
     cursor: pointer;
-    border: 1px solid var(--green-400);
+    border: none;
   }
-  .action-card .ac-primary:hover{ background: var(--green-500); border-color: var(--green-500); }
-  .action-card .ac-primary:disabled{ background: var(--gray-300); border-color: var(--gray-300); color: var(--gray-500); cursor: not-allowed; }
-  /* Gladly secondary button: white bg, gray300 border, black text, pill 20 */
+  .action-card .ac-primary:hover{ background: var(--green-300); }
+  .action-card .ac-primary:disabled{ background: var(--gray-300); color: var(--gray-500); cursor: not-allowed; }
   .action-card .ac-secondary{
-    color: var(--black);
-    background: var(--white);
-    border: 1px solid var(--gray-300);
-    padding: 7px 18px;
-    border-radius: var(--radius-pill);
+    color: var(--gray-700);
     font: var(--button);
     cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
   }
-  .action-card .ac-secondary:hover{ background: var(--gray-100); }
   .action-card .ac-done{
     display: flex; flex-direction: column; gap: 4px;
     padding-top: 10px;
     border-top: 1px solid var(--gray-200);
     font: var(--copy); color: var(--black);
   }
-  .action-card .ac-done div{ display: flex; align-items: center; gap: 6px; }
-  .action-card .ac-done .check{ color: var(--green-400); display: inline-flex; align-items: center; }
+  .action-card .ac-done .check{ color: var(--green-400); margin-right: 6px; font-weight: 700; }
 
   /* Product list — Team Assist's injury-recovery recommendations for Jordan */
   .prod-list{
@@ -485,7 +491,7 @@
     font: var(--button); cursor: pointer;
     margin-right: 10px;
   }
-  .cm.ai .cb-use:hover{ background: var(--green-500); }
+  .cm.ai .cb-use:hover{ background: var(--green-300); }
   .cm.ai .cb-icon{
     width: 28px; height: 28px;
     display: inline-flex; align-items: center; justify-content: center;
@@ -507,8 +513,7 @@
   @keyframes blink{0%,60%,100%{opacity: .3}30%{opacity: 1}}
 
   /* Suggestion chips row above the input */
-  .rp-sugs{display:flex; gap: var(--sp-2); overflow-x: auto; padding: var(--sp-2) var(--sp-4); border-top: 1px solid var(--gray-200); background: var(--white)}
-  .rp-sugs::-webkit-scrollbar{display:none}
+  .rp-sugs{display:flex; flex-wrap: wrap; gap: var(--sp-2); padding: var(--sp-2) var(--sp-4); border-top: 1px solid var(--gray-200); background: var(--white)}
   .chip{
     white-space: nowrap;
     padding: 7px 14px;
@@ -525,24 +530,43 @@
     background: var(--green-400); color: #fff; border-color: var(--green-400);
     font-weight: 600;
   }
-  .chip.primary:hover{background: var(--green-500); border-color: var(--green-500)}
+  .chip.primary:hover{background: var(--green-300); border-color: var(--green-300)}
   .chip.secondary{border-color: var(--gray-400)}
 
   .rp-foot{padding: var(--sp-4); background: var(--white); display:flex; align-items: center; gap: var(--sp-2)}
-  .rp-input-wrap{flex: 1; display:flex; align-items: center; border: 1px solid var(--gray-300); border-radius: var(--radius-pill); padding: 4px 4px 4px 16px; background: var(--white); transition: border-color .15s}
-  .rp-input-wrap:focus-within{border-color: var(--gray-700)}
+  .rp-input-wrap{flex: 1; display:flex; align-items: center; border: 1px solid var(--gray-500); border-radius: 24px; box-shadow: var(--shadow-sm); padding: 4px 4px 4px 16px; background: var(--white)}
   .rp-input{flex:1; border: none; outline: none; background: transparent; font: var(--copy); color: var(--black); padding: 6px 0; resize: none; min-height: 24px; max-height: 120px; font-family: var(--ff)}
   .rp-input::placeholder{color: var(--gray-700)}
   .rp-send{width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; color: var(--gray-700); border-radius: var(--radius-round)}
   .rp-send:hover{color: var(--green-400)}
-  .rp-attach{width: 46px; height: 30px; border-radius: 6px; background: linear-gradient(135deg, var(--gray-200), var(--gray-300)); display:flex; align-items:center; justify-content:center; color: var(--gray-700); flex-shrink: 0}
+  .rp-more{position: relative; flex-shrink: 0}
+  .rp-more-btn{width: 32px; height: 32px; border-radius: var(--radius-round); display:flex; align-items:center; justify-content:center; color: var(--gray-700); cursor: pointer; background: none; border: none}
+  .rp-more-btn:hover{background: var(--gray-100)}
+  .rp-more-menu{position: absolute; bottom: 40px; left: 0; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); min-width: 160px; overflow: hidden; display: none; z-index: 50}
+  .rp-more-menu.open{display: block}
+  .rp-more-item{padding: 10px var(--sp-4); font: var(--copy); color: var(--black); cursor: pointer; display: flex; align-items: center; gap: var(--sp-2); white-space: nowrap}
+  .rp-more-item:hover{background: var(--gray-100)}
+  .rp-more-item.danger{color: var(--red-400)}
+
+  /* AI Summary card */
+  .ai-summary-wrap{margin-bottom: var(--sp-5)}
+  .ai-summary-event{text-align:center; padding: var(--sp-3) 0 var(--sp-2); font: var(--copy-sm); color: var(--gray-700)}
+  .ai-summary-bub{background: var(--white); border: 1px solid var(--purple-assist); border-radius: 16px; padding: var(--sp-3) var(--sp-4); box-shadow: 0 1px 2px rgba(0,0,0,.04)}
+  .ai-summary-bub .asb-eyebrow{font: 500 13px/1 var(--ff); color: var(--gray-700); margin-top: var(--sp-2); margin-bottom: var(--sp-2)}
+  .ai-summary-bub .asb-section{margin-top: var(--sp-3)}
+  .ai-summary-bub .asb-section-title{font: 700 12px/1.4 var(--ff); color: var(--black); margin-bottom: 4px}
+  .ai-summary-bub .asb-section-body{font: var(--copy); color: var(--black); line-height: 1.62}
+  .ai-summary-bub .asb-bullets{list-style: none; padding: 0; margin: 0}
+  .ai-summary-bub .asb-bullets li{font: var(--copy); color: var(--black); line-height: 1.62; padding: 2px 0 2px 16px; position: relative}
+  .ai-summary-bub .asb-bullets li::before{content:"•"; color: var(--green-400); position:absolute; left:4px; font-weight:700}
 
   /* Toast */
   .toast{position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); background: var(--black); color: #fff; padding: 10px 18px; border-radius: var(--radius-pill); font: var(--copy-sm); box-shadow: 0 4px 14px rgba(0,0,0,.2); opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 300}
   .toast.on{opacity: 1}
 
   .conv-scroll::-webkit-scrollbar, .rp-scroll::-webkit-scrollbar, .col-profile::-webkit-scrollbar, .cl-list::-webkit-scrollbar{width: 8px}
-  .conv-scroll::-webkit-scrollbar-thumb, .rp-scroll::-webkit-scrollbar-thumb, .col-profile::-webkit-scrollbar-thumb, .cl-list::-webkit-scrollbar-thumb{background: var(--gray-300); border-radius: 4px}
+  .conv-scroll::-webkit-scrollbar-thumb, .rp-scroll::-webkit-scrollbar-thumb, .col-profile::-webkit-scrollbar-thumb, .cl-list::-webkit-scrollbar-thumb{background: transparent; border-radius: 4px; transition: background .15s}
+  .conv-scroll:hover::-webkit-scrollbar-thumb, .rp-scroll:hover::-webkit-scrollbar-thumb, .col-profile:hover::-webkit-scrollbar-thumb, .cl-list:hover::-webkit-scrollbar-thumb{background: var(--gray-300)}
 </style>
 </head>
 <body>
@@ -553,25 +577,22 @@
     <button class="icon-btn" title="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
     <a class="home-link" href="#"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M6 2L3 5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Home</a>
   </div>
-  <div class="nav-c"><span class="plus">+</span><span class="word">Gladly</span></div>
+  <div class="nav-c"><img src="data:image/png;base64,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" alt="Gladly" style="height:48px; width:auto;"></div>
   <div class="nav-r">
-    <button class="tog" title="Email"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button>
-    <button class="tog" title="Voice"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3a2 2 0 012-2h1l2 3-1.5 1.5a8 8 0 003 3L10 7l3 2v1a2 2 0 01-2 2A10 10 0 013 3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button>
-    <button class="tog" title="Chat" style="background: var(--green-400); color: #fff; border-color: var(--green-400);"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button>
+    <div class="tog-wrap"><button class="tog" title="Email"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button><span class="tog-badge">12</span></div>
+    <div class="tog-wrap"><button class="tog" title="Voice"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M3 3a2 2 0 012-2h1l2 3-1.5 1.5a8 8 0 003 3L10 7l3 2v1a2 2 0 01-2 2A10 10 0 013 3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button><span class="tog-badge">3</span></div>
+    <div class="tog-wrap"><button class="tog active" title="Chat"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button><span class="tog-badge">640+</span></div>
     <button class="nav-next">Next</button>
     <div class="nav-divider"></div>
-    <button class="icon-btn" title="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-    <button class="icon-btn bell" title="Notifications"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 014 4c0 3 1 4 1 6H3c0-2 1-3 1-6a4 4 0 014-4zM6.5 13a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg><span class="badge">7</span></button>
-    <div class="nav-av">LG</div>
+    <button class="icon-btn" title="Search"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <button class="icon-btn bell" title="Notifications"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 014 4c0 3 1 4 1 6H3c0-2 1-3 1-6a4 4 0 014-4zM6.5 13a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg><span class="badge">7</span></button>
+    <div class="nav-av">JA</div>
   </div>
 </nav>
 
 <div class="stage">
 
- <div class="left-zone">
-  <div class="layout">
-
-  <!-- LEFT: customer list -->
+  <!-- LEFT: customer list — direct child of stage so it spans full height -->
   <aside class="col-cl" id="col-cl">
     <div class="cl-header">
       <div class="cl-htitle">Your customers <span class="count" id="cl-count">6</span></div>
@@ -586,6 +607,9 @@
     </div>
     <div class="cl-list" id="cl-list"></div>
   </aside>
+
+ <div class="left-zone">
+  <div class="layout">
 
   <!-- PROFILE -->
   <aside class="col-profile" id="col-profile"></aside>
@@ -607,7 +631,7 @@
   <div class="bottom-bar">
     <div class="bb-assigned">
       <div class="bb-inbox"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 10v3a1 1 0 001 1h10a1 1 0 001-1v-3m-4 0h-4a1 1 0 00-1 1v1h6v-1a1 1 0 00-1-1zM2 10l2-7h8l2 7" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></div>
-      <div class="at">Assigned to<strong>VIP Response Team — Lisa Green</strong></div>
+      <div class="at">Assigned to<strong>VIP Response Team — Joseph Ansanelli</strong></div>
     </div>
     <button class="bb-fab"><span>+</span></button>
     <input class="bb-input" placeholder="">
@@ -623,10 +647,15 @@
  </div><!-- /.left-zone -->
 
   <!-- COPILOT (Team Assist) — full-height, flush against bottom of stage -->
-  <aside class="col-right">
+  <aside class="col-right" id="col-right">
+    <div class="col-right-drag" id="col-right-drag">
+      <div class="col-right-drag-btn">
+        <svg width="8" height="16" viewBox="0 0 8 16" fill="none"><circle cx="2" cy="3" r="1" fill="currentColor"/><circle cx="6" cy="3" r="1" fill="currentColor"/><circle cx="2" cy="7" r="1" fill="currentColor"/><circle cx="6" cy="7" r="1" fill="currentColor"/><circle cx="2" cy="11" r="1" fill="currentColor"/><circle cx="6" cy="11" r="1" fill="currentColor"/></svg>
+      </div>
+    </div>
     <div class="rp">
       <div class="rp-gutter">
-        <button class="rp-tab expand" id="expand-btn" onclick="toggleFocus()" title="Expand Team Assist">
+        <button class="rp-tab expand" id="expand-btn" onclick="toggleFocus()" title="Expand Team Assist" style="display:none">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" id="expand-svg"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <button class="rp-tab active" title="Assist"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z" fill="currentColor"/></svg></button>
@@ -663,8 +692,16 @@
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-5 13-2-5-5-2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
             </button>
           </div>
-          <div class="rp-attach" title="Attachment preview">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><path d="M3 17l5-5 4 4 3-3 6 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+          <div class="rp-more">
+            <button class="rp-more-btn" title="More options" onclick="toggleRpMenu(event)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="3" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="13" r="1.2" fill="currentColor"/></svg>
+            </button>
+            <div class="rp-more-menu" id="rp-more-menu">
+              <div class="rp-more-item danger" onclick="clearSession()">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                Clear session
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -753,12 +790,14 @@ const JORDAN = {
       text: "It's not a defect issue. I've been training for my first marathon for over a year. I bought these specifically for race day. Last week I found out I have a torn ACL — I'm looking at surgery and months of recovery. The race is gone. I honestly don't even want to look at the shoes right now." },
     { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:05 AM', channel: 'chat',
       text: "They've never been worn outside, just tried on at home. I get that the window is the window, but this isn't me changing my mind. Everything changed. Is there any way to make an exception?" },
-    { kind: 'event', text: 'Routed from <a href="#">Gladly AI</a> to <a href="#">Joseph Ansanelli</a> — Apr 14, 9:06 AM' }
+    { kind: 'jmsg', time: 'Apr 14, 9:07 AM', channel: 'chat',
+      text: "I understand, Jordan. That's a really tough situation, especially after everything you put into training. I'm not able to approve a return exception myself, but I can connect you with a member of our team who can review your request. They'll have the full picture on your account and situation. Hang tight — someone will be with you shortly." },
+    { kind: 'aisummary' }
   ],
   copilot: {
-    opening: `Hey Joseph — AI handed this one over after Jordan pushed back. No recommendation from me yet — ask me anything, or start with one of these.`,
+    opening: `👋 Hey Joseph — AI handed this one over after Jordan pushed back. No recommendation from me yet — ask me anything, or start with one of these.`,
     chips: [
-      { text: "Catch me up on Jordan",      kind: 'primary',   action: 'catchMeUp' },
+      { text: "Catch me up",      kind: 'primary',   action: 'catchMeUp' },
       { text: "What's his sentiment?",      kind: 'secondary', action: 'sentiment' },
       { text: "Can I approve this return?", kind: 'secondary', action: 'canApprove' }
     ],
@@ -769,7 +808,7 @@ const JORDAN = {
     ],
     script: {
       catchMeUp: {
-        reply: "Loyal customer — <strong>Trailblazer tier since 2022, 7 orders, all Hoka</strong>. $4,280 lifetime. He bought the Clifton 9s on <strong>Feb 10</strong> for a marathon he was training for. He tore his ACL before the race and never wore them. <strong>Low risk to approve</strong> — high-value customer, narrow one-off ask, unworn product.",
+        reply: "Jordan's been a Hoka customer since 2022 — Trailblazer tier, seven orders to date. $4,280 lifetime, zero prior returns. He's not a serial returner testing the window. <br>It's worth knowing: the Clifton 9s are the exact pair we recommended back in February.<br><br>This is a narrow, low-risk, one-time exception. And this is usually what Trailblazer flexibility is for. I'd move forward with approving it.",
         unlockChips: ['sentiment', 'canApprove']
       },
       sentiment: {
@@ -824,9 +863,6 @@ When you're ready to lace up again, we'll be here.` },
         // no reply text — the action card re-renders itself with checkmarks,
         // and the next chip unlocks the product-consultation step
         sideEffect: 'approveRun',
-        nextChips: [
-          { text: "Recommend something for his recovery", kind: 'primary', action: 'recommend' }
-        ]
       },
       recommend: {
         reply: "Based on what Jordan already owns (Bondi 7, Mach 5, and the Clifton 9 he just bought) and where he's at — torn ACL, 8–12 weeks of recovery — here are three that fit:",
@@ -842,13 +878,8 @@ When you're ready to lace up again, we'll be here.` },
         ]
       },
       draftRecSMS: {
-        draftCard: { label: 'SMS draft · to Jordan', body: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:
-
-• Ora Recovery Slide — hoka.com/ora
-• Bondi 8 — hoka.com/bondi8
-• Clifton Recovery Socks — hoka.com/clifton-socks
-
-No rush — they'll be here when you are.` },
+        draftCard: { label: 'SMS draft · to Jordan', body: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:\n\n• Ora Recovery Slide\n• Bondi 8\n• Clifton Recovery Socks\n\nNo rush — they'll be here when you are.`,
+          bodyHtml: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:<br><br>• <a href="https://hoka.com/ora" style="text-decoration:underline">Ora Recovery Slide</a> — hoka.com/ora<br>• <a href="https://hoka.com/bondi8" style="text-decoration:underline">Bondi 8</a> — hoka.com/bondi8<br>• <a href="https://hoka.com/clifton-socks" style="text-decoration:underline">Clifton Recovery Socks</a> — hoka.com/clifton-socks<br><br>No rush — they'll be here when you are.` },
         useAction: 'sendRecSMS',
         nextChips: []
       },
@@ -917,37 +948,50 @@ const RACHEL = {
     { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '2 min ago', channel: 'chat',
       text: "Hi, I need to cancel my order #ORD-2026-84721 — the Hoka Race-Day Pro Pack. I signed up for the Chicago Marathon this year and picked up the bundle for training, but I just tore a tendon at a training run last weekend. 8–12 weeks off, no race for me. Is there any way to get a refund before it ships?" },
     { kind: 'amsg', time: '1 min ago',
-      text: "Hi Rachel — sorry to hear about the tendon. Let me sort this out for you. I'll be back in just a moment." }
+      text: "Hi Rachel — sorry to hear about the tendon. Let me sort this out for you. I'll be back in just a moment." },
+    { kind: 'activity', text: 'Gladly AI asked you to approve a VIP cancellation — just now' }
   ],
   copilot: {
-    opening: `Hey Lisa — Rachel's asking to cancel her <strong>Hoka Race-Day Pro Pack ($847.99)</strong>. She's a VIP since 2022 — $12K+ lifetime, 3% return rate, zero prior cancellations. Order's still in processing, so cancelling is clean on our side.<span class="cite" onclick="togglePop(event, 1)">1</span>`,
+    opening: `👋 Hey Joseph — Rachel just reached out asking to cancel her <strong>Hoka Race-Day Pro Pack ($847.99)</strong>. Tough break for her — she was gearing up for the Chicago Marathon and tore a tendon at a training run last weekend. No race for her this year.<br><span class="cite" onclick="togglePop(event, 1)">1</span>`,
     factsProse: [
-      "Order is still in processing — nothing's shipped yet.",
-      "Rachel's a VIP since 2022 — $12K+ lifetime, zero prior cancellations.",
-      "Our VIP playbook covers this cleanly.<span class='cite' onclick='togglePop(event, 1)'>1</span>",
-      "Suggested thank-you credit is $25 for orders in the $500–$1K band.<span class='cite' onclick='togglePop(event, 2)'>2</span>"
+      "The order's still in processing and hasn't shipped.",
+      "No restock fees, no return shipment to manage.",
+      "Rachel's done 12 orders with us and never asked to cancel one.",
+      "Return rate sits at 3%.",
+      "Our Trailblazer Tier covers this — full refund, no questions asked, on anything still in processing.<span class='cite' onclick='togglePop(event, 1)'>1</span>",
+      "For orders in the $500–$1K band, the default thank-you credit is $25.<span class='cite' onclick='togglePop(event, 2)'>2</span>"
     ],
     rec: {
-      title: '<span id="rec-title-inner">Cancel the order + $25 thank-you credit</span>',
+      title: '<span id="rec-title-inner">Cancel the order — plus a $25 VIP thank-you credit</span>',
       line1: '$847.99 refund to her original payment method',
-      line2: '$25 loyalty credit on her account'
+      line2: '$25 credit on her account so she comes back when she\'s ready'
     },
-    ask: "Want me to handle it, or would you like to tweak it?",
+    ask: "Want me to take it from here, or would you like to adjust first?",
     citations: [
       { title: 'VIP Cancellation Playbook', body: "Full refund for VIPs on orders still in processing, no questions asked. A $25–$50 thank-you credit is suggested for $500–$1K orders to encourage a return visit." },
       { title: 'Credit Guidelines', body: "For orders $500–$1K, $25 is the default thank-you credit. For $1K+, the default is $50. Agents can adjust between $10–$75 without escalation." }
     ],
     chips: [
-      { text: "Yes, go ahead",        kind: 'primary',   action: 'approve' },
-      { text: "Bump credit to $50",   kind: 'secondary', action: 'raise',   arg: 50 },
-      { text: "Lower credit to $10",  kind: 'secondary', action: 'lower',   arg: 10 },
+      { text: "Yes, go ahead",        kind: 'primary',   action: 'approveCard' },
       { text: "No, I'll take it",     kind: 'secondary', action: 'handoff' }
     ],
     creditDefault: 25,
     mode: 'refund'
   },
   decisions: {
-    approve: (s) => {
+    approveCard: (s) => {
+      const card = {
+        label: 'Cancel order',
+        steps: [
+          `Cancel order #ORD-2026-84721 in Shopify`,
+          `Issue $847.99 refund to her original payment method`,
+          `Apply $${s.creditAmount} VIP thank-you credit to account`
+        ],
+        approveAction: 'approveConfirm'
+      };
+      return { actionCard: card };
+    },
+    approveConfirm: (s) => {
       const events = [`<strong>Lisa</strong> approved the cancellation — just now`];
       if (s.creditAmount !== 25) {
         events.push(`<strong>Lisa</strong> updated the thank-you credit to $${s.creditAmount} — just now`);
@@ -1156,6 +1200,39 @@ function renderEvent(e) {
     return `<div class="msg-meta right">Gladly AI replied — ${e.time}<span class="ch-icon">${chIcon}</span></div>
       <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
   }
+  if (e.kind === 'aisummary') {
+    return `<div class="ai-summary-wrap">
+      <div class="ai-summary-event">Gladly AI transferred this conversation to Joseph Ansanelli — Apr 14, 9:06 AM</div>
+      <div class="ai-summary-bub">
+        <div class="asb-section">
+          <div class="asb-section-title">Reason for customer contact</div>
+          <div class="asb-section-body">Return exception request — Hoka Clifton 9 ($189.99), Order #GCL-55892.</div>
+        </div>
+        <div class="asb-section">
+          <div class="asb-section-title">Summary of the conversation</div>
+          <ul class="asb-bullets">
+            <li>Delivered Feb 14, 2026. Jordan reached out 37 days past the 30-day window.</li>
+            <li>Purchased for the Austin Marathon.</li>
+            <li>Tore his ACL in training and never wore the shoes.</li>
+            <li>AI declined on policy; Jordan pushed back with context; conversation routed to Joseph.</li>
+            <li>Recommended path: identify whether you can approve an exception.</li>
+          </ul>
+        </div>
+        <div class="asb-eyebrow">This summary was created automatically by Gladly.</div>
+      </div>
+    </div>`;
+  }
+  if (e.kind === 'jmsg') {
+    const chIcon = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
+    return `<div class="msg-meta right">Gladly AI replied — ${e.time}<span class="ch-icon">${chIcon}</span></div>
+      <div class="msg outbound"><div class="msg-av" style="background:#7BB86F">JA</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
+  }
+  if (e.kind === 'event') {
+    return `<div class="tl-event">${e.text}</div>`;
+  }
+  if (e.kind === 'activity') {
+    return `<div class="tl-activity">${e.text}</div>`;
+  }
   return '';
 }
 
@@ -1259,7 +1336,7 @@ function runDecision(action, arg) {
     pushAIMsg(res.copilotReply);
     // Re-ask: show primary Yes + revert chips
     renderChips([
-      { text: "Yes, go ahead", kind: 'primary', action: 'approve' },
+      { text: "Yes, go ahead", kind: 'primary', action: 'approveCard' },
       { text: `Change my mind`, kind: 'secondary', action: 'revert' },
       { text: "No, I'll take it", kind: 'secondary', action: 'handoff' }
     ]);
@@ -1271,7 +1348,7 @@ function runDecision(action, arg) {
     updateRecCard(true);
     pushAIMsg(`Back to a $${session.creditAmount} credit. Go?`);
     renderChips([
-      { text: "Yes, go ahead", kind: 'primary', action: 'approve' },
+      { text: "Yes, go ahead", kind: 'primary', action: 'approveCard' },
       { text: "Bump credit to $50", kind: 'secondary', action: 'raise', arg: 50 },
       { text: "Lower credit to $10", kind: 'secondary', action: 'lower', arg: 10 },
       { text: "No, I'll take it", kind: 'secondary', action: 'handoff' }
@@ -1279,21 +1356,37 @@ function runDecision(action, arg) {
     return;
   }
 
-  if (action === 'approve') {
+  if (action === 'approveCard') {
     const res = handler(session);
+    session.rachelActionCard = res.actionCard;
+    pushAIMsg("Here's the plan — review and approve.", { extra: renderActionCard(res.actionCard) });
+    clearChips();
+    return;
+  }
+
+  if (action === 'approveConfirm') {
+    const res = handler(session);
+
+    const cards = document.querySelectorAll('.action-card');
+    const lastCard = cards[cards.length - 1];
+    const card = session.rachelActionCard;
+    if (lastCard && card) {
+      const completionLines = [
+        `Order #ORD-2026-84721 cancelled`,
+        `Refund queued · $847.99 to her original payment method`,
+        `$${session.creditAmount} thank-you credit applied to account`
+      ];
+      lastCard.outerHTML = renderActionCardComplete(card, completionLines);
+    }
+
     pushAIMsg(res.copilotReply);
 
     const tl = document.getElementById('timeline');
-
-    // Chronological: each thing that happened becomes its own plain, right-aligned activity line.
     res.timelineEvents.forEach(text => {
       tl.insertAdjacentHTML('beforeend', `<div class="tl-activity">${text}</div>`);
     });
 
-    // AI's customer-facing reply — clean bubble, no badge.
-    const chIcon = res.customerChannel === 'email'
-      ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>'
-      : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
+    const chIcon = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
     tl.insertAdjacentHTML('beforeend',
       `<div class="msg-meta right">Gladly AI replied — just now<span class="ch-icon">${chIcon}</span></div>
        <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${res.customerReply}</div><span class="msg-dots">⋮</span></div>`);
@@ -1331,7 +1424,7 @@ function runScript(action) {
   // The message gets an inline Use button + feedback icons via pushAIMsg({draft:true}).
   if (beat.draftCard) {
     session.jordanLastDraft = (action === 'warmer') ? 'warmer' : 'draft';
-    const body = escapeHtml(beat.draftCard.body).replace(/\n/g, '<br>');
+    const body = beat.draftCard.bodyHtml || escapeHtml(beat.draftCard.body).replace(/\n/g, '<br>');
     pushAIMsg(body, { draft: true, useAction: beat.useAction || 'useDraft' });
   } else {
     // Build extra content (action card, product list) + optional followup for non-draft beats
@@ -1581,8 +1674,7 @@ function renderActionCard(card) {
 
 function renderActionCardComplete(card, completionLines) {
   const steps = card.steps.map(s => `<li>${s}</li>`).join('');
-  const checkSvg = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const done = completionLines.map(l => `<div><span class="check">${checkSvg}</span>${l}</div>`).join('');
+  const done = completionLines.map(l => `<div><span class="check">✓</span>${l}</div>`).join('');
   return `<div class="action-card">
     <div class="ac-label">${card.label}</div>
     <ol>${steps}</ol>
@@ -1746,6 +1838,56 @@ function selectCustomer(id) {
 
 renderCustomerList();
 selectCustomer('jordan');
+
+// Ellipsis menu in copilot footer
+function toggleRpMenu(e) {
+  e.stopPropagation();
+  document.getElementById('rp-more-menu').classList.toggle('open');
+}
+function clearSession() {
+  document.getElementById('rp-more-menu').classList.remove('open');
+  document.getElementById('chat-msgs').innerHTML = '';
+  document.getElementById('rp-input').value = '';
+  showToast('Session cleared');
+}
+document.addEventListener('click', () => {
+  const m = document.getElementById('rp-more-menu');
+  if (m) m.classList.remove('open');
+});
+
+// Panel drag-to-resize
+(function() {
+  const panel = document.getElementById('col-right');
+  const handle = document.getElementById('col-right-drag');
+  const MIN = 280, MAX = 720;
+  let dragging = false, startX, startW;
+
+  handle.addEventListener('mousedown', e => {
+    dragging = true;
+    startX = e.clientX;
+    startW = panel.offsetWidth;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const delta = startX - e.clientX;
+    const newW = Math.min(MAX, Math.max(MIN, startW + delta));
+    panel.style.width = newW + 'px';
+    panel.style.minWidth = newW + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+})();
 </script>
 </body>
 </html>
