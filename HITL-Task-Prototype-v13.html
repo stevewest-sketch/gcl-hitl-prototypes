@@ -1,0 +1,2393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440, initial-scale=1">
+<title>Gladly Team — HITL + Team Assist Prototype v9</title>
+<!--
+  v9 — Hoka stories, two flows (per GCL_Live_Service_Demo_-_v9.docx)
+  v8 foundation preserved. v9 changes:
+   1. Two distinct scenarios on the same UI:
+      - Jordan Rivera  → Team Assist demo (agent-driven, AI helps via chips + draft + actions)
+      - Rachel Thompson → HITL demo      (AI-driven ask, human approves/modifies)
+   2. Both customers are Hoka buyers. No credit-card references anywhere — payments say
+      "original payment method."
+   3. Default opens on Jordan (Team Assist demo); Rachel is selected by clicking her card.
+   4. Team Assist panel now extends full height of the stage; the bottom bar only covers
+      list + profile + conversation (narrowed, flush against the panel's left edge).
+   5. Two new copilot component types: draft-card (for Jordan's response drafts) and
+      action-card (for the 3-step return process with Approve & run).
+   6. Scripted multi-turn flow for Jordan's chip presses (catch me up → sentiment → can I
+      approve? → draft → warmer → use draft → process return → approve & run).
+-->
+<style>
+  :root {
+    --green-400: #009B00;
+    --green-500: #0c7c0c;
+    --green-300: #64b964;
+    --green-100: #D8F4D8;
+    --green-50:  #EAF7EA;
+    --navy:      #0F203C;
+    --red-400:   #D50E0E;
+    --red-50:    #FFF0F2;
+    --black:     #111111;
+    --white:     #FFFFFF;
+    --gray-50:   #FAFAFA;
+    --gray-100:  #F6F6F6;
+    --gray-200:  #F1F1F1;
+    --gray-300:  #CECECE;
+    --gray-400:  #CECECE;
+    --gray-500:  #919191;
+    --gray-600:  #919191;
+    --gray-700:  #767676;
+    --gray-800:  #484848;
+    --gray-900:  #242424;
+    --purple-assist: #8C69F0;
+    --purple-100:    #e6dcff;
+
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+
+    --ff: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    --copy:       400 13px/1.62 var(--ff);
+    --copy-bold:  700 13px/1.62 var(--ff);
+    --copy-sm:    400 12px/1.3 var(--ff);
+    --copy-xs:    400 10px/1.3 var(--ff);
+    --h3:         700 16px/1 var(--ff);
+    --button:     500 13px/1 var(--ff);
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-pill: 20px;
+    --radius-round: 9999px;
+
+    --shadow-sm: 0 2px 8px 0 rgba(0,0,0,0.08);
+    --shadow-soft: 0 2px 4px 0 rgba(0,0,0,0.15);
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font: var(--copy);
+    color: var(--black);
+    background: var(--gray-100);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    min-width: 1440px;
+  }
+  button{font-family: var(--ff); cursor: pointer; background: none; border: none; color: inherit}
+  a{color: var(--green-400); text-decoration: none}
+  a:hover{text-decoration: underline}
+  /* Gladly-branded hyperlink — green, no underline even on hover */
+  .gladly-link{ color: var(--green-400); text-decoration: none; font-weight: 600 }
+  .gladly-link:hover{ text-decoration: none; color: var(--green-500) }
+
+  /* NAV */
+  .nav{
+    position: relative; height: 56px; background: var(--white);
+    box-shadow: var(--shadow-soft);
+    display: flex; align-items: center; padding: 0 var(--sp-6);
+    z-index: 10;
+  }
+  .nav-l{display:flex; align-items:center; gap: var(--sp-4); flex: 1}
+  .icon-btn{width: 32px; height: 32px; display:inline-flex; align-items:center; justify-content:center; border-radius: var(--radius-round); color: var(--black)}
+  .icon-btn:hover{background: var(--gray-100)}
+  .home-link{display:flex; align-items:center; gap: var(--sp-2); font: var(--button); color: var(--black)}
+  .nav-c{position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; pointer-events: none}
+  .gladly-logo{display:inline-flex; align-items:center; gap: 8px; font: 700 22px/1 var(--ff); color: var(--black); letter-spacing: -.3px}
+  .gladly-word{line-height: 1}
+  .nav-r{display:flex; align-items:center; gap: 6px; margin-left:auto}
+  .tog-wrap{position: relative; display:inline-flex}
+  .tog{width: 32px; height: 32px; border: 1px solid var(--gray-300); border-radius: var(--radius-round); display:inline-flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer}
+  .tog:hover{background: var(--gray-100); color: var(--black); border-color: var(--gray-500)}
+  .tog.active{color: var(--white); background-color: var(--green-400); border-color: var(--green-400);}
+  .tog-badge{display: none}
+  .nav-next{background: var(--gray-200); color: var(--gray-600); font: var(--button); padding: 6px 18px; border-radius: var(--radius-pill); margin-left: var(--sp-2); border: none; cursor: pointer}
+  .nav-next:hover{background: var(--gray-300); color: var(--black)}
+  .nav-divider{width:1px; height: 24px; background: var(--gray-300); margin: 0 var(--sp-2)}
+  .bell{position: relative}
+  .bell .badge{display: none}
+  .nav-av{width:32px; height:32px; border-radius: var(--radius-round); overflow:hidden; display:flex; align-items:center; justify-content:center; background: var(--gray-300); color: var(--gray-700); font: 600 11px/1 var(--ff); letter-spacing: .5px}
+
+  /* STAGE — flex row, Team Assist panel spans full stage height. Bottom bar narrows. */
+  .stage{
+    display:flex;
+    height: calc(100vh - 56px);
+    background: var(--gray-100);
+    overflow: hidden;
+  }
+  .left-zone{
+    flex: 1;
+    display:flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .layout{
+    display:flex;
+    flex: 1;
+    min-height: 0;
+    background: var(--gray-100);
+    overflow: hidden;
+  }
+  .col-cl{
+    width: 260px; min-width: 260px; background: var(--white);
+    border-right: 1px solid var(--gray-200);
+    display:flex; flex-direction: column;
+    transition: width .2s, min-width .2s;
+    overflow: hidden;
+  }
+  .col-cl.collapsed{ width: 80px; min-width: 80px }
+  .col-profile{width: 320px; min-width: 320px; background: var(--gray-100); padding: var(--sp-4); overflow-y: auto; transition: width .2s, min-width .2s, padding .2s}
+  .col-conv{flex:1; min-width: 420px; background: var(--gray-100); display:flex; flex-direction: column; overflow: hidden; transition: min-width .2s}
+  .col-right{width: 380px; min-width: 280px; display:flex; position: relative; background: var(--white); border-left: 1px solid var(--gray-200); transition: none}
+  .col-right-drag{position:absolute; left: 0; top: 0; bottom: 0; width: 12px; cursor: col-resize; z-index: 20; display:flex; align-items:center; justify-content:center}
+  .col-right-drag-btn{width: 12px; height: 40px; background: var(--gray-300); border-radius: 6px; display:flex; align-items:center; justify-content:center; opacity: 0; transition: opacity .15s, background .15s; pointer-events: none}
+  .col-right-drag-btn svg{color: var(--gray-600)}
+  .col-right-drag:hover .col-right-drag-btn, .col-right-drag.dragging .col-right-drag-btn{opacity: 1}
+  .col-right-drag.dragging .col-right-drag-btn{background: var(--green-400)}
+  .col-right-drag.dragging .col-right-drag-btn svg{color: #fff}
+
+  /* Panel-weighted default for Needs-input scenarios: list 220 / profile 280 / conv flex / copilot 440 */
+  body.panel-weighted .col-cl{width: 220px; min-width: 220px}
+  body.panel-weighted .col-profile{width: 280px; min-width: 280px}
+  body.panel-weighted .col-right{width: 440px; min-width: 440px}
+
+  /* Focus-copilot: customer list collapses, profile KEEPS visible at 280, copilot grows to 580 */
+  body.focus-copilot .col-cl{width: 80px; min-width: 80px}
+  body.focus-copilot .col-cl .cl-htitle,
+  body.focus-copilot .col-cl .cl-filters,
+  body.focus-copilot .col-cl .cle-body{display:none}
+  body.focus-copilot .col-profile{width: 280px; min-width: 280px; padding: var(--sp-4); opacity: 1}
+  body.focus-copilot .col-conv{min-width: 360px}
+  body.focus-copilot .col-right{width: 580px; min-width: 580px}
+
+  /* CUSTOMER LIST */
+  .cl-header{
+    display:flex; align-items:center; gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--gray-200);
+    flex-shrink: 0;
+  }
+  .cl-htitle{font: 700 13px/1 var(--ff); color: var(--black); flex: 1; display:flex; align-items:center; gap: var(--sp-2)}
+  .cl-htitle .count{font: 700 10px/1 var(--ff); background: var(--gray-200); color: var(--gray-700); padding: 3px 6px; border-radius: 10px}
+  .cl-toggle{width: 28px; height: 28px; border-radius: 4px; display:flex; align-items:center; justify-content:center; color: var(--gray-700); cursor: pointer}
+  .cl-toggle:hover{background: var(--gray-100)}
+  .cl-filters{display:flex; gap: var(--sp-1); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--gray-200); flex-shrink: 0}
+  .cl-fil{font: 500 11px/1 var(--ff); padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--gray-300); background: var(--white); color: var(--black); cursor: pointer}
+  .cl-fil.on{background: var(--black); color: #fff; border-color: var(--black)}
+  .cl-list{flex: 1; overflow-y: auto}
+  .cle-card{display:flex; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--gray-100); cursor: pointer; border-left: 3px solid transparent; position: relative}
+  .cle-card:hover{background: var(--gray-50)}
+  .cle-card.active{background: var(--green-50); border-left-color: var(--green-400)}
+  .cle-left{position: relative; flex-shrink: 0; width: 40px; height: 40px}
+  .cle-priority-dot{position: absolute; left: -10px; top: 18px; width: 6px; height: 6px; border-radius: 50%; background: var(--green-400)}
+  .cle-av{width: 40px; height: 40px; border-radius: 50%; display:flex; align-items:center; justify-content:center; font: 700 13px/1 var(--ff); color: #fff; box-shadow: var(--shadow-sm); background: var(--gray-600)}
+  .cle-type-pip{position: absolute; right: -2px; bottom: -2px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; display:flex; align-items:center; justify-content:center}
+  .cle-type-pip.assist{background: var(--purple-assist); color: #fff}
+  .cle-type-pip.chat{background: var(--gray-700); color: #fff}
+  .cle-body{flex: 1; min-width: 0}
+  .cle-row1{display:flex; align-items:baseline; gap: var(--sp-2)}
+  .cle-name{font: var(--copy-bold); color: var(--black); flex:1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis}
+  .cle-time{font: var(--copy-sm); color: var(--gray-700); flex-shrink: 0}
+  .cle-preview{font: var(--copy); color: var(--gray-700); line-height: 1.4; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden}
+  .cle-meta-row{display:flex; align-items:center; gap: var(--sp-2); margin-top: 6px}
+  .cle-tag{display:inline-flex; align-items:center; gap: 3px; padding: 2px 6px; border-radius: 3px; font: 700 9px/1 var(--ff); letter-spacing: .4px; text-transform: uppercase}
+  .cle-tag.assist{background: var(--purple-100); color: var(--purple-assist)}
+  .cle-tag.chat{background: var(--gray-200); color: var(--gray-700)}
+  .cle-channel{font: var(--copy-sm); color: var(--gray-700)}
+  .col-cl.collapsed .cl-header{padding: var(--sp-3) 12px}
+  .col-cl.collapsed .cl-htitle{display:none}
+  .col-cl.collapsed .cl-filters{display:none}
+  .col-cl.collapsed .cle-body{display:none}
+  .col-cl.collapsed .cle-card{padding: 8px 12px; border-bottom: none; border-left: none; gap: 0}
+  .col-cl.collapsed .cle-card.active{background: var(--green-400); border-radius: var(--radius-sm); margin: 2px 8px; padding: 8px}
+  .col-cl.collapsed .cle-card.active .cle-av{box-shadow: 0 0 0 2px #fff}
+  .col-cl.collapsed .cle-priority-dot{left: 2px}
+
+  /* PROFILE */
+  .profile-card{background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: var(--sp-4); margin-bottom: var(--sp-3)}
+  .profile-head{display:flex; align-items:center; gap: var(--sp-3); margin-bottom: var(--sp-3)}
+  .profile-av{width: 56px; height: 56px; border-radius: var(--radius-round); color: #fff; display:flex; align-items:center; justify-content:center; font: 700 18px/1 var(--ff); box-shadow: var(--shadow-sm); flex-shrink: 0}
+  .profile-name{font: var(--h3); color: var(--black)}
+  .profile-dots{margin-left:auto; color: var(--gray-500); font-size: 18px; cursor: pointer; padding: 0 var(--sp-1)}
+  .kv{display:flex; justify-content:space-between; padding: var(--sp-1) 0; font: var(--copy)}
+  .link-customer{display:flex; align-items:center; gap: var(--sp-2); padding: var(--sp-3) 0 0; font: var(--button); color: var(--green-400); border-top: 1px solid var(--gray-200); margin-top: var(--sp-3); cursor: pointer}
+  .link-customer .suggestion-count{margin-left:auto; color: var(--gray-500); font: var(--copy-sm)}
+  .sec-title{font: 700 16px/1 var(--ff); color: var(--black); margin-bottom: var(--sp-3); display:flex; align-items:center; justify-content:space-between}
+  .sec-title .add{color: var(--gray-500); font-size: 18px; font-weight: 400; cursor: pointer}
+  .contact-row{display:flex; flex-wrap: wrap; align-items:center; gap: var(--sp-2) var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black)}
+  .contact-row .ci{color: var(--gray-500); width: 16px; height: 16px; flex-shrink: 0; display:inline-flex; align-items:center; justify-content:center}
+  .contact-row .tag{background: var(--black); color: #fff; font: 700 9px/1 var(--ff); padding: 3px 6px; border-radius: 3px; letter-spacing: .5px}
+  .contact-row .tag-grp{margin-left:auto; display:flex; gap: 4px}
+  .contact-sub{font: var(--copy-sm); color: var(--gray-700); padding-left: 28px}
+  .pref-row{display:flex; padding: 4px 0; font: var(--copy); color: var(--black)}
+  .pref-row .pl{color: var(--gray-700); min-width: 140px}
+  .order-card{display:flex; align-items:center; gap: var(--sp-3); padding: var(--sp-2) 0}
+  .order-thumb{width: 56px; height: 56px; border-radius: var(--radius-sm); background: var(--gray-200); flex-shrink: 0; display:flex; align-items:center; justify-content:center; overflow:hidden}
+  .order-info{flex:1}
+  .order-info .oid{font: var(--copy); color: var(--black)}
+  .order-info .oid a{font-weight: 700}
+  .order-info .ometa{font: var(--copy); color: var(--black)}
+  .order-chev{color: var(--gray-500); cursor: pointer}
+  .conv-row{display:flex; gap: var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black); border-bottom: 1px solid var(--gray-200)}
+  .conv-row:last-child{border-bottom: none}
+  .conv-row .when{color: var(--gray-700); min-width: 56px}
+
+  /* CONVERSATION */
+  .conv-wrap{flex:1; display:flex; flex-direction:column; overflow:hidden}
+  .conv-header{background: none; border-bottom: 1px solid var(--gray-200); padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
+  .conv-header .title{color: var(--black); font-weight: 700}
+  .conv-header-right{position:absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); display:flex; gap: var(--sp-2); color: var(--gray-500)}
+  .conv-scroll{flex:1; overflow-y:auto; padding: var(--sp-6) var(--sp-6); background: none;}
+  .tl-event{text-align:center; padding: var(--sp-3) 0; font: var(--copy-sm); color: var(--gray-700)}
+  .tl-event strong{color: var(--black); font-weight: 700}
+  .tl-event a{color: var(--green-400); font-weight: 500}
+  .tl-event .check{color: var(--green-400); font-weight: 700; margin-right: 6px}
+
+  /* Activity acknowledgements — outbound-side actions (agent decisions, AI executions).
+     Right-aligned like outbound messages, not centered like routing/date dividers. */
+  .tl-activity{text-align:right; padding: var(--sp-1) 0; font: var(--copy-sm); color: var(--gray-700)}
+  .tl-activity strong{color: var(--black); font-weight: 700}
+  .tl-activity a{color: var(--green-400); font-weight: 500}
+  .msg-meta{font: var(--copy-sm); color: var(--gray-700); margin-bottom: var(--sp-2); display:flex; align-items:center; gap: 6px}
+  .msg-meta.right{justify-content: flex-end}
+  .msg-meta .ch-icon{display:inline-flex; align-items:center; justify-content:center; width: 16px; height: 16px; color: var(--gray-600)}
+  .msg{display:flex; gap: var(--sp-3); margin-bottom: var(--sp-5); max-width: 82%}
+  .msg.outbound{margin-left: auto; flex-direction: row-reverse}
+  .msg-av{width: 32px; height: 32px; border-radius: var(--radius-round); display:flex; align-items:center; justify-content:center; font: 700 11px/1 var(--ff); color: #fff; flex-shrink: 0; box-shadow: var(--shadow-sm)}
+  .msg-bub{padding: var(--sp-3) var(--sp-4); border-radius: 0 10px 10px 10px; font: var(--copy); color: var(--black); line-height: 1.62; box-shadow: 0 1px 2px rgba(0,0,0,.04); background: var(--white); border: 1px solid var(--gray-200)}
+  .msg.outbound .msg-bub{border-radius: 10px 0 10px 10px}
+  .msg-dots{display: none}
+
+  /* BOTTOM BAR */
+  .bottom-bar{flex-shrink: 0; background: var(--white); border-top: 1px solid var(--gray-200); display:flex; align-items: center; padding: 17px var(--sp-4); gap: var(--sp-3); position: relative}
+  .bb-assigned{display:flex; align-items:center; gap: var(--sp-2); padding-right: var(--sp-4); border-right: 1px solid var(--gray-200); min-width: 220px}
+  .bb-av{width: 28px; height: 28px; border-radius: var(--radius-round); display:flex; align-items:center; justify-content:center; font: 600 10px/1 var(--ff); color: #fff; flex-shrink: 0}
+  .bb-assigned .at{line-height: 1.3}
+  .bb-assigned .at .at-name{display:block; font: 400 12px/1.2 var(--ff); color: var(--black)}
+  .bb-assigned .at strong{display:block; font: 400 11px/1.2 var(--ff); color: var(--gray-700); font-weight: 400}
+  .bb-fab{width: 32px; height: 32px; border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 700 18px/1 var(--ff)}
+  .bb-input{flex: 1; height: 32px; border: 1px solid var(--gray-300); border-radius: 6px; padding: 0 12px; font: 400 12px/1 var(--ff); background: var(--white); color: var(--black); box-shadow: inset 0 1px 2px rgba(0,0,0,.02)}
+  .bb-input:focus{outline: none; border-color: var(--green-400)}
+
+  .bb-input::placeholder{color: var(--gray-700)}
+  .bb-topic{display:flex; align-items:center; gap: var(--sp-2); padding: 0 var(--sp-3); color: var(--black); font: var(--copy-sm); cursor: pointer}
+  .bb-topic .tval{color: var(--green-400)}
+  .bb-split{display:flex; background: var(--green-400); border-radius: 16px; overflow: hidden; height: 32px}
+  .bb-split .bbs-main{padding: 0 var(--sp-4); color: #fff; font: 500 12px/1 var(--ff); display:flex; align-items:center; cursor:pointer}
+  .bb-split .bbs-main:hover{background: var(--green-300)}
+  .bb-split .bbs-caret{padding: 0 var(--sp-2); border-left: 1px solid rgba(255,255,255,.25); display:flex; align-items:center; color: #fff; cursor: pointer}
+
+  /* COPILOT */
+  .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200); position: relative; overflow: visible}
+  .rp-gutter{width: 32px; padding: var(--sp-4) 0 var(--sp-6); display:flex; flex-direction:column; align-items: flex-end; gap: var(--sp-1); background: transparent; position: absolute; left: -32px; top: 0; bottom: 0; z-index: 1}
+  .rp-tab{width: 24px; height: 24px; border-radius: 12px 0 0 12px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer}
+  .rp-tab.active{background: var(--purple-assist); color: #fff}
+  .rp-tab.expand{background: var(--white); color: var(--gray-700)}
+  .rp-tab.expand:hover{background: var(--gray-200)}
+  body.focus-copilot .rp-tab.expand{background: var(--purple-100); color: var(--purple-assist)}
+  .rp-body{flex:1; display:flex; flex-direction:column; background: var(--white); overflow: hidden}
+
+  .rp-scroll{flex:1; overflow-y: auto; padding: var(--sp-4) var(--sp-4) var(--sp-2); display:flex; flex-direction: column; gap: var(--sp-4)}
+
+  /* The opening AI message is structurally larger than a chat bubble — it holds
+     summary + facts + a minimal "what I'd do" block + the closing question, all as one AI turn. */
+  .ai-open{
+    display:flex; flex-direction: column; gap: var(--sp-3);
+  }
+  .ai-open .ao-text{font: var(--copy); color: var(--black); line-height: 1.62}
+  .ai-open .ao-text strong{font-weight: 700}
+  .ai-open .ao-ask{font: var(--copy-bold); color: var(--black); margin-top: var(--sp-1)}
+
+  /* Option 1: white card with gray-300 outline, green-dot uppercase eyebrow.
+     Replaces the old gray-filled facts-prose. Section rows separated by a
+     hairline top-border instead of a shared gray fill. */
+  .facts-prose .fp-label{
+    font: 700 13px/1.4 var(--ff);
+    color: var(--black);
+    margin-bottom: 8px;
+  }
+  .facts-prose ul{ list-style: disc; padding-left: 16px; margin: 0; }
+  .facts-prose li{
+    padding: 3px 0;
+    line-height: 1.55;
+    color: var(--black);
+    font: 400 13px/1.55 var(--ff);
+  }
+
+  /* "Recommendation" — same white/gray-outline card language as Context, so the
+     two outputs read as a paired set, not two different visual systems. */
+  .rec-lite{
+    padding: 12px 14px;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 10px;
+    margin: 0;
+  }
+  .rec-lite .rl-label{
+    font: 600 10px/1 var(--ff);
+    color: var(--gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .rec-lite .rl-label::before{
+    content: "";
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--green-400);
+    flex-shrink: 0;
+  }
+  .rec-lite .rl-label .pill-modified{
+    display: none;
+    font: 700 9px/1 var(--ff);
+    color: var(--green-400);
+    background: var(--green-100);
+    padding: 3px 6px;
+    border-radius: 10px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+  .rec-lite .rl-label .pill-modified.on{ display: inline-flex; }
+  .rec-lite .rl-title{ font: var(--copy-bold); color: var(--black); margin-bottom: 4px; }
+  .rec-lite .rl-line{ font: var(--copy); color: var(--black); line-height: 1.62; }
+
+
+  /* Action card — for Team Assist's "here's the plan, approve & run" messages */
+  .action-card{
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    margin-top: 8px;
+    background: var(--white);
+  }
+  .action-card .ac-label{
+    font: 700 10px/1 var(--ff);
+    color: var(--green-400);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 10px;
+  }
+  .action-card ol{
+    padding-left: 20px;
+    margin: 0 0 12px 0;
+  }
+  .action-card ol li{
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.62;
+    padding: 3px 0;
+  }
+  .action-card .ac-actions{
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid var(--gray-200);
+  }
+  .action-card .ac-primary{
+    background: var(--green-400); color: #fff;
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    font: var(--button);
+    cursor: pointer;
+    border: none;
+  }
+  .action-card .ac-primary:hover{ background: var(--green-300); }
+  .action-card .ac-primary:disabled{ background: var(--gray-300); color: var(--gray-500); cursor: not-allowed; }
+  .action-card .ac-secondary{
+    color: var(--gray-700);
+    font: var(--button);
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
+  }
+  .action-card .ac-done{
+    display: flex; flex-direction: column; gap: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--gray-200);
+    font: var(--copy); color: var(--black);
+  }
+  .action-card .ac-done .check{ color: var(--green-400); margin-right: 6px; font-weight: 700; }
+
+  /* Editable step rows — each step has a remove button that reveals on hover */
+  .action-card ol.ac-steps{
+    padding-left: 0;
+    margin: 0 0 10px 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  .action-card ol.ac-steps .ac-step{
+    counter-increment: step;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0 4px 0;
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.62;
+    position: relative;
+  }
+  .action-card ol.ac-steps .ac-step::before{
+    content: counter(step) ".";
+    font-weight: 600;
+    color: var(--gray-700);
+    min-width: 16px;
+    flex-shrink: 0;
+  }
+  .action-card ol.ac-steps .ac-step-text{ flex: 1 }
+  .action-card ol.ac-steps .ac-step-x{
+    width: 20px; height: 20px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    color: var(--gray-500);
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, background .15s, color .15s;
+    flex-shrink: 0;
+  }
+  .action-card ol.ac-steps .ac-step:hover .ac-step-x{ opacity: 1 }
+  .action-card ol.ac-steps .ac-step-x:hover{ background: var(--gray-100); color: var(--red-400) }
+
+  /* Add-a-step row — inline affordance with a popover menu */
+  .ac-add-row{
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .ac-add-btn{
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px;
+    border: 1px dashed var(--gray-400);
+    border-radius: 14px;
+    font: 500 11px/1 var(--ff);
+    color: var(--gray-700);
+    background: none;
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+  }
+  .ac-add-btn:hover{ border-color: var(--green-400); color: var(--green-400); border-style: solid }
+  .ac-step-menu{
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 0;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 14px rgba(0,0,0,.12);
+    min-width: 240px;
+    padding: 4px 0;
+    z-index: 40;
+    display: none;
+  }
+  .ac-step-menu.open{ display: block }
+  .ac-step-menu-item{
+    padding: 8px 14px;
+    font: var(--copy);
+    color: var(--black);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .ac-step-menu-item:hover{ background: var(--gray-100); color: var(--green-400) }
+  .ac-step-menu-item.custom{
+    border-top: 1px solid var(--gray-200);
+    color: var(--gray-700);
+    font-style: italic;
+    margin-top: 4px;
+  }
+
+  /* Product list — Team Assist's injury-recovery recommendations for Jordan */
+  .prod-list{
+    display: flex; flex-direction: column; gap: 6px;
+    margin-top: 8px;
+  }
+  .prod-row{
+    display: flex;
+    padding: 10px 12px;
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+  }
+  .prod-row .prod-name{
+    font: var(--copy-bold);
+    color: var(--black);
+    margin-bottom: 2px;
+  }
+  .prod-row .prod-price{
+    font: 400 12px/1.4 var(--ff);
+    color: var(--gray-700);
+    margin-left: 6px;
+  }
+  .prod-row .prod-reason{
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.5;
+  }
+  .prod-row .prod-link{
+    font: 400 11px/1.4 var(--ff);
+    color: var(--green-400);
+    margin-top: 4px;
+  }
+
+  .cite{display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; padding: 0 4px; vertical-align: super; font: 700 9px/1 var(--ff); color: var(--green-400); border: 1px solid var(--green-400); border-radius: 8px; margin-left: 2px; cursor: pointer; background: var(--white)}
+  .cite:hover{background: var(--green-50)}
+  .cite-pop{position: absolute; z-index: 50; background: var(--white); border: 1px solid var(--gray-300); border-radius: var(--radius-md); box-shadow: 0 4px 14px rgba(0,0,0,.12); padding: var(--sp-3); width: 280px; font: var(--copy-sm); color: var(--black); display: none}
+  .cite-pop.open{display:block}
+  .cite-pop .ct-title{font-weight: 700; margin-bottom: var(--sp-1)}
+  .cite-pop .ct-link{color: var(--green-400); font-weight: 500}
+
+  .chat-msgs{display:flex; flex-direction: column; gap: var(--sp-3)}
+  .cm{display:flex}
+  .cm.agent{justify-content: flex-end}
+  .cm .cb{max-width: 420px; padding: var(--sp-3) var(--sp-4); border-radius: 16px; font: var(--copy); color: var(--black)}
+  .cm.agent .cb{background: var(--gray-100)}
+  .cm.ai{ flex-direction: column; align-items: stretch; }
+  .cm.ai .cb{ background: transparent; padding-left: 0; padding-right: 0; border-radius: 0; }
+  .cm.ai .cb.draft{ background: var(--white); border: 1px solid var(--gray-300); border-radius: 10px; padding: 12px 14px; }
+  .cm.ai .cb.draft .dc-label{ font: 700 10px/1 var(--ff); color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .cm.ai .cb.draft .dc-body{ font: var(--copy); color: var(--black); line-height: 1.62; white-space: pre-wrap; }
+  .cm.ai .cb-preface{ font-size: 11px; color: var(--gray-700); margin-bottom: 6px; letter-spacing: 0.02em; }
+
+  /* Inline feedback row under every streaming AI message. Drafts also get a primary Use button. */
+  .cm.ai .cb-actions{
+    display: flex; align-items: center; gap: 4px;
+    margin-top: 10px; padding-left: 2px;
+  }
+  .cm.ai .cb-use{
+    background: var(--green-400); color: #fff;
+    padding: 7px 18px;
+    border: none; border-radius: var(--radius-pill);
+    font: var(--button); cursor: pointer;
+    margin-right: 10px;
+  }
+  .cm.ai .cb-use:hover{ background: var(--green-300); }
+  .cm.ai .cb-icon{
+    width: 28px; height: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--gray-500);
+    border: none; background: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .cm.ai .cb-icon:hover{ color: var(--gray-900); background: var(--gray-100); }
+  .cm.ai .cb-icon.thumb.up.active{ color: var(--green-400); }
+  .cm.ai .cb-icon.thumb.down.active{ color: var(--red-400); }
+  .cm.ai .cb-icon.copied{ color: var(--green-400); }
+  body.focus-copilot .cm .cb{max-width: 540px}
+
+  .typing{display:flex; gap: 4px; padding: 4px 0}
+  .typing span{width: 6px; height: 6px; border-radius: 50%; background: var(--gray-500); animation: blink 1.3s infinite}
+  .typing span:nth-child(2){animation-delay: .2s}
+  .typing span:nth-child(3){animation-delay: .4s; background: var(--gray-300)}
+  @keyframes blink{0%,60%,100%{opacity: .3}30%{opacity: 1}}
+
+  /* V1 chip tray — soft gray strip directly above the 48px TA bar.
+     Chips live in the tray, not in the bar — keeps the bar pure input
+     and lets it match the composer's 48px height exactly. */
+  .rp-sugs{display:flex; flex-wrap: wrap; gap: 6px; padding: 10px var(--sp-4); background: var(--white); border-top: 1px solid var(--gray-200)}
+  .chip{
+    white-space: nowrap;
+    padding: 7px 14px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-pill);
+    background: var(--white);
+    font: var(--copy-sm);
+    color: var(--black);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .chip:hover{background: var(--gray-100); border-color: var(--gray-500)}
+  .chip.primary{
+    background: var(--green-400); color: #fff; border-color: var(--green-400);
+    font-weight: 600;
+  }
+  .chip.primary:hover{background: var(--green-300); border-color: var(--green-300)}
+  .chip.secondary{border-color: var(--gray-400)}
+
+  /* 48px TA bar — matches composer bottom-bar height exactly. Input pill
+     mirrors .bb-input: 32px tall, 6px radius, gray-300 border, inset shadow. */
+  .rp-foot{padding: 17px var(--sp-4); background: var(--white); border-top: 1px solid var(--gray-200); display:flex; align-items: center; gap: var(--sp-2); flex-shrink: 0}
+  .rp-input-wrap{flex: 1; display:flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,.02); padding: 0 4px 0 12px; height: 32px; background: var(--white)}
+  .rp-input{flex:1; border: none; outline: none; background: transparent; font: 400 12px/1 var(--ff); color: var(--black); padding: 0;}
+  .rp-input::placeholder{color: var(--gray-700)}
+  .rp-send{width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; color: var(--gray-700); border-radius: var(--radius-round)}
+  .rp-send:hover{color: var(--green-400)}
+  .rp-more{position: relative; flex-shrink: 0}
+  .rp-more-btn{width: 32px; height: 32px; border-radius: var(--radius-round); display:flex; align-items:center; justify-content:center; color: var(--gray-700); cursor: pointer; background: none; border: none}
+  .rp-more-btn:hover{background: var(--gray-100)}
+  .rp-more-menu{position: absolute; bottom: 40px; left: 0; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); min-width: 160px; overflow: hidden; display: none; z-index: 50}
+  .rp-more-menu.open{display: block}
+  .rp-more-item{padding: 10px var(--sp-4); font: var(--copy); color: var(--black); cursor: pointer; display: flex; align-items: center; gap: var(--sp-2); white-space: nowrap}
+  .rp-more-item:hover{background: var(--gray-100)}
+  .rp-more-item.danger{color: var(--red-400)}
+
+  /* AI Summary card */
+  .ai-summary-wrap{margin-bottom: var(--sp-5)}
+  .ai-summary-event{text-align:center; padding: var(--sp-3) 0 var(--sp-2); font: var(--copy-sm); color: var(--gray-700)}
+  .ai-summary-bub{background: var(--white); border: 1px solid var(--purple-assist); border-radius: 16px; padding: var(--sp-3) var(--sp-4); box-shadow: 0 1px 2px rgba(0,0,0,.04)}
+  .ai-summary-bub .asb-eyebrow{font: 500 13px/1 var(--ff); color: var(--gray-700); margin-top: var(--sp-2); margin-bottom: var(--sp-2)}
+  .ai-summary-bub .asb-section{margin-top: var(--sp-3)}
+  .ai-summary-bub .asb-section-title{font: 700 12px/1.4 var(--ff); color: var(--black); margin-bottom: 4px}
+  .ai-summary-bub .asb-section-body{font: var(--copy); color: var(--black); line-height: 1.62}
+  .ai-summary-bub .asb-bullets{list-style: none; padding: 0; margin: 0}
+  .ai-summary-bub .asb-bullets li{font: var(--copy); color: var(--black); line-height: 1.62; padding: 2px 0 2px 16px; position: relative}
+  .ai-summary-bub .asb-bullets li::before{content:"•"; color: var(--green-400); position:absolute; left:4px; font-weight:700}
+
+  /* Toast */
+  .toast{position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); background: var(--black); color: #fff; padding: 10px 18px; border-radius: var(--radius-pill); font: var(--copy-sm); box-shadow: 0 4px 14px rgba(0,0,0,.2); opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 300}
+  .toast.on{opacity: 1}
+
+  /* Settings popover — LED stage display tuning (contrast + green hex) */
+  .settings-pop{
+    position: fixed; top: 64px; right: 16px;
+    width: 320px;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 32px rgba(0,0,0,.14);
+    padding: var(--sp-4);
+    z-index: 400;
+    display: none;
+  }
+  .settings-pop.open{display: block}
+  .settings-pop .sp-title{font: 700 14px/1 var(--ff); color: var(--black); margin-bottom: 4px}
+  .settings-pop .sp-sub{font: var(--copy-sm); color: var(--gray-700); margin-bottom: var(--sp-4); line-height: 1.5}
+  .settings-pop .sp-row{margin-bottom: var(--sp-4)}
+  .settings-pop .sp-row:last-child{margin-bottom: 0}
+  .settings-pop .sp-label{display:flex; justify-content: space-between; align-items: baseline; font: var(--copy-bold); color: var(--black); margin-bottom: 8px}
+  .settings-pop .sp-label .sp-val{font: 400 12px/1 var(--ff); color: var(--gray-700)}
+  .settings-pop input[type="range"]{width: 100%; accent-color: var(--green-400)}
+  .settings-pop .sp-swatches{display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px}
+  .settings-pop .sp-sw{
+    width: 32px; height: 32px; border-radius: 50%;
+    cursor: pointer; border: 2px solid var(--white);
+    box-shadow: 0 0 0 1px var(--gray-300);
+    transition: box-shadow .15s;
+  }
+  .settings-pop .sp-sw.on{box-shadow: 0 0 0 2px var(--black)}
+  .settings-pop .sp-hex{display:flex; align-items:center; gap: 8px; margin-top: 10px}
+  .settings-pop .sp-hex-input{
+    flex: 1;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font: 500 13px/1.2 'SF Mono', Monaco, Consolas, monospace;
+    color: var(--black);
+    text-transform: uppercase;
+  }
+  .settings-pop .sp-hex-input:focus{outline: none; border-color: var(--green-400)}
+  .settings-pop .sp-reset{
+    font: var(--copy-sm); color: var(--green-400); cursor: pointer;
+    background: none; border: none; padding: 4px 0;
+  }
+  .settings-pop .sp-reset:hover{text-decoration: underline}
+  .settings-pop .sp-foot{
+    margin-top: var(--sp-4); padding-top: var(--sp-3);
+    border-top: 1px solid var(--gray-200);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .settings-pop .sp-hint{
+    font: 11px/1.4 var(--ff); color: var(--gray-700);
+    background: var(--gray-50); padding: 8px 10px; border-radius: var(--radius-sm);
+    margin-top: var(--sp-2);
+  }
+
+  /* Contrast boost class — bumps key grays darker for cheap LED displays */
+  body.contrast-high{
+    --gray-300: #B3B3B3;
+    --gray-400: #919191;
+    --gray-500: #767676;
+    --gray-600: #484848;
+    --gray-700: #484848;
+  }
+  body.contrast-max{
+    --gray-200: #E3E3E3;
+    --gray-300: #919191;
+    --gray-400: #767676;
+    --gray-500: #484848;
+    --gray-600: #242424;
+    --gray-700: #242424;
+  }
+
+  .conv-scroll::-webkit-scrollbar, .rp-scroll::-webkit-scrollbar, .col-profile::-webkit-scrollbar, .cl-list::-webkit-scrollbar{width: 8px}
+  .conv-scroll::-webkit-scrollbar-thumb, .rp-scroll::-webkit-scrollbar-thumb, .col-profile::-webkit-scrollbar-thumb, .cl-list::-webkit-scrollbar-thumb{background: transparent; border-radius: 4px; transition: background .15s}
+  .conv-scroll:hover::-webkit-scrollbar-thumb, .rp-scroll:hover::-webkit-scrollbar-thumb, .col-profile:hover::-webkit-scrollbar-thumb, .cl-list:hover::-webkit-scrollbar-thumb{background: var(--gray-300)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-l">
+    <button class="icon-btn" title="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <a class="home-link" href="#"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M6 2L3 5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Home</a>
+  </div>
+  <div class="nav-c" aria-label="Gladly">
+    <span class="gladly-logo" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="13" fill="#009B00"/><path d="M13 6.5v13M6.5 13h13" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <span class="gladly-word">Gladly</span>
+    </span>
+  </div>
+  <div class="nav-r">
+    <div class="tog-wrap"><button class="tog" title="Email"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button></div>
+    <div class="tog-wrap"><button class="tog" title="Voice"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3a2 2 0 012-2h1l2 3-1.5 1.5a8 8 0 003 3L10 7l3 2v1a2 2 0 01-2 2A10 10 0 013 3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button></div>
+    <div class="tog-wrap"><button class="tog active" title="Chat"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button></div>
+    <button class="nav-next">Next</button>
+    <div class="nav-divider"></div>
+    <button class="icon-btn" title="Search"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <button class="icon-btn" id="settings-btn" title="Display settings" onclick="toggleSettings(event)"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+    <div class="nav-av">JA</div>
+  </div>
+</nav>
+
+<div class="stage">
+
+  <!-- LEFT: customer list — direct child of stage so it spans full height -->
+  <aside class="col-cl" id="col-cl">
+    <div class="cl-header">
+      <div class="cl-htitle">Your customers <span class="count" id="cl-count">6</span></div>
+      <div class="cl-toggle" id="cl-toggle" onclick="toggleList()" title="Collapse">
+        <svg id="cl-tog-svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="cl-filters">
+      <button class="cl-fil on">All</button>
+      <button class="cl-fil">Needs input</button>
+      <button class="cl-fil">Chats</button>
+    </div>
+    <div class="cl-list" id="cl-list"></div>
+  </aside>
+
+ <div class="left-zone">
+  <div class="layout">
+
+  <!-- PROFILE -->
+  <aside class="col-profile" id="col-profile"></aside>
+
+  <!-- CONVERSATION -->
+  <section class="col-conv">
+    <div class="conv-wrap">
+      <div class="conv-header" id="conv-header">
+        <span class="title" id="conv-title">Apr 21 · Return request</span> · <span id="conv-status">Waiting</span>
+        <div class="conv-header-right"><span title="More">⋮</span></div>
+      </div>
+      <div class="conv-scroll" id="timeline"></div>
+    </div>
+  </section>
+
+  </div><!-- /.layout -->
+
+  <!-- BOTTOM BAR (narrow, flush against panel left edge) -->
+  <div class="bottom-bar">
+    <div class="bb-assigned">
+      <div class="bb-av" style="background:#7BB86F">JA</div>
+      <div class="at"><span class="at-name">Joseph Ansanelli (You)</span><strong>VIP Response Team</strong></div>
+    </div>
+    <button class="bb-fab"><span>+</span></button>
+    <input class="bb-input" placeholder="Reply to Jordan…">
+    <div class="bb-topic">
+      <div>Topic<div class="tval" id="bb-topic-val">Return request</div></div>
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div class="bb-split">
+      <div class="bbs-main">Close &amp; Next</div>
+      <div class="bbs-caret"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+    </div>
+  </div><!-- /.bottom-bar -->
+ </div><!-- /.left-zone -->
+
+  <!-- COPILOT (Team Assist) — full-height, flush against bottom of stage -->
+  <aside class="col-right" id="col-right">
+    <div class="col-right-drag" id="col-right-drag">
+      <div class="col-right-drag-btn">
+        <svg width="8" height="16" viewBox="0 0 8 16" fill="none"><circle cx="2" cy="3" r="1" fill="currentColor"/><circle cx="6" cy="3" r="1" fill="currentColor"/><circle cx="2" cy="7" r="1" fill="currentColor"/><circle cx="6" cy="7" r="1" fill="currentColor"/><circle cx="2" cy="11" r="1" fill="currentColor"/><circle cx="6" cy="11" r="1" fill="currentColor"/></svg>
+      </div>
+    </div>
+    <div class="rp">
+      <div class="rp-gutter">
+        <button class="rp-tab expand" id="expand-btn" onclick="toggleFocus()" title="Expand Team Assist" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" id="expand-svg"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="rp-tab active" title="Assist"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z" fill="currentColor"/></svg></button>
+        <button class="rp-tab" title="Answers"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2a1 1 0 011-1h7l2 2v11a1 1 0 01-1 1H4a1 1 0 01-1-1V2z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 5h5M5 8h5M5 11h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+        <button class="rp-tab" title="Library"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="4" y="2" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.3" fill="#fff"/></svg></button>
+      </div>
+      <div class="rp-body">
+        <div class="rp-scroll" id="rp-scroll">
+          <!-- Opening AI message (one turn, holds summary + prose facts + minimal rec block + ask) -->
+          <div class="ai-open" id="ai-open">
+            <div class="ao-text" id="ao-text"></div>
+            <div class="facts-prose" id="rp-facts">
+              <div class="fp-label">Context</div>
+              <ul id="rp-facts-list"></ul>
+            </div>
+            <div class="rec-lite" id="rec-card">
+              <div class="rl-label">Recommendation<span class="pill-modified" id="pill-modified">Updated</span></div>
+              <div class="rl-title"><span id="rec-title-text"></span></div>
+              <div class="rl-line" id="rec-line1"></div>
+              <div class="rl-line" id="rec-line2"></div>
+            </div>
+            <div id="rp-plan" style="display:none"></div>
+            <div class="ao-ask" id="ao-ask"></div>
+          </div>
+
+          <div class="chat-msgs" id="chat-msgs"></div>
+        </div>
+
+        <div class="rp-sugs" id="rp-sugs"></div>
+
+        <div class="rp-foot">
+          <div class="rp-input-wrap">
+            <input type="text" class="rp-input" id="rp-input" placeholder="Chat with Gladly AI" onkeydown="handleKey(event)">
+            <button class="rp-send" onclick="sendMessage()" title="Send">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-5 13-2-5-5-2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
+            </button>
+          </div>
+          <div class="rp-more">
+            <button class="rp-more-btn" title="More options" onclick="toggleRpMenu(event)">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="3" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="13" r="1.2" fill="currentColor"/></svg>
+            </button>
+            <div class="rp-more-menu" id="rp-more-menu">
+              <div class="rp-more-item danger" onclick="clearSession()">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                Clear session
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside><!-- /.col-right -->
+
+</div><!-- /.stage -->
+
+<!-- Citation popovers -->
+<div class="cite-pop" id="cite-pop-1"><div class="ct-title" id="pop1-title"></div><div id="pop1-body"></div><div style="margin-top:6px"><a class="ct-link" href="#">Open in Knowledge Base →</a></div></div>
+<div class="cite-pop" id="cite-pop-2"><div class="ct-title" id="pop2-title"></div><div id="pop2-body"></div><div style="margin-top:6px"><a class="ct-link" href="#">Open in Knowledge Base →</a></div></div>
+<div class="cite-pop" id="cite-pop-3"><div class="ct-title" id="pop3-title"></div><div id="pop3-body"></div><div style="margin-top:6px"><a class="ct-link" href="#">Open in Knowledge Base →</a></div></div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Display settings popover — tunes contrast & primary green for LED stage displays -->
+<div class="settings-pop" id="settings-pop" onclick="event.stopPropagation()">
+  <div class="sp-title">Display settings</div>
+  <div class="sp-sub">Tuned for demo stages. These settings boost contrast and adjust the primary green so it reads on cheap LED panels.</div>
+
+  <div class="sp-row">
+    <div class="sp-label">Contrast <span class="sp-val" id="sp-contrast-val">Standard</span></div>
+    <input type="range" id="sp-contrast" min="0" max="2" step="1" value="0" oninput="onContrastChange(this.value)">
+  </div>
+
+  <div class="sp-row">
+    <div class="sp-label">Primary green</div>
+    <div class="sp-swatches" id="sp-swatches">
+      <div class="sp-sw on" data-hex="#009B00" style="background:#009B00" onclick="onGreenSwatch('#009B00')" title="Default · #009B00"></div>
+      <div class="sp-sw" data-hex="#00B800" style="background:#00B800" onclick="onGreenSwatch('#00B800')" title="Brighter · #00B800"></div>
+      <div class="sp-sw" data-hex="#008800" style="background:#008800" onclick="onGreenSwatch('#008800')" title="Deeper · #008800"></div>
+      <div class="sp-sw" data-hex="#0D7A0D" style="background:#0D7A0D" onclick="onGreenSwatch('#0D7A0D')" title="Muted · #0D7A0D"></div>
+      <div class="sp-sw" data-hex="#1FA91F" style="background:#1FA91F" onclick="onGreenSwatch('#1FA91F')" title="Vivid · #1FA91F"></div>
+    </div>
+    <div class="sp-hex">
+      <input type="text" class="sp-hex-input" id="sp-hex" value="#009B00" maxlength="7" oninput="onHexInput(this.value)">
+      <button class="sp-reset" onclick="resetDisplay()">Reset</button>
+    </div>
+    <div class="sp-hint">Tip: on LED stages, a slightly deeper green (#008800) holds better against white backgrounds.</div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   SCENARIOS — v7
+   No "task" anywhere. Plain English. Copilot holds the decision moment.
+   ========================================================================= */
+
+const JORDAN = {
+  id: 'jordan',
+  type: 'chat',  // Team Assist demo (agent-driven), not HITL
+  listCard: {
+    name: 'Jordan Rivera',
+    initials: 'JR',
+    avatarColor: '#6B8E6F',
+    preview: "Return request — Clifton 9, 37 days past window. ACL injury, no race.",
+    time: '5m',
+    channel: 'Chat',
+    priority: 'high'
+  },
+  profile: {
+    name: 'Jordan Rivera',
+    initials: 'JR',
+    avatarColor: '#6B8E6F',
+    customerSince: '2022',
+    ltv: '$4,280.00',
+    contact: {
+      address: '2721 Maple Ave<br>Austin, TX 78701',
+      email: 'jordan.rivera@gmail.com',
+      phone: '(512) 555-0192',
+      phoneSub: 'Mobile · SMS preferred'
+    },
+    preferences: [
+      { l: 'Loyalty tier',      v: 'Trailblazer' },
+      { l: 'Favorite category', v: 'Marathon running' },
+      { l: 'Sizing',            v: "Men's 10.5" },
+      { l: 'Brand preference',  v: 'Hoka Clifton · Bondi · Mach' }
+    ],
+    ordersLabel: '7 orders',
+    orders: [
+      { id: 'GCL-55892', title: 'Hoka Clifton 9 · Black/White · Size 10.5', status: 'Delivered', total: '$189.99', date: '02/14/2026', icon: 'shoe' },
+      { id: 'GCL-48201', title: 'Hoka Bondi 7 · Black · Size 10.5',          status: 'Delivered', total: '$159.99', date: '09/20/2025', icon: 'shoe' },
+      { id: 'GCL-39877', title: 'Hoka Mach 5 · White/Blue · Size 10.5',       status: 'Delivered', total: '$144.99', date: '04/27/2025', icon: 'shoe' }
+    ],
+    conversations: [
+      { when: 'Today',   text: 'Return request (Clifton 9)' },
+      { when: 'Feb 8',   text: 'Bought Clifton 9 for marathon' },
+      { when: 'Sep \'25', text: 'Order Bondi 7' }
+    ]
+  },
+  convHeader: { title: 'Apr 14 · Return request', status: 'Assigned to Joseph' },
+  topic: 'Return request',
+  events: [
+    // ---- Prior conversation: Feb 8 — Jordan chats with Gladly AI to pick the Clifton 9 for Austin Marathon ----
+    { kind: 'event', text: '<strong>Feb 8</strong> · 2 months ago · Product consultation' },
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Feb 8, 7:42 PM', channel: 'chat',
+      text: "Hey — thinking about the Clifton 9 for the Austin Marathon in April. I've been in Bondi 7s for the last year. Worth the switch for race day?" },
+    { kind: 'amsg', time: 'Feb 8, 7:42 PM', channel: 'chat',
+      text: "Great pick for race day. The <strong>Clifton 9</strong> is ~30% lighter than the Bondi 7 with the same cushion DNA. Runners switching from the Bondi say it feels familiar but faster — the meta-rocker geometry keeps your stride efficient when fatigue sets in. Minimal break-in too, so you'll be ready for long runs right away. Want me to pull it up in your size?" },
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Feb 8, 7:44 PM', channel: 'chat',
+      text: "Yeah — men's 10.5, black/white." },
+    { kind: 'amsg', time: 'Feb 8, 7:44 PM', channel: 'chat',
+      text: "Done — order <strong>#GCL-55892</strong>, shipping to 2721 Maple. Good luck in Austin." },
+    { kind: 'event', text: 'Conversation closed — Feb 8, 7:45 PM' },
+
+    // ---- Current conversation: Apr 14 — Jordan asks to return, AI auto-rejects, he escalates, routed to Joseph ----
+    { kind: 'event', text: '<strong>Apr 14</strong> · Today · Return request' },
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:02 AM', channel: 'chat',
+      text: "Hi, I need to return a pair of shoes — Order #GCL-55892. I bought them for a marathon I can no longer run. Is there a way to send them back?" },
+    { kind: 'amsg', time: 'Apr 14, 9:03 AM', channel: 'chat',
+      text: "Hi Jordan, thanks for reaching out. I looked at your order and unfortunately this is past our 30-day return window, so I'm not able to process a return on this one. Let me know if there's anything else I can help with." },
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:04 AM', channel: 'chat',
+      text: "It's not a defect issue. I've been training for my first marathon for over a year. I bought these specifically for race day. Last week I found out I have a torn ACL — I'm looking at surgery and months of recovery. The race is gone. I honestly don't even want to look at the shoes right now." },
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:05 AM', channel: 'chat',
+      text: "They've never been worn outside, just tried on at home. I get that the window is the window, but this isn't me changing my mind. Everything changed. Is there any way to make an exception?" },
+    { kind: 'jmsg', time: 'Apr 14, 9:07 AM', channel: 'chat',
+      text: "I understand, Jordan. That's a really tough situation, especially after everything you put into training. I'm not able to approve a return exception myself, but I can connect you with a member of our team who can review your request. They'll have the full picture on your account and situation. Hang tight — someone will be with you shortly." }
+  ],
+  copilot: {
+    opening: `Jordan was just escalated to you.
+
+He requested a return on the Clifton 9s — initially declined by policy, then pushed back with additional context.`,
+    factsProse: [
+      "Bought on our recommendation for the Austin Marathon",
+      "Tore his ACL — race no longer happening",
+      "Shoes are unworn",
+      "First return request in 7 orders"
+    ],
+    rec: {
+      title: '<span id="rec-title-inner">Decision</span>',
+      line1: 'Outside standard policy — within your discretion.',
+      line2: 'Clean one-time exception with clear context.'
+    },
+    ask: "How do you want to handle this?",
+    chips: [
+      { text: "Show me the conversation", kind: 'primary',   action: 'showConversation' },
+      { text: "How is he feeling?",       kind: 'secondary', action: 'sentiment' }
+    ],
+    citations: [
+      { title: 'Return Exceptions',      body: "Agents may approve one-off return exceptions on a case-by-case basis, even outside the standard 30-day window, when there's a clear hardship reason and the product is unworn." },
+      { title: 'Return Eligibility',     body: "Unworn product in original condition is eligible for a full refund to the original payment method." },
+      { title: 'Loyalty Tier Benefits',  body: "Trailblazer-tier customers (3+ years, consistent spend) receive extended return flexibility at agent discretion." }
+    ],
+    script: {
+      // ── Stage 1: Understand ───────────────────────────────────────
+      showConversation: {
+        reply: "He bought the Clifton 9 after we recommended it for the Austin Marathon.<br><br>After our system declined the return on policy, he came back with the full picture — torn ACL, race off, shoes never worn — and asked for an exception.",
+        nextChips: [
+          { text: "How is he feeling?",   kind: 'secondary', action: 'sentiment' },
+          { text: "What are my options?", kind: 'primary',   action: 'options' }
+        ]
+      },
+      sentiment: {
+        reply: "<strong>Frustrated and disappointed.</strong> Sentiment score <strong>-0.62</strong>, down from neutral at the start.<br><br>This isn't about the shoes — it's about losing something he trained a year for.",
+        nextChips: [
+          { text: "What are my options?", kind: 'primary',   action: 'options' }
+        ]
+      },
+
+      // ── Stage 2: Evaluate ─────────────────────────────────────────
+      options: {
+        reply: "You have two paths:<br><br>• <strong>Enforce policy</strong> — decline the return.<br>• <strong>One-time exception</strong> — approve and refund.<br><br>Given the context, this falls within your discretion<span class='cite' onclick='togglePop(event, 1)'>1</span><span class='cite' onclick='togglePop(event, 3)'>3</span>.",
+        nextChips: [
+          { text: "What would you do?", kind: 'primary', action: 'recommend' }
+        ]
+      },
+      recommend: {
+        reply: "I'd approve the exception.<br><br>We influenced the original purchase, the shoes are unworn, and this is a clean one-time situation. Lead with acknowledgment before the logistics.",
+        nextChips: [
+          { text: "Draft a response", kind: 'primary', action: 'draft' }
+        ]
+      },
+
+      // ── Stage 3: Act ──────────────────────────────────────────────
+      draft: {
+        preface: "Based on approving the exception:",
+        draftCard: { label: 'Draft', body: `Hi Jordan — really appreciate you sharing the context, and I'm sorry to hear about the ACL.
+
+I've approved the return on the Clifton 9s. You'll see a full refund of $189.99 to your original payment method in 5–7 business days, and a prepaid UPS return label will land in your email shortly.
+
+Let me know if there's anything else I can help with.` },
+        nextChips: [
+          { text: "Make it warmer", kind: 'secondary', action: 'warmer' }
+        ]
+      },
+      warmer: {
+        preface: "Warmer tone:",
+        draftCard: { label: 'Draft · warmer tone', body: `Hi Jordan — really sorry about the ACL. After all the time you put into training, that's incredibly tough.
+
+I've approved the return on your Clifton 9s. You'll see a full refund of $189.99 to your original payment method in 5–7 business days, and a prepaid return label will hit your email shortly.
+
+Wishing you a smooth recovery — when you're ready to lace up again, we'll be here.` },
+        nextChips: []
+      },
+
+      // ── Post-send (relationship, not upsell) ──────────────────────
+      useDraft: {
+        reply: "Sent.<br><br>You handled that well. This might be a good moment to stay connected while he's recovering.",
+        sideEffect: 'sendOutboundChat',
+        nextChips: [
+          { text: "Suggest recovery products", kind: 'primary',   action: 'recoverProducts' },
+          { text: "Not now",                   kind: 'secondary', action: 'skipRec' }
+        ]
+      },
+      recoverProducts: {
+        reply: "Based on what Jordan already owns (Bondi 7, Mach 5, and the Clifton 9 he just returned) and where he's at — torn ACL, 8–12 weeks of recovery — here are three that fit:",
+        productList: [
+          { name: "Hoka Ora Recovery Slide", price: "$59.99", url: "hoka.com/ora", reason: "Built for post-surgery — easy on/off, max cushion, low drop." },
+          { name: "Hoka Bondi 8",            price: "$164.99", url: "hoka.com/bondi8", reason: "The cushion he already trusts, updated — walks before runs." },
+          { name: "Hoka Clifton Recovery Socks", price: "$24.99", url: "hoka.com/clifton-socks", reason: "Compression fit. A small kindness." }
+        ],
+        followup: "He prefers SMS. Want me to draft a message?",
+        nextChips: [
+          { text: "Draft an SMS", kind: 'primary',   action: 'draftRecSMS' },
+          { text: "Skip it",      kind: 'secondary', action: 'skipRec' }
+        ]
+      },
+      draftRecSMS: {
+        draftCard: {
+          label: 'SMS draft · to Jordan',
+          body: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:
+
+• Ora Recovery Slide
+• Bondi 8
+• Clifton Recovery Socks
+
+No rush — they'll be here when you are.`,
+          bodyHtml: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:<br><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Ora Recovery Slide</a><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Bondi 8</a><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Clifton Recovery Socks</a><br><br>No rush — they'll be here when you are.`
+        },
+        useAction: 'sendRecSMS',
+        nextChips: []
+      },
+      sendRecSMS: {
+        reply: "Sent via SMS. Nice finish.",
+        sideEffect: 'sendOutboundSMS',
+        nextChips: []
+      },
+      skipRec: {
+        reply: "Skipping the follow-up. Good call if he's not ready.",
+        nextChips: []
+      }
+    },
+    // Outbound body used when useDraft fires. Posts to the customer timeline as a chat.
+    outboundBodies: {
+      draft:  `Hi Jordan — really appreciate you sharing the context, and I'm sorry to hear about the ACL. I've approved the return on the Clifton 9s. You'll see a full refund of $189.99 to your original payment method in 5–7 business days, and a prepaid UPS return label will land in your email shortly. Let me know if there's anything else I can help with.`,
+      warmer: `Hi Jordan — really sorry about the ACL. After all the time you put into training, that's incredibly tough. I've approved the return on your Clifton 9s. You'll see a full refund of $189.99 to your original payment method in 5–7 business days, and a prepaid return label will hit your email shortly. Wishing you a smooth recovery — when you're ready to lace up again, we'll be here.`
+    },
+    outboundSMSBody: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:\n• [Ora Recovery Slide]\n• [Bondi 8]\n• [Clifton Recovery Socks]\nNo rush — they'll be here when you are. — Joseph`,
+    outboundSMSBodyHtml: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:<br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Ora Recovery Slide</a><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Bondi 8</a><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Clifton Recovery Socks</a><br>No rush — they'll be here when you are. — Joseph`
+  },
+  stepPresets: [
+    { label: 'Send SMS recap', step: 'Send SMS recap — (512) 555-0192' },
+    { label: 'Recommend recovery products', step: 'Recommend recovery products — Ora Slide, Bondi 8, Clifton Socks' },
+    { label: 'Schedule a follow-up', step: 'Schedule a follow-up — 2 weeks' },
+    { label: 'Apply thank-you credit', step: 'Apply $25 thank-you credit' }
+  ]
+  // No `decisions` — Jordan uses the `copilot.script` state machine.
+};
+
+const RACHEL = {
+  id: 'rachel',
+  type: 'assist',
+  listCard: {
+    name: 'Rachel Thompson',
+    initials: 'RT',
+    avatarColor: '#5B8DEF',
+    preview: "Hoka Race-Day Pro Pack — can't use it, tendon tear. Wants a refund.",
+    time: '1m',
+    channel: 'Chat',
+    priority: 'high'
+  },
+  profile: {
+    name: 'Rachel Thompson',
+    initials: 'RT',
+    avatarColor: '#5B8DEF',
+    customerSince: '2022',
+    ltv: '$12,400.00',
+    contact: {
+      address: '148 Park Pl<br>Brooklyn, NY 11217',
+      email: 'rachel.thompson@gmail.com',
+      phone: '(212) 555-0147',
+      phoneSub: 'Mobile · Chat preferred'
+    },
+    preferences: [
+      { l: 'Favorite category', v: 'Long-distance running' },
+      { l: 'Sizing',            v: "Women's 8.5" },
+      { l: 'Brand preference',  v: 'Hoka Bondi · Clifton · Tecton X' }
+    ],
+    ordersLabel: '12 orders',
+    orders: [
+      { id: 'ORD-2026-84721', title: 'Hoka Race-Day Pro Pack', status: 'Processing', total: '$847.99', date: '04/19/2026', icon: 'shoe' }
+    ],
+    conversations: [
+      { when: 'Today',  text: 'Order cancellation request' },
+      { when: 'Mar 15', text: 'Size exchange (Clifton 9)' },
+      { when: 'Feb 2',  text: 'Product question — Bondi' }
+    ]
+  },
+  convHeader: { title: 'Apr 21 · Cancellation request', status: 'Waiting' },
+  topic: 'Cancellation request',
+  events: [
+    { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '4 min ago', channel: 'chat',
+      text: "Hi, I need to cancel my order #ORD-2026-84721 — the Hoka Race-Day Pro Pack. I signed up for the Chicago Marathon this year and picked up the bundle for training, but I just tore a tendon at a training run last weekend. 8–12 weeks off, no race for me. Is there any way to get a refund before it ships?" },
+    { kind: 'amsg', time: '3 min ago',
+      text: "So sorry to hear about the tendon, Rachel — take care of yourself first. I've confirmed your Race-Day Pro Pack is still in processing, which is the easiest case. You're on our Trailblazer tier, so a full refund before ship is covered — no restock fees, no questions. Want me to go ahead and cancel?" },
+    { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '2 min ago', channel: 'chat',
+      text: "Yes please, that would be amazing. Thank you." },
+    { kind: 'amsg', time: '1 min ago',
+      text: "You got it. One last check on my end and your refund will be on its way — I'll be right back." },
+    { kind: 'activity', text: 'Gladly AI asked you to approve a VIP cancellation — just now' }
+  ],
+  copilot: {
+    opening: `Rachel's cancellation is ready.
+
+Order is still in processing — eligible for a full refund.`,
+    factsProse: [
+      "Order value: $847.99 — still in processing (no fees)",
+      "Trailblazer customer, 12 orders, 0 cancellations",
+      "Full refund before ship is covered for Trailblazer<span class='cite' onclick='togglePop(event, 1)'>1</span>",
+      "$25 default thank-you credit for $500–$1K orders<span class='cite' onclick='togglePop(event, 2)'>2</span>"
+    ],
+    rec: {
+      title: '<span id="rec-title-inner">Cancel + $25 thank-you credit</span>',
+      line1: 'Refund $847.99 to her original payment method',
+      line2: 'Thank-you credit on her account for when she\'s back'
+    },
+    ask: "Everything is prepared — you can approve as-is or adjust below.",
+    citations: [
+      { title: 'VIP Cancellation Playbook', body: "Full refund for VIPs on orders still in processing, no questions asked. A $25–$50 thank-you credit is suggested for $500–$1K orders to encourage a return visit." },
+      { title: 'Credit Guidelines', body: "For orders $500–$1K, $25 is the default thank-you credit. For $1K+, the default is $50. Agents can adjust between $10–$75 without escalation." }
+    ],
+    chips: [
+      { text: "Increase credit to $50", kind: 'secondary', action: 'raise',   arg: 50 },
+      { text: "Lower to $20",           kind: 'secondary', action: 'lower',   arg: 20 },
+      { text: "Add SMS recap",          kind: 'secondary', action: 'addStep', arg: 'sms' },
+      { text: "No, I'll handle it",     kind: 'secondary', action: 'handoff' }
+    ],
+    creditDefault: 25,
+    mode: 'refund'
+  },
+  stepPresets: [
+    { label: 'Send SMS recap', step: 'Send SMS recap — (212) 555-0147' },
+    { label: 'Recommend recovery products', step: 'Recommend recovery products — Ora Slide, Bondi 8, Clifton Socks' },
+    { label: 'Schedule a follow-up', step: 'Schedule a follow-up — 2 weeks' },
+    { label: 'Waive restock fee (not applicable — in processing)', step: 'Note: no restock fee applies' }
+  ],
+  decisions: {
+    approveCard: (s) => {
+      const card = {
+        label: 'Cancel order',
+        steps: [
+          `Cancel order #ORD-2026-84721 in Shopify`,
+          `Issue $847.99 refund to her original payment method`,
+          `Apply $${s.creditAmount} VIP thank-you credit to account`
+        ],
+        approveAction: 'approveConfirm'
+      };
+      return { actionCard: card };
+    },
+    approveConfirm: (s) => {
+      const events = [`<strong>Lisa</strong> approved the cancellation — just now`];
+      if (s.creditAmount !== 25) {
+        events.push(`<strong>Lisa</strong> updated the thank-you credit to $${s.creditAmount} — just now`);
+      }
+      events.push(`Gladly AI cancelled the order — just now`);
+      events.push(`Gladly AI issued a $847.99 refund to her original payment method — just now`);
+      return {
+        copilotReply: `Done.
+
+Order cancelled, $847.99 refund issued, $${s.creditAmount} credit applied.`,
+        timelineEvents: events,
+        customerReply: `Your cancellation is approved, Rachel. A full refund of $847.99 is on its way to your original payment method, and I've added a $${s.creditAmount} thank-you credit to your account.
+
+Wishing you a smooth recovery — we'll be here when you're ready.`,
+        customerChannel: 'chat'
+      };
+    },
+    raise: (s, amt) => ({
+      copilotReply: `Updated — $${amt} credit applied. Still within policy. Ready when you are.`,
+      reAsk: true,
+      mutate: { credit: amt }
+    }),
+    lower: (s, amt) => ({
+      copilotReply: `Updated — $${amt} credit applied. Within policy, slightly more conservative. Ready when you are.`,
+      reAsk: true,
+      mutate: { credit: amt }
+    }),
+    handoff: (s) => ({
+      copilotReply: "Got it — I'll stop responding to Rachel and hand the conversation to you.",
+      timelineEvents: [
+        `<strong>Lisa</strong> took over the conversation — just now`,
+        `Gladly AI stopped responding — manual handling now`
+      ]
+    })
+  }
+};
+
+const STUB = (p) => ({ ...p, wired: false });
+
+const CUSTOMERS = [
+  STUB({ id: 'sarah', type: 'chat', listCard: {
+    name: 'Sarah Kim', initials: 'SK', avatarColor: '#A47BD4',
+    preview: "Hey, where's my order? It's been a week…", time: '1m', channel: 'Chat' }}),
+  { ...RACHEL, wired: true },
+  { ...JORDAN, wired: true },
+  STUB({ id: 'priya', type: 'assist', listCard: {
+    name: 'Priya Shah', initials: 'PS', avatarColor: '#0F203C',
+    preview: "AI wants your call on a VIP exchange ($380 → $420).", time: '6m', channel: 'SMS' }}),
+  STUB({ id: 'marcus', type: 'chat', listCard: {
+    name: 'Marcus Klein', initials: 'MK', avatarColor: '#0F203C',
+    preview: "Voice callback — follow-up on shipment.", time: '9m', channel: 'Voice' }}),
+  STUB({ id: 'kira', type: 'chat', listCard: {
+    name: 'Kira Fletcher', initials: 'KF', avatarColor: '#0F203C',
+    preview: "Question on sizing — jackets run true to size?", time: '14m', channel: 'Chat' }})
+];
+
+/* =========================================================================
+   STATE
+   ========================================================================= */
+
+let currentId = 'jordan';           // default open to Jordan — richer story
+let session = { creditAmount: 25, mode: 'refund', decided: false, awaitingReconfirm: false };
+
+function currentScenario() { return CUSTOMERS.find(c => c.id === currentId); }
+
+/* =========================================================================
+   RENDER: CUSTOMER LIST
+   ========================================================================= */
+
+function renderCustomerList() {
+  const list = document.getElementById('cl-list');
+  const countEl = document.getElementById('cl-count');
+  if (countEl) countEl.textContent = CUSTOMERS.length;
+  list.innerHTML = CUSTOMERS.map(c => `
+    <div class="cle-card ${c.id === currentId ? 'active' : ''}" data-id="${c.id}" onclick="selectCustomer('${c.id}')">
+      <div class="cle-left">
+        <span class="cle-priority-dot" style="${c.listCard.priority === 'high' ? '' : 'background: var(--gray-400)'}"></span>
+        <div class="cle-av" style="background:${c.listCard.avatarColor}">${c.listCard.initials}</div>
+        <div class="cle-type-pip ${c.type === 'assist' ? 'assist' : 'chat'}">
+          ${c.type === 'assist'
+            ? '<svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"/></svg>'
+            : '<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>'}
+        </div>
+      </div>
+      <div class="cle-body">
+        <div class="cle-row1"><span class="cle-name">${c.listCard.name}</span><span class="cle-time">${c.listCard.time}</span></div>
+        <div class="cle-preview">${c.listCard.preview}</div>
+        <div class="cle-meta-row">
+          <span class="cle-tag ${c.type === 'assist' ? 'assist' : 'chat'}">${c.type === 'assist' ? 'Needs input' : 'Chat'}</span>
+          <span class="cle-channel">${c.listCard.channel}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleList() {
+  const cl = document.getElementById('col-cl');
+  cl.classList.toggle('collapsed');
+  const svg = document.getElementById('cl-tog-svg');
+  if (cl.classList.contains('collapsed')) {
+    svg.innerHTML = '<path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    document.getElementById('cl-toggle').title = 'Expand';
+  } else {
+    svg.innerHTML = '<path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    document.getElementById('cl-toggle').title = 'Collapse';
+  }
+}
+
+function toggleFocus() {
+  document.body.classList.toggle('focus-copilot');
+  const svg = document.getElementById('expand-svg');
+  if (document.body.classList.contains('focus-copilot')) {
+    // compress icon
+    svg.innerHTML = '<path d="M6 2v4H2M10 2v4h4M6 14v-4H2M10 14v-4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>';
+    document.getElementById('expand-btn').title = 'Collapse Team Assist';
+  } else {
+    svg.innerHTML = '<path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>';
+    document.getElementById('expand-btn').title = 'Expand Team Assist';
+  }
+}
+
+/* =========================================================================
+   RENDER: PROFILE
+   ========================================================================= */
+
+function renderProfile(s) {
+  const p = s.profile;
+  const prefs = p.preferences ? `
+    <div class="profile-card">
+      <div class="sec-title">Preferences <span class="add">+</span></div>
+      ${p.preferences.map(r => `<div class="pref-row"><span class="pl">${r.l}</span><span>${r.v}</span></div>`).join('')}
+    </div>` : '';
+
+  const orders = p.orders.map(o => `
+    <div class="order-card">
+      <div class="order-thumb">${orderIcon(o.icon)}</div>
+      <div class="order-info">
+        <div class="oid">Order <a href="#">${o.id}</a></div>
+        <div class="ometa">${o.status} • ${o.total}</div>
+        <div class="ometa" style="color: var(--gray-700); font-size: 12px">Ordered ${o.date}</div>
+      </div>
+      <span class="order-chev">▾</span>
+    </div>`).join('');
+
+  const convos = p.conversations.map(c => `<div class="conv-row"><span class="when">${c.when}</span><span>${c.text}</span></div>`).join('');
+
+  document.getElementById('col-profile').innerHTML = `
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="profile-av" style="background:${p.avatarColor}">${p.initials}</div>
+        <div><div class="profile-name">${p.name}</div></div>
+        <span class="profile-dots">⋮</span>
+      </div>
+      <div class="kv"><span>Customer since</span><span>${p.customerSince}</span></div>
+      <div class="kv"><span>Lifetime Value</span><span>${p.ltv}</span></div>
+      <div class="link-customer">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 10l-2 2a2 2 0 102 2l2-2M10 6l2-2a2 2 0 10-2-2L8 4M6 10l4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
+        Link to customer <span class="suggestion-count">1 suggestion</span>
+      </div>
+    </div>
+    <div class="profile-card">
+      <div class="sec-title">Contact <span class="add">+</span></div>
+      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1a5 5 0 015 5c0 4-5 9-5 9S3 10 3 6a5 5 0 015-5z" stroke="currentColor" stroke-width="1.3" fill="none"/><circle cx="8" cy="6" r="1.8" fill="currentColor"/></svg></span>${p.contact.address}</div>
+      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span>${p.contact.email}<span class="tag-grp"><span class="tag">Main</span></span></div>
+      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 3a1.5 1.5 0 011-1h1.5l1.5 2-1 1a7 7 0 003 3l1-1 2 1.5V11a1.5 1.5 0 01-1 1A9 9 0 013 3z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span>${p.contact.phone}<span class="tag-grp"><span class="tag">SMS</span><span class="tag">Main</span></span></div>
+      <div class="contact-sub">${p.contact.phoneSub}</div>
+    </div>
+    ${prefs}
+    <div class="profile-card">
+      <div class="sec-title">${p.ordersLabel}</div>
+      ${orders}
+    </div>
+    <div class="profile-card">
+      <div class="sec-title">Conversations</div>
+      ${convos}
+    </div>
+  `;
+}
+
+function orderIcon(kind) {
+  if (kind === 'shoe') return '<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 20c0-2 2-4 4-5l3-1 2-3 6 1c3 1 9 3 9 7v3H4v-2z" stroke="#919191" stroke-width="1.3" fill="#F1F1F1"/><path d="M11 14l2 2M14 12l2 2M17 10l2 2" stroke="#919191" stroke-width="1.2" stroke-linecap="round"/></svg>';
+  return '<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="22" rx="2" fill="#E3E3E3"/><circle cx="16" cy="17" r="6" stroke="#919191" stroke-width="1.4" fill="none"/><path d="M12 6v-2h8v2" stroke="#919191" stroke-width="1.4" fill="none"/></svg>';
+}
+
+/* =========================================================================
+   RENDER: CONVERSATION
+   ========================================================================= */
+
+function renderConversation(s) {
+  document.getElementById('conv-title').textContent = s.convHeader.title;
+  document.getElementById('conv-status').textContent = s.convHeader.status;
+  document.getElementById('bb-topic-val').textContent = s.topic;
+
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = s.events.map(e => renderEvent(e, s)).join('');
+}
+
+function renderEvent(e) {
+  if (e.kind === 'cmsg') {
+    const chIcon = e.channel === 'email'
+      ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>'
+      : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
+    const ch = e.channel === 'email' ? 'sent an email' : 'sent a chat';
+    return `<div class="msg-meta"><span class="ch-icon">${chIcon}</span>${e.who} ${ch} — ${e.time}</div>
+      <div class="msg inbound"><div class="msg-av" style="background:${e.avColor}">${e.av}</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
+  }
+  if (e.kind === 'amsg') {
+    const chIcon = e.channel === 'email'
+      ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>'
+      : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
+    return `<div class="msg-meta right">Gladly AI replied — ${e.time}<span class="ch-icon">${chIcon}</span></div>
+      <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
+  }
+  if (e.kind === 'jmsg') {
+    const chIcon = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
+    return `<div class="msg-meta right">Gladly AI replied — ${e.time}<span class="ch-icon">${chIcon}</span></div>
+      <div class="msg outbound"><div class="msg-av" style="background:#7BB86F">JA</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
+  }
+  if (e.kind === 'event') {
+    return `<div class="tl-event">${e.text}</div>`;
+  }
+  if (e.kind === 'activity') {
+    return `<div class="tl-activity">${e.text}</div>`;
+  }
+  return '';
+}
+
+/* =========================================================================
+   RENDER: COPILOT (opening AI message + chips)
+   ========================================================================= */
+
+function renderCopilot(s) {
+  const c = s.copilot;
+  session.creditAmount = c.creditDefault || 25;
+  session.mode = c.mode || 'refund';
+  session.decided = false;
+  session.awaitingReconfirm = false;
+  session.jordanLastDraft = null;   // 'draft' or 'warmer' — used when useDraft fires
+
+  document.getElementById('ao-text').innerHTML = c.opening;
+
+  // HITL panel (Rachel) vs Team Assist panel (Jordan) — branch on scenario type
+  const factsEl  = document.getElementById('rp-facts');
+  const recEl    = document.getElementById('rec-card');
+  const askEl    = document.getElementById('ao-ask');
+
+  if (c.factsProse) {
+    factsEl.style.display = '';
+    recEl.style.display = '';
+    document.getElementById('rp-facts-list').innerHTML = c.factsProse.map(f => `<li>${f}</li>`).join('');
+    document.getElementById('rec-title-text').innerHTML = c.rec.title;
+    document.getElementById('rec-line1').innerHTML = c.rec.line1;
+    document.getElementById('rec-line2').innerHTML = c.rec.line2;
+    document.getElementById('pill-modified').classList.remove('on');
+    askEl.textContent = c.ask || '';
+    askEl.style.display = c.ask ? '' : 'none';
+  } else {
+    factsEl.style.display = 'none';
+    recEl.style.display = 'none';
+    askEl.style.display = 'none';
+  }
+
+  // Rachel: render the plan (action card) inline upfront. "Plan mode" UX.
+  const planEl = document.getElementById('rp-plan');
+  if (planEl) {
+    if (s.id === 'rachel' && c.factsProse && s.decisions && s.decisions.approveCard) {
+      const card = s.decisions.approveCard(session);
+      session.rachelActionCard = card.actionCard;
+      planEl.innerHTML = renderActionCard(card.actionCard);
+      planEl.style.display = '';
+    } else {
+      planEl.innerHTML = '';
+      planEl.style.display = 'none';
+    }
+  }
+
+  // Citations — support up to 3 (Jordan has 3; Rachel has 2)
+  for (let i = 0; i < 3; i++) {
+    const popT = document.getElementById(`pop${i + 1}-title`);
+    const popB = document.getElementById(`pop${i + 1}-body`);
+    if (!popT) continue;
+    const cit = c.citations && c.citations[i];
+    if (cit) {
+      popT.textContent = cit.title;
+      popB.textContent = cit.body;
+    } else {
+      popT.textContent = '';
+      popB.textContent = '';
+    }
+  }
+
+  renderChips(c.chips);
+  document.getElementById('chat-msgs').innerHTML = '';
+}
+
+function renderChips(chips) {
+  document.getElementById('rp-sugs').innerHTML = chips.map((ch, i) =>
+    `<button class="chip ${ch.kind || ''}" onclick='handleChip(${i})'>${ch.text}</button>`
+  ).join('');
+  // stash for lookup
+  window._chipBank = chips;
+}
+
+function handleChip(i) {
+  const ch = window._chipBank[i];
+  if (!ch) return;
+  pushAgentMsg(ch.text);
+  clearChips();
+  pushTyping();
+  setTimeout(() => {
+    removeTyping();
+    runDecision(ch.action, ch.arg);
+  }, 700);
+}
+
+function clearChips() {
+  document.getElementById('rp-sugs').innerHTML = '';
+}
+
+/* =========================================================================
+   DECIDE — all decisions flow through here, no modals
+   ========================================================================= */
+
+function runDecision(action, arg) {
+  const s = currentScenario();
+
+  // Team Assist scripted flow (Jordan) — route through the script runner
+  if (s.copilot && s.copilot.script && s.copilot.script[action]) {
+    return runScript(action);
+  }
+
+  const handler = s.decisions && s.decisions[action];
+  if (!handler) { pushAIMsg("Not sure how to handle that yet."); return; }
+
+  if (action === 'raise' || action === 'lower') {
+    const res = handler(session, arg);
+    session.creditAmount = arg;
+    updateRecCard(); // also rerenders the plan card (Rachel)
+    pushAIMsg(res.copilotReply);
+    // Plan-mode chip tray: keep editing options available; swap the clicked direction
+    // for the opposite + a revert.
+    const def = s.copilot.creditDefault;
+    const smsAlreadyAdded = session.rachelActionCard
+      && session.rachelActionCard.steps.some(st => /SMS recap/i.test(st));
+    const chipTray = [];
+    if (action === 'raise') {
+      chipTray.push({ text: "Lower to $20", kind: 'secondary', action: 'lower', arg: 20 });
+    } else {
+      chipTray.push({ text: "Bump credit to $50", kind: 'secondary', action: 'raise', arg: 50 });
+    }
+    chipTray.push({ text: `Back to $${def}`, kind: 'secondary', action: 'revert' });
+    if (!smsAlreadyAdded) {
+      chipTray.push({ text: "Add SMS recap", kind: 'secondary', action: 'addStep', arg: 'sms' });
+    }
+    chipTray.push({ text: "No, I'll handle it", kind: 'secondary', action: 'handoff' });
+    renderChips(chipTray);
+    return;
+  }
+
+  if (action === 'revert') {
+    session.creditAmount = s.copilot.creditDefault;
+    updateRecCard(true); // also rerenders the plan card
+    pushAIMsg(`Back to a $${session.creditAmount} credit.`);
+    renderChips(s.copilot.chips);
+    return;
+  }
+
+  if (action === 'addStep') {
+    const presets = s.stepPresets || [];
+    // Lookup preset by key (arg). For now 'sms' → "Send SMS recap"
+    const keyRegex = arg === 'sms' ? /sms/i : new RegExp(String(arg || ''), 'i');
+    const preset = presets.find(p => keyRegex.test(p.label));
+    if (preset && session.rachelActionCard) {
+      if (!session.rachelActionCard.steps.includes(preset.step)) {
+        session.rachelActionCard.steps.push(preset.step);
+        rerenderRachelPlan({ preserveExtraSteps: true });
+      }
+      pushAIMsg(`Added — ${preset.label.toLowerCase()} is in the plan.`);
+    }
+    // Rebuild chip tray without the addStep chip
+    const remaining = (window._chipBank || []).filter(c => c.action !== 'addStep');
+    renderChips(remaining);
+    return;
+  }
+
+  if (action === 'approveConfirm') {
+    const res = handler(session);
+
+    const cards = document.querySelectorAll('.action-card');
+    const lastCard = cards[cards.length - 1];
+    const card = session.rachelActionCard;
+    if (lastCard && card) {
+      // Base lines cover the 3 template steps. If the plan has more steps
+      // (e.g. user-added SMS recap), append generic completions so the finished
+      // card matches what the agent approved.
+      const completionLines = [
+        `Order #ORD-2026-84721 cancelled`,
+        `Refund queued · $847.99 to her original payment method`,
+        `$${session.creditAmount} thank-you credit applied to account`
+      ];
+      const extraSteps = card.steps.slice(3);
+      extraSteps.forEach(step => {
+        if (/SMS recap/i.test(step)) completionLines.push(`SMS recap sent · (212) 555-0147`);
+        else if (/recovery products/i.test(step)) completionLines.push(`Recovery product set queued for follow-up`);
+        else if (/follow-up/i.test(step)) completionLines.push(`Follow-up scheduled · 2 weeks out`);
+        else completionLines.push(`Step complete · ${step}`);
+      });
+      lastCard.outerHTML = renderActionCardComplete(card, completionLines);
+    }
+
+    pushAIMsg(res.copilotReply);
+
+    const tl = document.getElementById('timeline');
+    res.timelineEvents.forEach(text => {
+      tl.insertAdjacentHTML('beforeend', `<div class="tl-activity">${text}</div>`);
+    });
+
+    const chIcon = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
+    tl.insertAdjacentHTML('beforeend',
+      `<div class="msg-meta right">Gladly AI replied — just now<span class="ch-icon">${chIcon}</span></div>
+       <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${res.customerReply}</div><span class="msg-dots">⋮</span></div>`);
+
+    session.decided = true;
+    document.getElementById('conv-status').textContent = 'Resolved by AI';
+    scrollTimeline();
+    return;
+  }
+
+  if (action === 'handoff') {
+    const res = handler(session);
+    pushAIMsg(res.copilotReply);
+    const tl = document.getElementById('timeline');
+    res.timelineEvents.forEach(text => {
+      tl.insertAdjacentHTML('beforeend', `<div class="tl-activity">${text}</div>`);
+    });
+    document.getElementById('conv-status').textContent = 'Handed off to Lisa';
+    session.decided = true;
+    scrollTimeline();
+    return;
+  }
+}
+
+/* =========================================================================
+   TEAM ASSIST SCRIPTED FLOW — Jordan's multi-turn conversation
+   ========================================================================= */
+
+function runScript(action) {
+  const s = currentScenario();
+  const beat = s.copilot.script[action];
+  if (!beat) { pushAIMsg("Not sure how to handle that yet."); return; }
+
+  // DRAFT beats: render the draft body AS the AI message. Optional `preface` renders
+  // a small label above the body to frame it as following from a chosen path.
+  // The message gets an inline Use button + feedback icons via pushAIMsg({draft:true}).
+  if (beat.draftCard) {
+    session.jordanLastDraft = (action === 'warmer') ? 'warmer' : 'draft';
+    const rawBody = beat.draftCard.bodyHtml || escapeHtml(beat.draftCard.body).replace(/\n/g, '<br>');
+    const label = beat.draftCard.label || 'Draft';
+    const body = `<div class="dc-label">${label}</div><div class="dc-body">${rawBody}</div>`;
+    pushAIMsg(body, { draft: true, useAction: beat.useAction || 'useDraft', preface: beat.preface });
+  } else {
+    // Build extra content (action card, product list) + optional followup for non-draft beats
+    let extra = '';
+    if (beat.productList) extra += renderProductList(beat.productList);
+    if (beat.actionCard) {
+      extra += renderActionCard(beat.actionCard);
+      session.jordanActionCard = beat.actionCard;
+    }
+    let replyHtml = beat.reply || '';
+    if (beat.followup) {
+      replyHtml = (replyHtml ? replyHtml + '<br><br>' : '') + beat.followup;
+    }
+    if (replyHtml || extra) pushAIMsg(replyHtml, { extra });
+  }
+
+  // Side effects
+  if (beat.sideEffect === 'sendOutboundChat') sideEffectSendOutbound('chat');
+  if (beat.sideEffect === 'approveRun')       sideEffectApproveRun();
+  if (beat.sideEffect === 'sendOutboundSMS')  sideEffectSendOutboundSMS();
+
+  // Update chip rail for progressive disclosure OR for explicit nextChips
+  if (beat.nextChips !== undefined) {
+    renderChips(beat.nextChips);
+  } else if (beat.unlockChips) {
+    const currentChips = window._chipBank || [];
+    // Keep the chips not yet clicked this beat and add unlocked ones not already present
+    const clickedAction = action;
+    const nextChips = currentChips.filter(c => c.action !== clickedAction);
+    const scriptDef = s.copilot.script;
+    beat.unlockChips.forEach(a => {
+      if (!nextChips.find(c => c.action === a)) {
+        const chipDef = JORDAN_CHIP_DEFS[a];
+        if (chipDef) nextChips.push(chipDef);
+      }
+    });
+    // Always add "Draft a response" if it's an unlock and not yet shown
+    if (beat.unlockChips.includes('draft') && !nextChips.find(c => c.action === 'draft')) {
+      nextChips.push({ text: "Draft a response", kind: 'primary', action: 'draft' });
+    }
+    renderChips(nextChips);
+  } else {
+    renderChips([]); // clear
+  }
+}
+
+// Jordan's chip catalog (so runScript can rebuild any chip by action name)
+const JORDAN_CHIP_DEFS = {
+  sentiment:  { text: "How is he feeling?",         kind: 'secondary', action: 'sentiment' },
+  options:    { text: "What are my options?",      kind: 'primary',   action: 'options' },
+  recommend:  { text: "What would you do?",         kind: 'primary',   action: 'recommend' },
+  draft:      { text: "Draft a response",           kind: 'primary',   action: 'draft' },
+  useDraft:   { text: "Send to Jordan",             kind: 'primary',   action: 'useDraft' }
+};
+
+const CH_ICON = {
+  email: '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>',
+  chat:  '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>',
+  sms:   '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="10" height="12" rx="2" stroke="currentColor" stroke-width="1.3" fill="none"/><circle cx="8" cy="12" r="0.8" fill="currentColor"/></svg>'
+};
+const CH_LABEL = { email: 'sent an email', chat: 'sent a chat', sms: 'sent an SMS' };
+
+function sideEffectSendOutbound(channel) {
+  channel = channel || 'chat';
+  const s = currentScenario();
+  const bodyKey = session.jordanLastDraft || 'draft';
+  const body = s.copilot.outboundBodies[bodyKey];
+  const tl = document.getElementById('timeline');
+  const icon = CH_ICON[channel];
+  const label = CH_LABEL[channel];
+  tl.insertAdjacentHTML('beforeend',
+    `<div class="msg-meta right">Joseph Ansanelli (You) ${label} — just now<span class="ch-icon">${icon}</span></div>
+     <div class="msg outbound"><div class="msg-av" style="background:#7BB86F">JA</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
+  scrollTimeline();
+  // Jordan replies one beat later (same channel)
+  setTimeout(() => {
+    tl.insertAdjacentHTML('beforeend',
+      `<div class="msg-meta"><span class="ch-icon">${icon}</span>Jordan Rivera ${label} — just now</div>
+       <div class="msg inbound"><div class="msg-av" style="background:#6B8E6F">JR</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
+    scrollTimeline();
+  }, 1500);
+}
+
+function sideEffectSendOutboundSMS() {
+  const s = currentScenario();
+  const body = s.copilot.outboundSMSBodyHtml || (s.copilot.outboundSMSBody || '').replace(/\n/g, '<br>');
+  const tl = document.getElementById('timeline');
+  const icon = CH_ICON.sms;
+  tl.insertAdjacentHTML('beforeend',
+    `<div class="msg-meta right">Joseph Ansanelli (You) sent an SMS — just now<span class="ch-icon">${icon}</span></div>
+     <div class="msg outbound"><div class="msg-av" style="background:#7BB86F">JA</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
+  scrollTimeline();
+}
+
+function renderProductList(items) {
+  const rows = items.map(p => `
+    <div class="prod-row">
+      <div class="prod-body">
+        <div class="prod-name"><a class="gladly-link" href="#" onclick="event.preventDefault();showToast('Opening ${p.name}…')">${p.name}</a> <span class="prod-price">${p.price}</span></div>
+        <div class="prod-reason">${p.reason}</div>
+      </div>
+    </div>`).join('');
+  return `<div class="prod-list">${rows}</div>`;
+}
+
+function sideEffectApproveRun() {
+  const cards = document.querySelectorAll('.action-card');
+  const lastCard = cards[cards.length - 1];
+  const card = session.jordanActionCard;
+  if (!lastCard || !card) return;
+
+  // Map step text → completion line. Generic fallback for user-added steps.
+  const completionMap = {
+    "Issue refund — $189.99 to his original payment method":            "Refund queued · $189.99 to his original payment method",
+    "Generate return label — UPS Ground, Austin":                        "Label generated · UPS 1Z999AA10123456784",
+    "Email label + tracking — jordan.rivera@gmail.com":                  "Email sent · jordan.rivera@gmail.com",
+    "Send SMS recap — (512) 555-0192":                                   "SMS recap sent · (512) 555-0192",
+    "Send SMS recap — (212) 555-0147":                                   "SMS recap sent · (212) 555-0147",
+    "Recommend recovery products — Ora Slide, Bondi 8, Clifton Socks":   "Recovery product set queued for follow-up",
+    "Schedule a follow-up — 2 weeks":                                    "Follow-up scheduled · 2 weeks out",
+    "Apply $25 thank-you credit":                                        "$25 credit applied",
+    "Note: no restock fee applies":                                      "Confirmed · no restock fee"
+  };
+  const completionLines = card.steps.map(s => completionMap[s] || `Step complete · ${s}`);
+  lastCard.outerHTML = renderActionCardComplete(card, completionLines);
+
+  // Timeline events
+  const tl = document.getElementById('timeline');
+  tl.insertAdjacentHTML('beforeend', `<div class="tl-activity"><strong>Joseph</strong> approved the return exception — just now</div>`);
+  completionLines.forEach(text => {
+    tl.insertAdjacentHTML('beforeend', `<div class="tl-activity">Gladly AI · ${text} — just now</div>`);
+  });
+  scrollTimeline();
+  document.getElementById('conv-status').textContent = 'Resolved';
+}
+
+function updateRecCard(revert) {
+  const inner = document.getElementById('rec-title-inner');
+  const line2 = document.getElementById('rec-line2');
+  const s = currentScenario();
+  if (s.id === 'jordan') {
+    if (inner) inner.textContent = `Full refund + prepaid return label + $${session.creditAmount} credit`;
+    if (line2) line2.textContent = `Prepaid UPS label emailed to Jordan · $${session.creditAmount} thank-you credit`;
+  } else if (s.id === 'rachel') {
+    if (inner) inner.textContent = `Cancel the order + $${session.creditAmount} thank-you credit`;
+    if (line2) line2.textContent = `$${session.creditAmount} loyalty credit on her account`;
+  }
+  const pill = document.getElementById('pill-modified');
+  if (revert) pill.classList.remove('on'); else pill.classList.add('on');
+  // Keep Rachel's inline plan card in sync with credit changes.
+  if (s.id === 'rachel') rerenderRachelPlan({ preserveExtraSteps: true });
+}
+
+// Re-renders Rachel's inline plan card from session state (current credit amount +
+// any user-added steps). The "template" = what approveCard() returns at default credit.
+// Anything on the current card that isn't in the template at any credit amount is
+// treated as a user-added extra and preserved.
+function rerenderRachelPlan(opts) {
+  opts = opts || {};
+  const s = currentScenario();
+  if (!s || s.id !== 'rachel') return;
+  const planEl = document.getElementById('rp-plan');
+  if (!planEl || !session.rachelActionCard) return;
+  if (session.decided) return;
+  const existingSteps = session.rachelActionCard.steps.slice();
+  const fresh = s.decisions.approveCard(session).actionCard;
+  if (opts.preserveExtraSteps) {
+    // Identify extras: steps that don't match the template pattern. The credit step
+    // is variable ("Apply $X VIP thank-you credit ..."), so match on pattern, not text.
+    const isTemplateStep = (step) =>
+      /Cancel order/i.test(step) ||
+      /Issue .* refund/i.test(step) ||
+      /thank-you credit/i.test(step);
+    existingSteps.forEach(step => {
+      if (!isTemplateStep(step) && !fresh.steps.includes(step)) fresh.steps.push(step);
+    });
+  }
+  session.rachelActionCard = fresh;
+  planEl.innerHTML = renderActionCard(fresh);
+}
+
+/* =========================================================================
+   COPILOT CHAT PRIMITIVES
+   ========================================================================= */
+
+function pushAgentMsg(text) {
+  const box = document.getElementById('chat-msgs');
+  const el = document.createElement('div');
+  el.className = 'cm agent';
+  el.innerHTML = `<div class="cb">${escapeHtml(text)}</div>`;
+  box.appendChild(el);
+  scrollRP();
+}
+function pushAIMsg(text, extraOrOpts) {
+  let opts = {};
+  if (typeof extraOrOpts === 'string') opts.extra = extraOrOpts;
+  else if (extraOrOpts) opts = extraOrOpts;
+
+  const box = document.getElementById('chat-msgs');
+  const el = document.createElement('div');
+  el.className = 'cm ai';
+  const cbClass = opts.draft ? 'cb draft' : 'cb';
+  const preface = opts.preface ? `<div class="cb-preface">${opts.preface}</div>` : '';
+  const body = text ? `<div class="${cbClass}">${text}</div>` : '';
+  const extra = opts.extra || '';
+  // Every streaming AI message gets an inline feedback row; drafts also get a primary Use button.
+  const actions = (opts.noActions) ? '' : renderMessageActions(!!opts.draft, opts.useAction || 'useDraft');
+  el.innerHTML = preface + body + extra + actions;
+  box.appendChild(el);
+  scrollRP();
+  return el;
+}
+
+function renderMessageActions(isDraft, useAction) {
+  const useLabel = 'Use';
+  const useBtn = isDraft
+    ? `<button class="cb-use" onclick="onUse(this, '${useAction || 'useDraft'}')">${useLabel}</button>`
+    : '';
+  return `<div class="cb-actions">
+    ${useBtn}
+    <button class="cb-icon regen" title="Regenerate" onclick="onRegen(this)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 8a5.5 5.5 0 11-1.6-3.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M13.5 2.5v2.5H11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+    <button class="cb-icon copy" title="Copy" onclick="onCopy(this)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="5" y="3" width="8" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="3" y="5" width="8" height="10" rx="1" stroke="currentColor" stroke-width="1.3" fill="#fff"/></svg></button>
+    <button class="cb-icon thumb up" title="Helpful" onclick="onThumb(this, 'up')"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 7v6h7l2-5V6h-4V3a1 1 0 00-2 0l-1 4H4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></button>
+    <button class="cb-icon thumb down" title="Not helpful" onclick="onThumb(this, 'down')"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 9V3h7l2 5v2h-4v3a1 1 0 01-2 0l-1-4H4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></button>
+  </div>`;
+}
+
+function onUse(btn, action) {
+  const actions = btn.closest('.cb-actions');
+  if (actions) actions.remove();
+  runScript(action || 'useDraft');
+}
+
+function onCopy(btn) {
+  const msg = btn.closest('.cm.ai');
+  const cb = msg && msg.querySelector('.cb');
+  if (!cb) return;
+  const text = cb.innerText.replace(/\s+$/, '');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).catch(() => {});
+  }
+  btn.classList.add('copied');
+  showToast('Copied to clipboard');
+  setTimeout(() => btn.classList.remove('copied'), 900);
+}
+
+function onThumb(btn, dir) {
+  const row = btn.closest('.cb-actions');
+  if (!row) return;
+  const other = row.querySelector(dir === 'up' ? '.thumb.down' : '.thumb.up');
+  if (btn.classList.contains('active')) {
+    btn.classList.remove('active');
+  } else {
+    btn.classList.add('active');
+    if (other) other.classList.remove('active');
+  }
+}
+
+function onRegen(btn) {
+  const msg = btn.closest('.cm.ai');
+  if (msg && msg.querySelector('.cb.draft')) {
+    showToast("Regenerating… (demo — single draft in v10)");
+    return;
+  }
+  showToast("That's my take — let me know if you want a different angle.");
+}
+
+function renderActionCard(card) {
+  const s = currentScenario();
+  const steps = card.steps.map((st, i) => renderStepRow(st, i)).join('');
+  // Context-aware step presets per scenario
+  const presets = (s.stepPresets || DEFAULT_STEP_PRESETS);
+  const menuItems = presets.map(p =>
+    `<div class="ac-step-menu-item" onclick="insertStep(${JSON.stringify(p.step).replace(/"/g,'&quot;')})">${p.label}</div>`
+  ).join('');
+  return `<div class="action-card" data-approve="${card.approveAction}">
+    <div class="ac-label">${card.label}</div>
+    <ol class="ac-steps">${steps}</ol>
+    <div class="ac-add-row" id="ac-add-row">
+      <button class="ac-add-btn" onclick="toggleStepMenu(event)">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Add a step
+      </button>
+      <div class="ac-step-menu" id="ac-step-menu">
+        ${menuItems}
+        <div class="ac-step-menu-item custom" onclick="insertStepCustom()">Custom step…</div>
+      </div>
+    </div>
+    <div class="ac-actions">
+      <button class="ac-primary" onclick="runDecision('${card.approveAction}')">Approve &amp; run</button>
+    </div>
+  </div>`;
+}
+
+const DEFAULT_STEP_PRESETS = [
+  { label: 'Schedule a follow-up', step: 'Schedule a follow-up — 2 weeks' },
+  { label: 'Apply thank-you credit', step: 'Apply $25 thank-you credit' }
+];
+
+function renderStepRow(text, i) {
+  return `<li class="ac-step" data-i="${i}">
+    <span class="ac-step-text">${text}</span>
+    <button class="ac-step-x" onclick="removeStep(this)" title="Remove step">
+      <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </li>`;
+}
+
+function toggleStepMenu(e) {
+  e.stopPropagation();
+  document.getElementById('ac-step-menu').classList.toggle('open');
+}
+
+function insertStep(text) {
+  const card = document.querySelector('.action-card');
+  if (!card) return;
+  const ol = card.querySelector('.ac-steps');
+  const i = ol.children.length;
+  ol.insertAdjacentHTML('beforeend', renderStepRow(text, i));
+  // Persist to the active scenario's action card so completion reflects it
+  const activeCard = session.rachelActionCard || session.jordanActionCard;
+  if (activeCard && !activeCard.steps.includes(text)) {
+    activeCard.steps.push(text);
+  }
+  document.getElementById('ac-step-menu').classList.remove('open');
+}
+
+function insertStepCustom() {
+  const text = prompt('Add a custom step:');
+  if (text && text.trim()) insertStep(text.trim());
+  document.getElementById('ac-step-menu').classList.remove('open');
+}
+
+function removeStep(btn) {
+  const li = btn.closest('.ac-step');
+  if (!li) return;
+  const i = parseInt(li.dataset.i, 10);
+  li.remove();
+  const activeCard = session.rachelActionCard || session.jordanActionCard;
+  if (activeCard) {
+    activeCard.steps.splice(i, 1);
+  }
+  // Reindex
+  document.querySelectorAll('.ac-step').forEach((el, idx) => el.dataset.i = idx);
+}
+
+// Close step menu on outside click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#ac-add-row')) {
+    const m = document.getElementById('ac-step-menu');
+    if (m) m.classList.remove('open');
+  }
+});
+
+function renderActionCardComplete(card, completionLines) {
+  const steps = card.steps.map(s => `<li>${s}</li>`).join('');
+  const done = completionLines.map(l => `<div><span class="check">✓</span>${l}</div>`).join('');
+  return `<div class="action-card">
+    <div class="ac-label">${card.label}</div>
+    <ol>${steps}</ol>
+    <div class="ac-done">${done}</div>
+  </div>`;
+}
+function pushTyping() {
+  const box = document.getElementById('chat-msgs');
+  const el = document.createElement('div');
+  el.className = 'cm ai';
+  el.id = 'tmp-typing';
+  el.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+  box.appendChild(el);
+  scrollRP();
+}
+function removeTyping() {
+  const t = document.getElementById('tmp-typing');
+  if (t) t.remove();
+}
+function scrollRP() {
+  const s = document.getElementById('rp-scroll');
+  s.scrollTop = s.scrollHeight;
+}
+function scrollTimeline() {
+  const t = document.querySelector('.conv-scroll');
+  t.scrollTop = t.scrollHeight;
+}
+
+/* Clicking an Assist chip in the timeline focuses the copilot (highlight last AI msg) */
+function focusCopilotOnLast() {
+  const rp = document.getElementById('rp-scroll');
+  rp.scrollTop = rp.scrollHeight;
+  const lastAI = [...document.querySelectorAll('#chat-msgs .cm.ai')].pop();
+  if (lastAI) {
+    lastAI.style.background = 'var(--purple-100)';
+    lastAI.style.borderRadius = '8px';
+    setTimeout(() => { lastAI.style.background = ''; lastAI.style.borderRadius = ''; }, 1200);
+  }
+}
+
+/* =========================================================================
+   FREE-TEXT INPUT
+   ========================================================================= */
+
+function sendMessage() {
+  const input = document.getElementById('rp-input');
+  const text = input.value.trim();
+  if (!text) return;
+  pushAgentMsg(text);
+  input.value = '';
+  autoGrow(input);
+  pushTyping();
+  setTimeout(() => {
+    removeTyping();
+    const lc = text.toLowerCase();
+    const s = currentScenario();
+
+    // Team Assist scripted flow (Jordan) — phrase → script key
+    if (s.copilot.script) {
+      if (/warm(er)?|friendl|kind|softer|softer tone/.test(lc))  return runScript('warmer');
+      if (/why|reason|explain|walk me|justify|what would you/.test(lc)) return runScript('recommend');
+      if (/option|paths?|choices/.test(lc))                      return runScript('options');
+      if (/conversation|what did he say|what happened/.test(lc)) return runScript('showConversation');
+      if (/sentiment|feeling|mood|how is he feel/.test(lc))      return runScript('sentiment');
+      if (/send.*sms|text.*him|send it.*sms/.test(lc))           return runScript('sendRecSMS');
+      if (/sms|text message/.test(lc))                           return runScript('draftRecSMS');
+      if (/suggest|product|recovery|for him/.test(lc))           return runScript('recoverProducts');
+      if (/^send|use this|use it|send it|send the draft/.test(lc)) return runScript('useDraft');
+      if (/draft|write|respond/.test(lc))                        return runScript('draft');
+      if (/skip|nevermind|no thanks/.test(lc))                   return runScript('skipRec');
+      pushAIMsg("Let me know — explain my reasoning or draft a response.");
+      return;
+    }
+
+    // HITL flow (Rachel) — natural-language decision inference.
+    // Plan card is already visible; "yes/approve" runs the plan directly.
+    if (/^yes\b|^yep\b|^yeah\b|^go\b|go ahead|do it|approve/.test(lc)) {
+      runDecision('approveConfirm'); return;
+    }
+    if (/^no\b|i'?ll take|let me take|hand off|handoff|take over/.test(lc)) {
+      runDecision('handoff'); return;
+    }
+    const m = lc.match(/\$?(\d+)/);
+    if (m && (lc.includes('credit') || lc.includes('$') || lc.includes('loyalty') || lc.includes('bump') || lc.includes('raise') || lc.includes('lower') || lc.includes('drop'))) {
+      const n = parseInt(m[1], 10);
+      if (n >= 0 && n <= 100) {
+        const action = n > session.creditAmount ? 'raise' : 'lower';
+        runDecision(action, n);
+        return;
+      }
+    }
+    if (lc.includes('policy') || lc.includes('why')) {
+      pushAIMsg("Short version: she fits our playbook — clean history, legitimate reason, within our discretion. The citations in the summary have the details.");
+      return;
+    }
+    pushAIMsg("I'd still go with the recommendation as-is. Let me know — yes, no, or adjust the credit.");
+  }, 800);
+}
+
+function autoGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* =========================================================================
+   CITATIONS, TOAST
+   ========================================================================= */
+
+function togglePop(e, n) {
+  e.stopPropagation();
+  const pop = document.getElementById('cite-pop-' + n);
+  const rect = e.target.getBoundingClientRect();
+  document.querySelectorAll('.cite-pop.open').forEach(p => { if (p !== pop) p.classList.remove('open'); });
+  pop.style.left = Math.min(rect.left, window.innerWidth - 300) + 'px';
+  pop.style.top = (rect.bottom + 6) + 'px';
+  pop.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.classList.contains('cite')) {
+    document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+  }
+});
+
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('on');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.remove('on'), 2400);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+  }
+});
+
+/* =========================================================================
+   SELECT CUSTOMER
+   ========================================================================= */
+
+function selectCustomer(id) {
+  const s = CUSTOMERS.find(c => c.id === id);
+  if (!s) return;
+  if (!s.wired) { showToast(`${s.listCard.name} — this is a demo, only Rachel and Jordan are wired`); return; }
+
+  currentId = id;
+  document.querySelectorAll('.cle-card').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+
+  // Panel-weighted layout when a Needs-input customer is selected (copilot is primary surface)
+  document.body.classList.toggle('panel-weighted', s.type === 'assist');
+
+  renderProfile(s);
+  renderConversation(s);
+  renderCopilot(s);
+  document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+}
+
+/* =========================================================================
+   DISPLAY SETTINGS — contrast + primary green (for LED demo stages)
+   ========================================================================= */
+
+const CONTRAST_LABELS = ['Standard', 'High', 'Max'];
+const CONTRAST_CLASSES = ['', 'contrast-high', 'contrast-max'];
+
+function toggleSettings(e) {
+  if (e) e.stopPropagation();
+  const pop = document.getElementById('settings-pop');
+  pop.classList.toggle('open');
+}
+
+function onContrastChange(v) {
+  const i = parseInt(v, 10);
+  document.getElementById('sp-contrast-val').textContent = CONTRAST_LABELS[i];
+  document.body.classList.remove('contrast-high', 'contrast-max');
+  if (CONTRAST_CLASSES[i]) document.body.classList.add(CONTRAST_CLASSES[i]);
+  persistSettings();
+}
+
+function onGreenSwatch(hex) {
+  applyGreen(hex);
+  document.getElementById('sp-hex').value = hex;
+  updateSwatchSelection(hex);
+  persistSettings();
+}
+
+function onHexInput(val) {
+  let v = (val || '').trim();
+  if (v && !v.startsWith('#')) v = '#' + v;
+  if (!/^#[0-9A-Fa-f]{6}$/.test(v)) return;
+  applyGreen(v);
+  updateSwatchSelection(v);
+  persistSettings();
+}
+
+function updateSwatchSelection(hex) {
+  const norm = hex.toUpperCase();
+  document.querySelectorAll('#sp-swatches .sp-sw').forEach(sw => {
+    sw.classList.toggle('on', sw.dataset.hex.toUpperCase() === norm);
+  });
+}
+
+function applyGreen(hex) {
+  const root = document.documentElement;
+  root.style.setProperty('--green-400', hex);
+  // Derive hover/dark variants by shifting lightness
+  root.style.setProperty('--green-300', shiftLightness(hex, 0.14));
+  root.style.setProperty('--green-500', shiftLightness(hex, -0.10));
+  root.style.setProperty('--green-100', shiftLightness(hex, 0.72));
+  root.style.setProperty('--green-50',  shiftLightness(hex, 0.82));
+}
+
+function shiftLightness(hex, amt) {
+  const m = hex.replace('#','').match(/.{2}/g);
+  if (!m) return hex;
+  let [r, g, b] = m.map(h => parseInt(h, 16) / 255);
+  // RGB → HSL
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  l = Math.max(0, Math.min(1, l + amt));
+  // HSL → RGB
+  const hue2rgb = (p, q, t) => {
+    if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+  let r2, g2, b2;
+  if (s === 0) { r2 = g2 = b2 = l; }
+  else {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r2 = hue2rgb(p, q, h + 1/3);
+    g2 = hue2rgb(p, q, h);
+    b2 = hue2rgb(p, q, h - 1/3);
+  }
+  const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+  return '#' + toHex(r2) + toHex(g2) + toHex(b2);
+}
+
+function resetDisplay() {
+  document.getElementById('sp-contrast').value = 0;
+  onContrastChange(0);
+  onGreenSwatch('#009B00');
+}
+
+function persistSettings() {
+  try {
+    localStorage.setItem('gladly-demo-settings', JSON.stringify({
+      contrast: parseInt(document.getElementById('sp-contrast').value, 10),
+      green: document.getElementById('sp-hex').value
+    }));
+  } catch (e) {}
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem('gladly-demo-settings');
+    if (!raw) return;
+    const cfg = JSON.parse(raw);
+    if (typeof cfg.contrast === 'number') {
+      document.getElementById('sp-contrast').value = cfg.contrast;
+      onContrastChange(cfg.contrast);
+    }
+    if (cfg.green && /^#[0-9A-Fa-f]{6}$/.test(cfg.green)) {
+      document.getElementById('sp-hex').value = cfg.green;
+      applyGreen(cfg.green);
+      updateSwatchSelection(cfg.green);
+    }
+  } catch (e) {}
+}
+
+// Close settings on outside click / Esc
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#settings-pop') && !e.target.closest('#settings-btn')) {
+    const pop = document.getElementById('settings-pop');
+    if (pop) pop.classList.remove('open');
+  }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const pop = document.getElementById('settings-pop');
+    if (pop) pop.classList.remove('open');
+  }
+});
+
+loadSettings();
+
+/* =========================================================================
+   BOOT
+   ========================================================================= */
+
+renderCustomerList();
+selectCustomer('jordan');
+
+// Ellipsis menu in copilot footer
+function toggleRpMenu(e) {
+  e.stopPropagation();
+  document.getElementById('rp-more-menu').classList.toggle('open');
+}
+function clearSession() {
+  document.getElementById('rp-more-menu').classList.remove('open');
+  document.getElementById('chat-msgs').innerHTML = '';
+  document.getElementById('rp-input').value = '';
+  showToast('Session cleared');
+}
+document.addEventListener('click', () => {
+  const m = document.getElementById('rp-more-menu');
+  if (m) m.classList.remove('open');
+});
+
+// Panel drag-to-resize
+(function() {
+  const panel = document.getElementById('col-right');
+  const handle = document.getElementById('col-right-drag');
+  const MIN = 280, MAX = 720;
+  let dragging = false, startX, startW;
+
+  handle.addEventListener('mousedown', e => {
+    dragging = true;
+    startX = e.clientX;
+    startW = panel.offsetWidth;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const delta = startX - e.clientX;
+    const newW = Math.min(MAX, Math.max(MIN, startW + delta));
+    panel.style.width = newW + 'px';
+    panel.style.minWidth = newW + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+})();
+</script>
+</body>
+</html>
