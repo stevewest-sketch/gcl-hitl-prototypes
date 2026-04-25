@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1440, initial-scale=1">
 <title>Gladly Team — HITL + Team Assist Prototype v9</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
 <!--
   v9 — Hoka stories, two flows (per GCL_Live_Service_Demo_-_v9.docx)
   v8 foundation preserved. v9 changes:
@@ -21,13 +24,15 @@
       approve? → draft → warmer → use draft → process return → approve & run).
 -->
 <style>
+  /* Tokens mirror Gladly's product design system (apps/glados/app/defaultTheme.ts).
+     See product-designer-SKILL.md for the canonical palette. */
   :root {
     --green-400: #009B00;
     --green-500: #0c7c0c;
     --green-300: #64b964;
     --green-100: #D8F4D8;
     --green-50:  #EAF7EA;
-    --navy:      #0F203C;
+    --navy:      #1E293B;
     --red-400:   #D50E0E;
     --red-50:    #FFF0F2;
     --black:     #111111;
@@ -35,19 +40,19 @@
     --gray-50:   #FAFAFA;
     --gray-100:  #F6F6F6;
     --gray-200:  #F1F1F1;
-    --gray-300:  #CECECE;
+    --gray-300:  #E3E3E3;
     --gray-400:  #CECECE;
-    --gray-500:  #919191;
+    --gray-500:  #B3B3B3;
     --gray-600:  #919191;
     --gray-700:  #767676;
     --gray-800:  #484848;
-    --gray-900:  #242424;
+    --gray-900:  #1A1A1A;
     --purple-assist: #8C69F0;
     --purple-100:    #e6dcff;
 
     --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
 
-    --ff: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    --ff: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --copy:       400 13px/1.62 var(--ff);
     --copy-bold:  700 13px/1.62 var(--ff);
     --copy-sm:    400 12px/1.3 var(--ff);
