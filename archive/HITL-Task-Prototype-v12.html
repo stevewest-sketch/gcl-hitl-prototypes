@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=1440, initial-scale=1">
 <title>Gladly Team — HITL + Team Assist Prototype v9</title>
 <!--
-  v9 — Retalé Outdoors stories, two flows (per GCL_Live_Service_Demo_-_v9.docx)
+  v9 — Hoka stories, two flows (per GCL_Live_Service_Demo_-_v9.docx)
   v8 foundation preserved. v9 changes:
    1. Two distinct scenarios on the same UI:
       - Jordan Rivera  → Team Assist demo (agent-driven, AI helps via chips + draft + actions)
       - Rachel Thompson → HITL demo      (AI-driven ask, human approves/modifies)
-   2. Both customers are Retalé Outdoors shoppers. No credit-card references anywhere — payments say
+   2. Both customers are Hoka buyers. No credit-card references anywhere — payments say
       "original payment method."
    3. Default opens on Jordan (Team Assist demo); Rachel is selected by clicking her card.
    4. Team Assist panel now extends full height of the stage; the bottom bar only covers
@@ -76,6 +76,10 @@
   }
   button{font-family: var(--ff); cursor: pointer; background: none; border: none; color: inherit}
   a{color: var(--green-400); text-decoration: none}
+  a:hover{text-decoration: underline}
+  /* Gladly-branded hyperlink — green, no underline even on hover */
+  .gladly-link{ color: var(--green-400); text-decoration: none; font-weight: 600 }
+  .gladly-link:hover{ text-decoration: none; color: var(--green-500) }
 
   /* NAV */
   .nav{
@@ -88,20 +92,21 @@
   .icon-btn{width: 32px; height: 32px; display:inline-flex; align-items:center; justify-content:center; border-radius: var(--radius-round); color: var(--black)}
   .icon-btn:hover{background: var(--gray-100)}
   .home-link{display:flex; align-items:center; gap: var(--sp-2); font: var(--button); color: var(--black)}
-  .nav-c{position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap: 8px; font: 700 22px/1 var(--ff)}
-  .nav-c .plus-circle{width: 32px; height: 32px; border-radius: 50%; background: var(--green-400); display:inline-flex; align-items:center; justify-content:center; color: #fff; font: 700 20px/1 var(--ff); flex-shrink: 0}
-  .nav-c .word{color: var(--black); letter-spacing: -.3px}
-  .nav-r{display:flex; align-items:center; gap: var(--sp-1); margin-left:auto}
+  .nav-c{position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; pointer-events: none}
+  .gladly-logo{display:inline-flex; align-items:center; gap: 8px; font: 700 22px/1 var(--ff); color: var(--black); letter-spacing: -.3px}
+  .gladly-word{line-height: 1}
+  .nav-r{display:flex; align-items:center; gap: 6px; margin-left:auto}
   .tog-wrap{position: relative; display:inline-flex}
-  .tog{width: 36px; height: 36px; border: 1px solid var(--gray-800); border-radius: var(--radius-round); display:inline-flex; align-items:center; justify-content:center; background: none; color: var(--gray-800)}
-  .tog:hover{background: var(--gray-100)}
-  .tog.active{color: var(--white); background-color: var(--green-400); border-color: var(--white);}
-  .tog-badge{position:absolute; top: -5px; right: -8px; background: var(--green-400); color: #fff; font: 700 9px/16px var(--ff); padding: 0 5px; border-radius: var(--radius-round); min-width: 16px; height: 16px; text-align:center; white-space: nowrap; pointer-events: none}
-  .nav-next{background: var(--gray-300); color: var(--gray-500); font: var(--button); padding: 8px 16px; border-radius: var(--radius-pill); margin-left: var(--sp-2)}
-  .nav-divider{width:1px; height: 32px; background: var(--gray-300); margin: 0 var(--sp-2)}
+  .tog{width: 32px; height: 32px; border: 1px solid var(--gray-300); border-radius: var(--radius-round); display:inline-flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer}
+  .tog:hover{background: var(--gray-100); color: var(--black); border-color: var(--gray-500)}
+  .tog.active{color: var(--white); background-color: var(--green-400); border-color: var(--green-400);}
+  .tog-badge{display: none}
+  .nav-next{background: var(--gray-200); color: var(--gray-600); font: var(--button); padding: 6px 18px; border-radius: var(--radius-pill); margin-left: var(--sp-2); border: none; cursor: pointer}
+  .nav-next:hover{background: var(--gray-300); color: var(--black)}
+  .nav-divider{width:1px; height: 24px; background: var(--gray-300); margin: 0 var(--sp-2)}
   .bell{position: relative}
-  .bell .badge{position:absolute; top: -4px; right: -4px; background: var(--red-400); color: #fff; font: 700 9px/1 var(--ff); padding: 2px 5px; border-radius: var(--radius-round); min-width: 16px; text-align:center}
-  .nav-av{width:32px; height:32px; border-radius: var(--radius-round); box-shadow: var(--shadow-sm); overflow:hidden; display:flex; align-items:center; justify-content:center; background: #7BB86F; color: #fff; font: 700 11px/1 var(--ff)}
+  .bell .badge{display: none}
+  .nav-av{width:32px; height:32px; border-radius: var(--radius-round); overflow:hidden; display:flex; align-items:center; justify-content:center; background: var(--gray-300); color: var(--gray-700); font: 600 11px/1 var(--ff); letter-spacing: .5px}
 
   /* STAGE — flex row, Team Assist panel spans full stage height. Bottom bar narrows. */
   .stage{
@@ -255,17 +260,20 @@
   .msg-dots{display: none}
 
   /* BOTTOM BAR */
-  .bottom-bar{height: 48px; flex-shrink: 0; background: var(--white); border-top: 1px solid var(--gray-200); display:flex; align-items: center; padding: 0 var(--sp-4); gap: var(--sp-3); position: relative}
-  .bb-assigned{display:flex; align-items:center; gap: var(--sp-3); padding-right: var(--sp-4); border-right: 1px solid var(--gray-200); min-width: 260px}
-  .bb-inbox{width: 24px; height: 24px; border-radius: var(--radius-round); background: var(--gray-200); display:flex; align-items:center; justify-content:center; color: var(--gray-700)}
-  .bb-assigned .at{font: var(--copy-sm); color: var(--black)}
-  .bb-assigned .at strong{color: var(--green-400); font-weight: 500; display:block}
+  .bottom-bar{flex-shrink: 0; background: var(--white); border-top: 1px solid var(--gray-200); display:flex; align-items: center; padding: 17px var(--sp-4); gap: var(--sp-3); position: relative}
+  .bb-assigned{display:flex; align-items:center; gap: var(--sp-2); padding-right: var(--sp-4); border-right: 1px solid var(--gray-200); min-width: 220px}
+  .bb-av{width: 28px; height: 28px; border-radius: var(--radius-round); display:flex; align-items:center; justify-content:center; font: 600 10px/1 var(--ff); color: #fff; flex-shrink: 0}
+  .bb-assigned .at{line-height: 1.3}
+  .bb-assigned .at .at-name{display:block; font: 400 12px/1.2 var(--ff); color: var(--black)}
+  .bb-assigned .at strong{display:block; font: 400 11px/1.2 var(--ff); color: var(--gray-700); font-weight: 400}
   .bb-fab{width: 32px; height: 32px; border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 700 18px/1 var(--ff)}
-  .bb-input{flex: 1; height: 32px; border: 1px solid var(--gray-400); border-radius: var(--radius-sm); padding: 0 var(--sp-3); font: var(--copy-sm); background: var(--white); color: var(--black)}
+  .bb-input{flex: 1; height: 32px; border: 1px solid var(--gray-300); border-radius: 6px; padding: 0 12px; font: 400 12px/1 var(--ff); background: var(--white); color: var(--black); box-shadow: inset 0 1px 2px rgba(0,0,0,.02)}
   .bb-input:focus{outline: none; border-color: var(--green-400)}
+
+  .bb-input::placeholder{color: var(--gray-700)}
   .bb-topic{display:flex; align-items:center; gap: var(--sp-2); padding: 0 var(--sp-3); color: var(--black); font: var(--copy-sm); cursor: pointer}
   .bb-topic .tval{color: var(--green-400)}
-  .bb-split{display:flex; background: var(--green-400); border-radius: var(--radius-pill); overflow: hidden; height: 32px}
+  .bb-split{display:flex; background: var(--green-400); border-radius: 16px; overflow: hidden; height: 32px}
   .bb-split .bbs-main{padding: 0 var(--sp-4); color: #fff; font: 500 12px/1 var(--ff); display:flex; align-items:center; cursor:pointer}
   .bb-split .bbs-main:hover{background: var(--green-300)}
   .bb-split .bbs-caret{padding: 0 var(--sp-2); border-left: 1px solid rgba(255,255,255,.25); display:flex; align-items:center; color: #fff; cursor: pointer}
@@ -291,51 +299,46 @@
   .ai-open .ao-text strong{font-weight: 700}
   .ai-open .ao-ask{font: var(--copy-bold); color: var(--black); margin-top: var(--sp-1)}
 
-  /* Facts as prose bullets, not a 2-col attribute table */
-  .facts-prose{
-    padding: 12px 14px;
-    background: var(--gray-50);
-    border-radius: var(--radius-md);
-  }
+  /* Option 1: white card with gray-300 outline, green-dot uppercase eyebrow.
+     Replaces the old gray-filled facts-prose. Section rows separated by a
+     hairline top-border instead of a shared gray fill. */
   .facts-prose .fp-label{
-    font: 700 11px/1 var(--ff);
-    color: var(--gray-700);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
+    font: 700 13px/1.4 var(--ff);
+    color: var(--black);
     margin-bottom: 8px;
   }
-  .facts-prose ul{ list-style: none; padding: 0; margin: 0; }
+  .facts-prose ul{ list-style: disc; padding-left: 16px; margin: 0; }
   .facts-prose li{
-    padding: 2px 0 2px 18px;
-    position: relative;
-    line-height: 1.62;
+    padding: 3px 0;
+    line-height: 1.55;
     color: var(--black);
-  }
-  .facts-prose li::before{
-    content: "•";
-    color: var(--green-400);
-    position: absolute;
-    left: 6px;
-    top: 4px;
-    font-weight: 700;
+    font: 400 13px/1.55 var(--ff);
   }
 
-  /* Toned-down "what I'd do" block — no border, no icon, no heart.
-     Just a thin green left-rule with a small uppercase label and two lines. */
+  /* "Recommendation" — same white/gray-outline card language as Context, so the
+     two outputs read as a paired set, not two different visual systems. */
   .rec-lite{
-    padding: 6px 0 6px 14px;
-    border-left: 3px solid var(--green-400);
-    margin: 4px 0;
+    padding: 12px 14px;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 10px;
+    margin: 0;
   }
   .rec-lite .rl-label{
-    font: 700 10px/1 var(--ff);
-    color: var(--green-400);
+    font: 600 10px/1 var(--ff);
+    color: var(--gray-700);
     text-transform: uppercase;
-    letter-spacing: 0.6px;
-    margin-bottom: 6px;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+  }
+  .rec-lite .rl-label::before{
+    content: "";
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--green-400);
+    flex-shrink: 0;
   }
   .rec-lite .rl-label .pill-modified{
     display: none;
@@ -346,32 +349,12 @@
     border-radius: 10px;
     letter-spacing: 0.3px;
     text-transform: uppercase;
+    margin-left: auto;
   }
   .rec-lite .rl-label .pill-modified.on{ display: inline-flex; }
-  .rec-lite .rl-title{ font: var(--copy-bold); color: var(--black); margin-bottom: 2px; }
+  .rec-lite .rl-title{ font: var(--copy-bold); color: var(--black); margin-bottom: 4px; }
   .rec-lite .rl-line{ font: var(--copy); color: var(--black); line-height: 1.62; }
 
-  /* Draft card — for Team Assist's "here's a response draft" messages (Jordan flow) */
-  .draft-card{
-    border: 1px dashed var(--gray-400);
-    border-radius: var(--radius-md);
-    padding: 12px 14px;
-    margin-top: 8px;
-    background: var(--white);
-  }
-  .draft-card .dc-label{
-    font: 700 10px/1 var(--ff);
-    color: var(--gray-700);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-  }
-  .draft-card .dc-body{
-    font: var(--copy);
-    color: var(--black);
-    line-height: 1.62;
-    white-space: pre-wrap;
-  }
 
   /* Action card — for Team Assist's "here's the plan, approve & run" messages */
   .action-card{
@@ -431,6 +414,93 @@
   }
   .action-card .ac-done .check{ color: var(--green-400); margin-right: 6px; font-weight: 700; }
 
+  /* Editable step rows — each step has a remove button that reveals on hover */
+  .action-card ol.ac-steps{
+    padding-left: 0;
+    margin: 0 0 10px 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  .action-card ol.ac-steps .ac-step{
+    counter-increment: step;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0 4px 0;
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.62;
+    position: relative;
+  }
+  .action-card ol.ac-steps .ac-step::before{
+    content: counter(step) ".";
+    font-weight: 600;
+    color: var(--gray-700);
+    min-width: 16px;
+    flex-shrink: 0;
+  }
+  .action-card ol.ac-steps .ac-step-text{ flex: 1 }
+  .action-card ol.ac-steps .ac-step-x{
+    width: 20px; height: 20px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    color: var(--gray-500);
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, background .15s, color .15s;
+    flex-shrink: 0;
+  }
+  .action-card ol.ac-steps .ac-step:hover .ac-step-x{ opacity: 1 }
+  .action-card ol.ac-steps .ac-step-x:hover{ background: var(--gray-100); color: var(--red-400) }
+
+  /* Add-a-step row — inline affordance with a popover menu */
+  .ac-add-row{
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .ac-add-btn{
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px;
+    border: 1px dashed var(--gray-400);
+    border-radius: 14px;
+    font: 500 11px/1 var(--ff);
+    color: var(--gray-700);
+    background: none;
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+  }
+  .ac-add-btn:hover{ border-color: var(--green-400); color: var(--green-400); border-style: solid }
+  .ac-step-menu{
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 0;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 14px rgba(0,0,0,.12);
+    min-width: 240px;
+    padding: 4px 0;
+    z-index: 40;
+    display: none;
+  }
+  .ac-step-menu.open{ display: block }
+  .ac-step-menu-item{
+    padding: 8px 14px;
+    font: var(--copy);
+    color: var(--black);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .ac-step-menu-item:hover{ background: var(--gray-100); color: var(--green-400) }
+  .ac-step-menu-item.custom{
+    border-top: 1px solid var(--gray-200);
+    color: var(--gray-700);
+    font-style: italic;
+    margin-top: 4px;
+  }
+
   /* Product list — Team Assist's injury-recovery recommendations for Jordan */
   .prod-list{
     display: flex; flex-direction: column; gap: 6px;
@@ -476,8 +546,10 @@
   .cm .cb{max-width: 420px; padding: var(--sp-3) var(--sp-4); border-radius: 16px; font: var(--copy); color: var(--black)}
   .cm.agent .cb{background: var(--gray-100)}
   .cm.ai{ flex-direction: column; align-items: stretch; }
-  .cm.ai .cb{background: transparent; padding-left: 0; padding-right: 0}
-  .cm.ai .cb.draft{ white-space: pre-wrap; }
+  .cm.ai .cb{ background: transparent; padding-left: 0; padding-right: 0; border-radius: 0; }
+  .cm.ai .cb.draft{ background: var(--white); border: 1px solid var(--gray-300); border-radius: 10px; padding: 12px 14px; }
+  .cm.ai .cb.draft .dc-label{ font: 700 10px/1 var(--ff); color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .cm.ai .cb.draft .dc-body{ font: var(--copy); color: var(--black); line-height: 1.62; white-space: pre-wrap; }
 
   /* Inline feedback row under every streaming AI message. Drafts also get a primary Use button. */
   .cm.ai .cb-actions{
@@ -512,8 +584,10 @@
   .typing span:nth-child(3){animation-delay: .4s; background: var(--gray-300)}
   @keyframes blink{0%,60%,100%{opacity: .3}30%{opacity: 1}}
 
-  /* Suggestion chips row above the input */
-  .rp-sugs{display:flex; flex-wrap: wrap; gap: var(--sp-2); padding: var(--sp-2) var(--sp-4); border-top: 1px solid var(--gray-200); background: var(--white)}
+  /* V1 chip tray — soft gray strip directly above the 48px TA bar.
+     Chips live in the tray, not in the bar — keeps the bar pure input
+     and lets it match the composer's 48px height exactly. */
+  .rp-sugs{display:flex; flex-wrap: wrap; gap: 6px; padding: 10px var(--sp-4); background: var(--white); border-top: 1px solid var(--gray-200)}
   .chip{
     white-space: nowrap;
     padding: 7px 14px;
@@ -533,9 +607,11 @@
   .chip.primary:hover{background: var(--green-300); border-color: var(--green-300)}
   .chip.secondary{border-color: var(--gray-400)}
 
-  .rp-foot{padding: var(--sp-4); background: var(--white); display:flex; align-items: center; gap: var(--sp-2)}
-  .rp-input-wrap{flex: 1; display:flex; align-items: center; border: 1px solid var(--gray-500); border-radius: 24px; box-shadow: var(--shadow-sm); padding: 4px 4px 4px 16px; background: var(--white)}
-  .rp-input{flex:1; border: none; outline: none; background: transparent; font: var(--copy); color: var(--black); padding: 6px 0; resize: none; min-height: 24px; max-height: 120px; font-family: var(--ff)}
+  /* 48px TA bar — matches composer bottom-bar height exactly. Input pill
+     mirrors .bb-input: 32px tall, 6px radius, gray-300 border, inset shadow. */
+  .rp-foot{padding: 17px var(--sp-4); background: var(--white); border-top: 1px solid var(--gray-200); display:flex; align-items: center; gap: var(--sp-2); flex-shrink: 0}
+  .rp-input-wrap{flex: 1; display:flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,.02); padding: 0 4px 0 12px; height: 32px; background: var(--white)}
+  .rp-input{flex:1; border: none; outline: none; background: transparent; font: 400 12px/1 var(--ff); color: var(--black); padding: 0;}
   .rp-input::placeholder{color: var(--gray-700)}
   .rp-send{width: 32px; height: 32px; display:flex; align-items:center; justify-content:center; color: var(--gray-700); border-radius: var(--radius-round)}
   .rp-send:hover{color: var(--green-400)}
@@ -564,6 +640,78 @@
   .toast{position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); background: var(--black); color: #fff; padding: 10px 18px; border-radius: var(--radius-pill); font: var(--copy-sm); box-shadow: 0 4px 14px rgba(0,0,0,.2); opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 300}
   .toast.on{opacity: 1}
 
+  /* Settings popover — LED stage display tuning (contrast + green hex) */
+  .settings-pop{
+    position: fixed; top: 64px; right: 16px;
+    width: 320px;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 32px rgba(0,0,0,.14);
+    padding: var(--sp-4);
+    z-index: 400;
+    display: none;
+  }
+  .settings-pop.open{display: block}
+  .settings-pop .sp-title{font: 700 14px/1 var(--ff); color: var(--black); margin-bottom: 4px}
+  .settings-pop .sp-sub{font: var(--copy-sm); color: var(--gray-700); margin-bottom: var(--sp-4); line-height: 1.5}
+  .settings-pop .sp-row{margin-bottom: var(--sp-4)}
+  .settings-pop .sp-row:last-child{margin-bottom: 0}
+  .settings-pop .sp-label{display:flex; justify-content: space-between; align-items: baseline; font: var(--copy-bold); color: var(--black); margin-bottom: 8px}
+  .settings-pop .sp-label .sp-val{font: 400 12px/1 var(--ff); color: var(--gray-700)}
+  .settings-pop input[type="range"]{width: 100%; accent-color: var(--green-400)}
+  .settings-pop .sp-swatches{display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px}
+  .settings-pop .sp-sw{
+    width: 32px; height: 32px; border-radius: 50%;
+    cursor: pointer; border: 2px solid var(--white);
+    box-shadow: 0 0 0 1px var(--gray-300);
+    transition: box-shadow .15s;
+  }
+  .settings-pop .sp-sw.on{box-shadow: 0 0 0 2px var(--black)}
+  .settings-pop .sp-hex{display:flex; align-items:center; gap: 8px; margin-top: 10px}
+  .settings-pop .sp-hex-input{
+    flex: 1;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font: 500 13px/1.2 'SF Mono', Monaco, Consolas, monospace;
+    color: var(--black);
+    text-transform: uppercase;
+  }
+  .settings-pop .sp-hex-input:focus{outline: none; border-color: var(--green-400)}
+  .settings-pop .sp-reset{
+    font: var(--copy-sm); color: var(--green-400); cursor: pointer;
+    background: none; border: none; padding: 4px 0;
+  }
+  .settings-pop .sp-reset:hover{text-decoration: underline}
+  .settings-pop .sp-foot{
+    margin-top: var(--sp-4); padding-top: var(--sp-3);
+    border-top: 1px solid var(--gray-200);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .settings-pop .sp-hint{
+    font: 11px/1.4 var(--ff); color: var(--gray-700);
+    background: var(--gray-50); padding: 8px 10px; border-radius: var(--radius-sm);
+    margin-top: var(--sp-2);
+  }
+
+  /* Contrast boost class — bumps key grays darker for cheap LED displays */
+  body.contrast-high{
+    --gray-300: #B3B3B3;
+    --gray-400: #919191;
+    --gray-500: #767676;
+    --gray-600: #484848;
+    --gray-700: #484848;
+  }
+  body.contrast-max{
+    --gray-200: #E3E3E3;
+    --gray-300: #919191;
+    --gray-400: #767676;
+    --gray-500: #484848;
+    --gray-600: #242424;
+    --gray-700: #242424;
+  }
+
   .conv-scroll::-webkit-scrollbar, .rp-scroll::-webkit-scrollbar, .col-profile::-webkit-scrollbar, .cl-list::-webkit-scrollbar{width: 8px}
   .conv-scroll::-webkit-scrollbar-thumb, .rp-scroll::-webkit-scrollbar-thumb, .col-profile::-webkit-scrollbar-thumb, .cl-list::-webkit-scrollbar-thumb{background: transparent; border-radius: 4px; transition: background .15s}
   .conv-scroll:hover::-webkit-scrollbar-thumb, .rp-scroll:hover::-webkit-scrollbar-thumb, .col-profile:hover::-webkit-scrollbar-thumb, .cl-list:hover::-webkit-scrollbar-thumb{background: var(--gray-300)}
@@ -577,15 +725,20 @@
     <button class="icon-btn" title="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
     <a class="home-link" href="#"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M6 2L3 5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Home</a>
   </div>
-  <div class="nav-c"><img src="data:image/png;base64,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" alt="Gladly" style="height:48px; width:auto;"></div>
+  <div class="nav-c" aria-label="Gladly">
+    <span class="gladly-logo" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="13" fill="#009B00"/><path d="M13 6.5v13M6.5 13h13" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <span class="gladly-word">Gladly</span>
+    </span>
+  </div>
   <div class="nav-r">
-    <div class="tog-wrap"><button class="tog" title="Email"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button><span class="tog-badge">12</span></div>
-    <div class="tog-wrap"><button class="tog" title="Voice"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M3 3a2 2 0 012-2h1l2 3-1.5 1.5a8 8 0 003 3L10 7l3 2v1a2 2 0 01-2 2A10 10 0 013 3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button><span class="tog-badge">3</span></div>
-    <div class="tog-wrap"><button class="tog active" title="Chat"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button><span class="tog-badge">640+</span></div>
+    <div class="tog-wrap"><button class="tog" title="Email"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button></div>
+    <div class="tog-wrap"><button class="tog" title="Voice"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3a2 2 0 012-2h1l2 3-1.5 1.5a8 8 0 003 3L10 7l3 2v1a2 2 0 01-2 2A10 10 0 013 3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button></div>
+    <div class="tog-wrap"><button class="tog active" title="Chat"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button></div>
     <button class="nav-next">Next</button>
     <div class="nav-divider"></div>
-    <button class="icon-btn" title="Search"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-    <button class="icon-btn bell" title="Notifications"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 014 4c0 3 1 4 1 6H3c0-2 1-3 1-6a4 4 0 014-4zM6.5 13a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg><span class="badge">7</span></button>
+    <button class="icon-btn" title="Search"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <button class="icon-btn" id="settings-btn" title="Display settings" onclick="toggleSettings(event)"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
     <div class="nav-av">JA</div>
   </div>
 </nav>
@@ -630,11 +783,11 @@
   <!-- BOTTOM BAR (narrow, flush against panel left edge) -->
   <div class="bottom-bar">
     <div class="bb-assigned">
-      <div class="bb-inbox"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 10v3a1 1 0 001 1h10a1 1 0 001-1v-3m-4 0h-4a1 1 0 00-1 1v1h6v-1a1 1 0 00-1-1zM2 10l2-7h8l2 7" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></div>
-      <div class="at">Assigned to<strong>VIP Response Team — Joseph Ansanelli</strong></div>
+      <div class="bb-av" style="background:#7BB86F">JA</div>
+      <div class="at"><span class="at-name">Joseph Ansanelli (You)</span><strong>VIP Response Team</strong></div>
     </div>
     <button class="bb-fab"><span>+</span></button>
-    <input class="bb-input" placeholder="">
+    <input class="bb-input" placeholder="Reply to Jordan…">
     <div class="bb-topic">
       <div>Topic<div class="tval" id="bb-topic-val">Return request</div></div>
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -668,15 +821,16 @@
           <div class="ai-open" id="ai-open">
             <div class="ao-text" id="ao-text"></div>
             <div class="facts-prose" id="rp-facts">
-              <div class="fp-label">What I know</div>
+              <div class="fp-label">Context</div>
               <ul id="rp-facts-list"></ul>
             </div>
             <div class="rec-lite" id="rec-card">
-              <div class="rl-label">What I'd do<span class="pill-modified" id="pill-modified">Updated</span></div>
+              <div class="rl-label">Recommendation<span class="pill-modified" id="pill-modified">Updated</span></div>
               <div class="rl-title"><span id="rec-title-text"></span></div>
               <div class="rl-line" id="rec-line1"></div>
               <div class="rl-line" id="rec-line2"></div>
             </div>
+            <div id="rp-plan" style="display:none"></div>
             <div class="ao-ask" id="ao-ask"></div>
           </div>
 
@@ -687,7 +841,7 @@
 
         <div class="rp-foot">
           <div class="rp-input-wrap">
-            <textarea class="rp-input" id="rp-input" rows="1" placeholder="Chat with Gladly AI" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
+            <input type="text" class="rp-input" id="rp-input" placeholder="Chat with Gladly AI" onkeydown="handleKey(event)">
             <button class="rp-send" onclick="sendMessage()" title="Send">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-5 13-2-5-5-2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg>
             </button>
@@ -716,6 +870,33 @@
 <div class="cite-pop" id="cite-pop-3"><div class="ct-title" id="pop3-title"></div><div id="pop3-body"></div><div style="margin-top:6px"><a class="ct-link" href="#">Open in Knowledge Base →</a></div></div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Display settings popover — tunes contrast & primary green for LED stage displays -->
+<div class="settings-pop" id="settings-pop" onclick="event.stopPropagation()">
+  <div class="sp-title">Display settings</div>
+  <div class="sp-sub">Tuned for demo stages. These settings boost contrast and adjust the primary green so it reads on cheap LED panels.</div>
+
+  <div class="sp-row">
+    <div class="sp-label">Contrast <span class="sp-val" id="sp-contrast-val">Standard</span></div>
+    <input type="range" id="sp-contrast" min="0" max="2" step="1" value="0" oninput="onContrastChange(this.value)">
+  </div>
+
+  <div class="sp-row">
+    <div class="sp-label">Primary green</div>
+    <div class="sp-swatches" id="sp-swatches">
+      <div class="sp-sw on" data-hex="#009B00" style="background:#009B00" onclick="onGreenSwatch('#009B00')" title="Default · #009B00"></div>
+      <div class="sp-sw" data-hex="#00B800" style="background:#00B800" onclick="onGreenSwatch('#00B800')" title="Brighter · #00B800"></div>
+      <div class="sp-sw" data-hex="#008800" style="background:#008800" onclick="onGreenSwatch('#008800')" title="Deeper · #008800"></div>
+      <div class="sp-sw" data-hex="#0D7A0D" style="background:#0D7A0D" onclick="onGreenSwatch('#0D7A0D')" title="Muted · #0D7A0D"></div>
+      <div class="sp-sw" data-hex="#1FA91F" style="background:#1FA91F" onclick="onGreenSwatch('#1FA91F')" title="Vivid · #1FA91F"></div>
+    </div>
+    <div class="sp-hex">
+      <input type="text" class="sp-hex-input" id="sp-hex" value="#009B00" maxlength="7" oninput="onHexInput(this.value)">
+      <button class="sp-reset" onclick="resetDisplay()">Reset</button>
+    </div>
+    <div class="sp-hint">Tip: on LED stages, a slightly deeper green (#008800) holds better against white backgrounds.</div>
+  </div>
+</div>
 
 <script>
 /* =========================================================================
@@ -751,13 +932,13 @@ const JORDAN = {
       { l: 'Loyalty tier',      v: 'Trailblazer' },
       { l: 'Favorite category', v: 'Marathon running' },
       { l: 'Sizing',            v: "Men's 10.5" },
-      { l: 'Brand preference',  v: 'Hoka · Brooks · On Running' }
+      { l: 'Brand preference',  v: 'Hoka Clifton · Bondi · Mach' }
     ],
     ordersLabel: '7 orders',
     orders: [
       { id: 'GCL-55892', title: 'Hoka Clifton 9 · Black/White · Size 10.5', status: 'Delivered', total: '$189.99', date: '02/14/2026', icon: 'shoe' },
-      { id: 'GCL-48201', title: 'Brooks Ghost 16 · Anthracite · Size 10.5',    status: 'Delivered', total: '$139.99', date: '09/20/2025', icon: 'shoe' },
-      { id: 'GCL-39877', title: 'On Cloud 5 · White/Black · Size 10.5',        status: 'Delivered', total: '$139.99', date: '04/27/2025', icon: 'shoe' }
+      { id: 'GCL-48201', title: 'Hoka Bondi 7 · Black · Size 10.5',          status: 'Delivered', total: '$159.99', date: '09/20/2025', icon: 'shoe' },
+      { id: 'GCL-39877', title: 'Hoka Mach 5 · White/Blue · Size 10.5',       status: 'Delivered', total: '$144.99', date: '04/27/2025', icon: 'shoe' }
     ],
     conversations: [
       { when: 'Today',   text: 'Return request (Clifton 9)' },
@@ -795,11 +976,25 @@ const JORDAN = {
     { kind: 'aisummary' }
   ],
   copilot: {
-    opening: `👋 Hey Joseph — AI handed this one over after Jordan pushed back. No recommendation from me yet — ask me anything, or start with one of these.`,
+    opening: `👋 Hey Joseph — Jordan bought the Clifton 9s on our recommendation for the Austin Marathon. He tore his ACL in training, never wore them, and pushed back on our auto-decline with the full story. I pulled his account before routing to you.`,
+    factsProse: [
+      "Trailblazer, 2022 — 7 orders · $4,280 LTV · 0 returns",
+      "<strong>We recommended the Clifton 9</strong> to him in February for the Austin Marathon",
+      "37 days past window — shoes unworn, tried on once at home",
+      "Torn ACL — surgery ahead, 8–12 wk recovery. Race is gone.",
+      "Narrow, low-risk, one-time exception — agents can approve at discretion; Trailblazer extends that flexibility<span class='cite' onclick='togglePop(event, 1)'>1</span><span class='cite' onclick='togglePop(event, 3)'>3</span>",
+      "Lead with acknowledgment before logistics — a year of training just evaporated"
+    ],
+    rec: {
+      title: '<span id="rec-title-inner">Approve the return — full refund + prepaid label</span>',
+      line1: 'Full refund $189.99 to his original payment method.',
+      line2: 'Prepaid UPS return label emailed to jordan.rivera@gmail.com.'
+    },
+    ask: "I'd approve this — here's a draft when you're ready.",
     chips: [
-      { text: "Catch me up",      kind: 'primary',   action: 'catchMeUp' },
-      { text: "What's his sentiment?",      kind: 'secondary', action: 'sentiment' },
-      { text: "Can I approve this return?", kind: 'secondary', action: 'canApprove' }
+      { text: "Draft response", kind: 'primary',   action: 'draft' },
+      { text: "Why do you recommend this?", kind: 'secondary', action: 'whyRec' },
+      { text: "What's his sentiment?", kind: 'secondary', action: 'sentiment' }
     ],
     citations: [
       { title: 'Return Exceptions',      body: "Agents may approve one-off return exceptions on a case-by-case basis, even outside the standard 30-day window, when there's a clear hardship reason and the product is unworn." },
@@ -807,69 +1002,50 @@ const JORDAN = {
       { title: 'Loyalty Tier Benefits',  body: "Trailblazer-tier customers (3+ years, consistent spend) receive extended return flexibility at agent discretion." }
     ],
     script: {
-      catchMeUp: {
-        reply: "Jordan's been a Retalé customer since 2022 — Trailblazer tier, seven orders to date. $4,280 lifetime, zero prior returns. He's not a serial returner testing the window. <br>It's worth knowing: the Clifton 9s are the exact pair we recommended back in February.<br><br>This is a narrow, low-risk, one-time exception. And this is usually what Trailblazer flexibility is for. I'd move forward with approving it.",
-        unlockChips: ['sentiment', 'canApprove']
-      },
-      sentiment: {
-        reply: "<strong>Frustrated and disappointed.</strong> Lead with acknowledgment before getting to the return logistics.",
-        unlockChips: ['canApprove']
-      },
-      canApprove: {
-        reply: "<strong>Yes — this is within your discretion.</strong> He's 37 days past the 30-day window, but agents can approve one-off exceptions<span class='cite' onclick='togglePop(event, 1)'>1</span>. Shoes are unworn<span class='cite' onclick='togglePop(event, 2)'>2</span>, and Trailblazer tier extends return flexibility<span class='cite' onclick='togglePop(event, 3)'>3</span>. Recommend a full refund to his original payment method.",
-        unlockChips: ['draft']
-      },
-      draft: {
-        draftCard: { label: 'Draft', body: `Thanks for the context — really sorry about the ACL.
-
-Good news: I can approve the return on your Clifton 9s. Full refund to your original payment method in 5–7 business days, and a prepaid return label will land in your email shortly.
-
-Anything else I can sort out for you?` },
+      whyRec: {
+        reply: "Three things tipped me toward approve:<br><br><strong>Customer history</strong> — seven orders, zero returns, Trailblazer since 2022. He's not a serial returner testing the window.<br><br><strong>Our recommendation</strong> — the Clifton 9 is literally the shoe we told him to buy for Austin. That's on us as much as him.<br><br><strong>Policy fits</strong> — unworn product, clear hardship reason, Trailblazer flexibility. Within your discretion, no escalation needed.",
         nextChips: [
-          { text: "Make it warmer", kind: 'secondary', action: 'warmer' }
+          { text: "Draft response", kind: 'primary',   action: 'draft' },
+          { text: "What's his sentiment?", kind: 'secondary', action: 'sentiment' }
         ]
       },
+      sentiment: {
+        reply: "<strong>Frustrated and disappointed</strong> — a year of training, and the race just evaporated. Sentiment score is <strong>-0.62</strong> (he was neutral/-0.1 when this conversation started). Lead with acknowledgment before the return logistics.",
+        nextChips: [
+          { text: "Draft response", kind: 'primary',   action: 'draft' },
+          { text: "Why do you recommend this?", kind: 'secondary', action: 'whyRec' }
+        ]
+      },
+      draft: {
+        draftCard: { label: 'Draft', body: `Hi Jordan — thanks for the context, and really sorry about the ACL.
+
+Good news: I can approve the return on the Clifton 9s. You'll see a full refund ($189.99) to your original payment method in 5–7 business days, and a prepaid UPS return label will land in your email shortly.
+
+Let me know if you need anything else.` },
+        nextChips: []
+      },
       warmer: {
-        draftCard: { label: 'Draft · warmer', body: `Really sorry about the ACL — a year of training and then having the race taken away is brutal. Hoping surgery goes smoothly and recovery is quick.
+        draftCard: { label: 'Draft · warmer tone', body: `Really sorry about the ACL — a year of training and then having the race taken away is brutal. Hoping surgery goes smoothly and recovery is quick.
 
 Good news on the shoes: you're all set. Full refund on the Clifton 9s to your original payment method in 5–7 business days, and a prepaid return label will hit your email shortly.
 
 When you're ready to lace up again, we'll be here.` },
-        nextChips: [
-          { text: "Back to first draft", kind: 'secondary', action: 'draft' }
-        ]
-      },
-      useDraft: {
-        reply: "Sent. Want me to process the return next?",
-        sideEffect: 'sendOutboundChat',
-        nextChips: [
-          { text: "Process the return", kind: 'primary', action: 'processReturn' }
-        ]
-      },
-      processReturn: {
-        reply: "Here's the plan — review and approve.",
-        actionCard: {
-          label: 'Process the return',
-          steps: [
-            "Issue refund — $189.99 to his original payment method",
-            "Generate return label — UPS Ground, Austin",
-            "Email label + tracking — jordan.rivera@gmail.com"
-          ],
-          approveAction: 'approveRun'
-        },
         nextChips: []
       },
-      approveRun: {
-        // no reply text — the action card re-renders itself with checkmarks,
-        // and the next chip unlocks the product-consultation step
-        sideEffect: 'approveRun',
+      useDraft: {
+        reply: "Sent. Want to get ahead of his recovery while you have him?",
+        sideEffect: 'sendOutboundChat',
+        nextChips: [
+          { text: "Suggest recovery products", kind: 'primary',   action: 'recommend' },
+          { text: "Not now",                   kind: 'secondary', action: 'skipRec' }
+        ]
       },
       recommend: {
-        reply: "Based on what Jordan already owns (Brooks Ghost 16, On Cloud 5, and the Clifton 9 he just bought) and where he's at — torn ACL, 8–12 weeks of recovery — here are three that fit:",
+        reply: "Based on what Jordan already owns (Bondi 7, Mach 5, and the Clifton 9 he just returned) and where he's at — torn ACL, 8–12 weeks of recovery — here are three that fit:",
         productList: [
-          { name: "Hoka Ora Recovery Slide",   price: "$59.99",  reason: "Built for post-surgery — easy on/off, max cushion, low drop.", link: "retale.com/hoka-ora-slide" },
-          { name: "Brooks Glycerin 21",         price: "$169.99", reason: "Max-cushion road shoe — similar softness to the Clifton 9 but more platform stability for early recovery walks.", link: "retale.com/brooks-glycerin" },
-          { name: "CEP Ultralight Compression Socks", price: "$24.99", reason: "Graduated compression for post-surgery swelling. A small kindness.", link: "retale.com/cep-socks" }
+          { name: "Hoka Ora Recovery Slide", price: "$59.99", url: "hoka.com/ora", reason: "Built for post-surgery — easy on/off, max cushion, low drop." },
+          { name: "Hoka Bondi 8",            price: "$164.99", url: "hoka.com/bondi8", reason: "The cushion he already trusts, updated — walks before runs." },
+          { name: "Hoka Clifton Recovery Socks", price: "$24.99", url: "hoka.com/clifton-socks", reason: "Compression fit. A small kindness." }
         ],
         followup: "He prefers SMS. Want me to draft a message?",
         nextChips: [
@@ -878,8 +1054,17 @@ When you're ready to lace up again, we'll be here.` },
         ]
       },
       draftRecSMS: {
-        draftCard: { label: 'SMS draft · to Jordan', body: `Hey Jordan — wishing you a smooth recovery. A few picks for where you're at:\n\n• Hoka Ora Recovery Slide\n• Brooks Glycerin 21\n• CEP Ultralight Compression Socks\n\nNo rush — they'll be here when you are.`,
-          bodyHtml: `Hey Jordan — wishing you a smooth recovery. A few picks for where you're at:<br><br>• <a href="https://retale.com/hoka-ora-slide" style="text-decoration:underline">Hoka Ora Recovery Slide</a> — retale.com/hoka-ora-slide<br>• <a href="https://retale.com/brooks-glycerin" style="text-decoration:underline">Brooks Glycerin 21</a> — retale.com/brooks-glycerin<br>• <a href="https://retale.com/cep-socks" style="text-decoration:underline">CEP Ultralight Compression Socks</a> — retale.com/cep-socks<br><br>No rush — they'll be here when you are.` },
+        draftCard: {
+          label: 'SMS draft · to Jordan',
+          body: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:
+
+• Ora Recovery Slide
+• Bondi 8
+• Clifton Recovery Socks
+
+No rush — they'll be here when you are.`,
+          bodyHtml: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:<br><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Ora Recovery Slide</a><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Bondi 8</a><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Clifton Recovery Socks</a><br><br>No rush — they'll be here when you are.`
+        },
         useAction: 'sendRecSMS',
         nextChips: []
       },
@@ -895,11 +1080,18 @@ When you're ready to lace up again, we'll be here.` },
     },
     // Outbound body used when useDraft fires. Posts to the customer timeline as a chat.
     outboundBodies: {
-      draft: `Thanks for the context — really sorry about the ACL. Good news: I can approve the return on your Clifton 9s. Full refund to your original payment method in 5–7 business days, and a prepaid return label will land in your email shortly. Anything else I can sort out for you?`,
+      draft: `Hi Jordan — thanks for the context, and really sorry about the ACL. Good news: I can approve the return on the Clifton 9s. You'll see a full refund ($189.99) to your original payment method in 5–7 business days, and a prepaid UPS return label will land in your email shortly. Let me know if you need anything else.`,
       warmer: `Really sorry about the ACL — a year of training and then having the race taken away is brutal. Hoping surgery goes smoothly and recovery is quick. Good news on the shoes: you're all set. Full refund on the Clifton 9s to your original payment method in 5–7 business days, and a prepaid return label will hit your email shortly. When you're ready to lace up again, we'll be here.`
     },
-    outboundSMSBody: `Hey Jordan — wishing you a smooth recovery. A few picks for where you're at:\n• Hoka Ora Recovery Slide — retale.com/hoka-ora-slide\n• Brooks Glycerin 21 — retale.com/brooks-glycerin\n• CEP Ultralight Compression Socks — retale.com/cep-socks\nNo rush — they'll be here when you are. — Joseph`
-  }
+    outboundSMSBody: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:\n• [Ora Recovery Slide]\n• [Bondi 8]\n• [Clifton Recovery Socks]\nNo rush — they'll be here when you are. — Joseph`,
+    outboundSMSBodyHtml: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:<br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Ora Recovery Slide</a><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Bondi 8</a><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Clifton Recovery Socks</a><br>No rush — they'll be here when you are. — Joseph`
+  },
+  stepPresets: [
+    { label: 'Send SMS recap', step: 'Send SMS recap — (512) 555-0192' },
+    { label: 'Recommend recovery products', step: 'Recommend recovery products — Ora Slide, Bondi 8, Clifton Socks' },
+    { label: 'Schedule a follow-up', step: 'Schedule a follow-up — 2 weeks' },
+    { label: 'Apply thank-you credit', step: 'Apply $25 thank-you credit' }
+  ]
   // No `decisions` — Jordan uses the `copilot.script` state machine.
 };
 
@@ -910,7 +1102,7 @@ const RACHEL = {
     name: 'Rachel Thompson',
     initials: 'RT',
     avatarColor: '#5B8DEF',
-    preview: "Retalé Race-Day Pro Pack — can't use it, tendon tear. Wants a refund.",
+    preview: "Hoka Race-Day Pro Pack — can't use it, tendon tear. Wants a refund.",
     time: '1m',
     channel: 'Chat',
     priority: 'high'
@@ -930,11 +1122,11 @@ const RACHEL = {
     preferences: [
       { l: 'Favorite category', v: 'Long-distance running' },
       { l: 'Sizing',            v: "Women's 8.5" },
-      { l: 'Brand preference',  v: 'Hoka · Salomon · Brooks' }
+      { l: 'Brand preference',  v: 'Hoka Bondi · Clifton · Tecton X' }
     ],
     ordersLabel: '12 orders',
     orders: [
-      { id: 'ORD-2026-84721', title: 'Retalé Race-Day Pro Pack', status: 'Processing', total: '$847.99', date: '04/19/2026', icon: 'shoe' }
+      { id: 'ORD-2026-84721', title: 'Hoka Race-Day Pro Pack', status: 'Processing', total: '$847.99', date: '04/19/2026', icon: 'shoe' }
     ],
     conversations: [
       { when: 'Today',  text: 'Order cancellation request' },
@@ -945,39 +1137,50 @@ const RACHEL = {
   convHeader: { title: 'Apr 21 · Cancellation request', status: 'Waiting' },
   topic: 'Cancellation request',
   events: [
+    { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '4 min ago', channel: 'chat',
+      text: "Hi, I need to cancel my order #ORD-2026-84721 — the Hoka Race-Day Pro Pack. I signed up for the Chicago Marathon this year and picked up the bundle for training, but I just tore a tendon at a training run last weekend. 8–12 weeks off, no race for me. Is there any way to get a refund before it ships?" },
+    { kind: 'amsg', time: '3 min ago',
+      text: "So sorry to hear about the tendon, Rachel — take care of yourself first. I've confirmed your Race-Day Pro Pack is still in processing, which is the easiest case. You're on our Trailblazer tier, so a full refund before ship is covered — no restock fees, no questions. Want me to go ahead and cancel?" },
     { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '2 min ago', channel: 'chat',
-      text: "Hi, I need to cancel my order #ORD-2026-84721 — the Retalé Race-Day Pro Pack. I signed up for the Chicago Marathon this year and picked up the bundle for training, but I just tore a tendon at a training run last weekend. 8–12 weeks off, no race for me. Is there any way to get a refund before it ships?" },
+      text: "Yes please, that would be amazing. Thank you." },
     { kind: 'amsg', time: '1 min ago',
-      text: "Hi Rachel — sorry to hear about the tendon. Let me sort this out for you. I'll be back in just a moment." },
+      text: "You got it. One last check on my end and your refund will be on its way — I'll be right back." },
     { kind: 'activity', text: 'Gladly AI asked you to approve a VIP cancellation — just now' }
   ],
   copilot: {
-    opening: `👋 Hey Joseph — Rachel just reached out asking to cancel her <strong>Retalé Race-Day Pro Pack ($847.99)</strong>. Tough break for her — she was gearing up for the Chicago Marathon and tore a tendon at a training run last weekend. No race for her this year.<br><span class="cite" onclick="togglePop(event, 1)">1</span>`,
+    opening: `Rachel's cancellation is ready to run. Just need your call on the thank-you credit.`,
     factsProse: [
-      "The order's still in processing and hasn't shipped.",
-      "No restock fees, no return shipment to manage.",
-      "Rachel's done 12 orders with us and never asked to cancel one.",
-      "Return rate sits at 3%.",
-      "Our Trailblazer Tier covers this — full refund, no questions asked, on anything still in processing.<span class='cite' onclick='togglePop(event, 1)'>1</span>",
-      "For orders in the $500–$1K band, the default thank-you credit is $25.<span class='cite' onclick='togglePop(event, 2)'>2</span>"
+      "Torn tendon — Chicago Marathon out this year, 8–12 wk recovery",
+      "Race-Day Pro Pack ($847.99) still in processing — clean cancel, no restock fee",
+      "12 orders · 0 cancellations · 3% return rate · Trailblazer tier",
+      "Full refund before ship is covered for Trailblazer — no questions<span class='cite' onclick='togglePop(event, 1)'>1</span>",
+      "$25 default thank-you credit for $500–$1K orders; agent can adjust $10–$75<span class='cite' onclick='togglePop(event, 2)'>2</span>"
     ],
     rec: {
-      title: '<span id="rec-title-inner">Cancel the order — plus a $25 VIP thank-you credit</span>',
-      line1: '$847.99 refund to her original payment method',
-      line2: '$25 credit on her account so she comes back when she\'s ready'
+      title: '<span id="rec-title-inner">Approve cancel + $25 thank-you credit</span>',
+      line1: 'Refund $847.99 to her original payment method',
+      line2: '$25 thank-you credit on her account for when she\'s back'
     },
-    ask: "Want me to take it from here, or would you like to adjust first?",
+    ask: "",
     citations: [
       { title: 'VIP Cancellation Playbook', body: "Full refund for VIPs on orders still in processing, no questions asked. A $25–$50 thank-you credit is suggested for $500–$1K orders to encourage a return visit." },
       { title: 'Credit Guidelines', body: "For orders $500–$1K, $25 is the default thank-you credit. For $1K+, the default is $50. Agents can adjust between $10–$75 without escalation." }
     ],
     chips: [
-      { text: "Yes, go ahead",        kind: 'primary',   action: 'approveCard' },
-      { text: "No, I'll take it",     kind: 'secondary', action: 'handoff' }
+      { text: "Bump credit to $50", kind: 'secondary', action: 'raise',   arg: 50 },
+      { text: "Lower to $20",       kind: 'secondary', action: 'lower',   arg: 20 },
+      { text: "Add SMS recap",      kind: 'secondary', action: 'addStep', arg: 'sms' },
+      { text: "No, I'll handle it", kind: 'secondary', action: 'handoff' }
     ],
     creditDefault: 25,
     mode: 'refund'
   },
+  stepPresets: [
+    { label: 'Send SMS recap', step: 'Send SMS recap — (212) 555-0147' },
+    { label: 'Recommend recovery products', step: 'Recommend recovery products — Ora Slide, Bondi 8, Clifton Socks' },
+    { label: 'Schedule a follow-up', step: 'Schedule a follow-up — 2 weeks' },
+    { label: 'Waive restock fee (not applicable — in processing)', step: 'Note: no restock fee applies' }
+  ],
   decisions: {
     approveCard: (s) => {
       const card = {
@@ -1059,6 +1262,8 @@ function currentScenario() { return CUSTOMERS.find(c => c.id === currentId); }
 
 function renderCustomerList() {
   const list = document.getElementById('cl-list');
+  const countEl = document.getElementById('cl-count');
+  if (countEl) countEl.textContent = CUSTOMERS.length;
   list.innerHTML = CUSTOMERS.map(c => `
     <div class="cle-card ${c.id === currentId ? 'active' : ''}" data-id="${c.id}" onclick="selectCustomer('${c.id}')">
       <div class="cle-left">
@@ -1255,20 +1460,34 @@ function renderCopilot(s) {
   const recEl    = document.getElementById('rec-card');
   const askEl    = document.getElementById('ao-ask');
 
-  if (s.type === 'assist' && c.factsProse) {
+  if (c.factsProse) {
     factsEl.style.display = '';
     recEl.style.display = '';
-    askEl.style.display = '';
     document.getElementById('rp-facts-list').innerHTML = c.factsProse.map(f => `<li>${f}</li>`).join('');
     document.getElementById('rec-title-text').innerHTML = c.rec.title;
     document.getElementById('rec-line1').innerHTML = c.rec.line1;
     document.getElementById('rec-line2').innerHTML = c.rec.line2;
     document.getElementById('pill-modified').classList.remove('on');
-    askEl.textContent = c.ask;
+    askEl.textContent = c.ask || '';
+    askEl.style.display = c.ask ? '' : 'none';
   } else {
     factsEl.style.display = 'none';
     recEl.style.display = 'none';
     askEl.style.display = 'none';
+  }
+
+  // Rachel: render the plan (action card) inline upfront. "Plan mode" UX.
+  const planEl = document.getElementById('rp-plan');
+  if (planEl) {
+    if (s.id === 'rachel' && c.factsProse && s.decisions && s.decisions.approveCard) {
+      const card = s.decisions.approveCard(session);
+      session.rachelActionCard = card.actionCard;
+      planEl.innerHTML = renderActionCard(card.actionCard);
+      planEl.style.display = '';
+    } else {
+      planEl.innerHTML = '';
+      planEl.style.display = 'none';
+    }
   }
 
   // Citations — support up to 3 (Jordan has 3; Rachel has 2)
@@ -1332,35 +1551,51 @@ function runDecision(action, arg) {
   if (action === 'raise' || action === 'lower') {
     const res = handler(session, arg);
     session.creditAmount = arg;
-    updateRecCard();
+    updateRecCard(); // also rerenders the plan card (Rachel)
     pushAIMsg(res.copilotReply);
-    // Re-ask: show primary Yes + revert chips
-    renderChips([
-      { text: "Yes, go ahead", kind: 'primary', action: 'approveCard' },
-      { text: `Change my mind`, kind: 'secondary', action: 'revert' },
-      { text: "No, I'll take it", kind: 'secondary', action: 'handoff' }
-    ]);
+    // Plan-mode chip tray: keep editing options available; swap the clicked direction
+    // for the opposite + a revert.
+    const def = s.copilot.creditDefault;
+    const smsAlreadyAdded = session.rachelActionCard
+      && session.rachelActionCard.steps.some(st => /SMS recap/i.test(st));
+    const chipTray = [];
+    if (action === 'raise') {
+      chipTray.push({ text: "Lower to $20", kind: 'secondary', action: 'lower', arg: 20 });
+    } else {
+      chipTray.push({ text: "Bump credit to $50", kind: 'secondary', action: 'raise', arg: 50 });
+    }
+    chipTray.push({ text: `Back to $${def}`, kind: 'secondary', action: 'revert' });
+    if (!smsAlreadyAdded) {
+      chipTray.push({ text: "Add SMS recap", kind: 'secondary', action: 'addStep', arg: 'sms' });
+    }
+    chipTray.push({ text: "No, I'll handle it", kind: 'secondary', action: 'handoff' });
+    renderChips(chipTray);
     return;
   }
 
   if (action === 'revert') {
     session.creditAmount = s.copilot.creditDefault;
-    updateRecCard(true);
-    pushAIMsg(`Back to a $${session.creditAmount} credit. Go?`);
-    renderChips([
-      { text: "Yes, go ahead", kind: 'primary', action: 'approveCard' },
-      { text: "Bump credit to $50", kind: 'secondary', action: 'raise', arg: 50 },
-      { text: "Lower credit to $10", kind: 'secondary', action: 'lower', arg: 10 },
-      { text: "No, I'll take it", kind: 'secondary', action: 'handoff' }
-    ]);
+    updateRecCard(true); // also rerenders the plan card
+    pushAIMsg(`Back to a $${session.creditAmount} credit.`);
+    renderChips(s.copilot.chips);
     return;
   }
 
-  if (action === 'approveCard') {
-    const res = handler(session);
-    session.rachelActionCard = res.actionCard;
-    pushAIMsg("Here's the plan — review and approve.", { extra: renderActionCard(res.actionCard) });
-    clearChips();
+  if (action === 'addStep') {
+    const presets = s.stepPresets || [];
+    // Lookup preset by key (arg). For now 'sms' → "Send SMS recap"
+    const keyRegex = arg === 'sms' ? /sms/i : new RegExp(String(arg || ''), 'i');
+    const preset = presets.find(p => keyRegex.test(p.label));
+    if (preset && session.rachelActionCard) {
+      if (!session.rachelActionCard.steps.includes(preset.step)) {
+        session.rachelActionCard.steps.push(preset.step);
+        rerenderRachelPlan({ preserveExtraSteps: true });
+      }
+      pushAIMsg(`Added — ${preset.label.toLowerCase()} is in the plan.`);
+    }
+    // Rebuild chip tray without the addStep chip
+    const remaining = (window._chipBank || []).filter(c => c.action !== 'addStep');
+    renderChips(remaining);
     return;
   }
 
@@ -1371,11 +1606,21 @@ function runDecision(action, arg) {
     const lastCard = cards[cards.length - 1];
     const card = session.rachelActionCard;
     if (lastCard && card) {
+      // Base lines cover the 3 template steps. If the plan has more steps
+      // (e.g. user-added SMS recap), append generic completions so the finished
+      // card matches what the agent approved.
       const completionLines = [
         `Order #ORD-2026-84721 cancelled`,
         `Refund queued · $847.99 to her original payment method`,
         `$${session.creditAmount} thank-you credit applied to account`
       ];
+      const extraSteps = card.steps.slice(3);
+      extraSteps.forEach(step => {
+        if (/SMS recap/i.test(step)) completionLines.push(`SMS recap sent · (212) 555-0147`);
+        else if (/recovery products/i.test(step)) completionLines.push(`Recovery product set queued for follow-up`);
+        else if (/follow-up/i.test(step)) completionLines.push(`Follow-up scheduled · 2 weeks out`);
+        else completionLines.push(`Step complete · ${step}`);
+      });
       lastCard.outerHTML = renderActionCardComplete(card, completionLines);
     }
 
@@ -1424,7 +1669,9 @@ function runScript(action) {
   // The message gets an inline Use button + feedback icons via pushAIMsg({draft:true}).
   if (beat.draftCard) {
     session.jordanLastDraft = (action === 'warmer') ? 'warmer' : 'draft';
-    const body = beat.draftCard.bodyHtml || escapeHtml(beat.draftCard.body).replace(/\n/g, '<br>');
+    const rawBody = beat.draftCard.bodyHtml || escapeHtml(beat.draftCard.body).replace(/\n/g, '<br>');
+    const label = beat.draftCard.label || 'Draft';
+    const body = `<div class="dc-label">${label}</div><div class="dc-body">${rawBody}</div>`;
     pushAIMsg(body, { draft: true, useAction: beat.useAction || 'useDraft' });
   } else {
     // Build extra content (action card, product list) + optional followup for non-draft beats
@@ -1473,13 +1720,10 @@ function runScript(action) {
 
 // Jordan's chip catalog (so runScript can rebuild any chip by action name)
 const JORDAN_CHIP_DEFS = {
-  catchMeUp:  { text: "Catch me up on Jordan",      kind: 'secondary', action: 'catchMeUp' },
+  whyRec:     { text: "Why do you recommend this?", kind: 'secondary', action: 'whyRec' },
   sentiment:  { text: "What's his sentiment?",      kind: 'secondary', action: 'sentiment' },
-  canApprove: { text: "Can I approve this return?", kind: 'secondary', action: 'canApprove' },
-  draft:      { text: "Draft a response",           kind: 'primary',   action: 'draft' },
-  warmer:     { text: "Make it warmer",             kind: 'primary',   action: 'warmer' },
-  useDraft:   { text: "Use this draft",             kind: 'primary',   action: 'useDraft' },
-  processReturn: { text: "Process the return",      kind: 'primary',   action: 'processReturn' }
+  draft:      { text: "Draft response",             kind: 'primary',   action: 'draft' },
+  useDraft:   { text: "Send to Jordan",             kind: 'primary',   action: 'useDraft' }
 };
 
 const CH_ICON = {
@@ -1492,7 +1736,7 @@ const CH_LABEL = { email: 'sent an email', chat: 'sent a chat', sms: 'sent an SM
 function sideEffectSendOutbound(channel) {
   channel = channel || 'chat';
   const s = currentScenario();
-  const bodyKey = session.jordanLastDraft || 'warmer';
+  const bodyKey = session.jordanLastDraft || 'draft';
   const body = s.copilot.outboundBodies[bodyKey];
   const tl = document.getElementById('timeline');
   const icon = CH_ICON[channel];
@@ -1512,7 +1756,7 @@ function sideEffectSendOutbound(channel) {
 
 function sideEffectSendOutboundSMS() {
   const s = currentScenario();
-  const body = (s.copilot.outboundSMSBody || '').replace(/\n/g, '<br>');
+  const body = s.copilot.outboundSMSBodyHtml || (s.copilot.outboundSMSBody || '').replace(/\n/g, '<br>');
   const tl = document.getElementById('timeline');
   const icon = CH_ICON.sms;
   tl.insertAdjacentHTML('beforeend',
@@ -1525,35 +1769,40 @@ function renderProductList(items) {
   const rows = items.map(p => `
     <div class="prod-row">
       <div class="prod-body">
-        <div class="prod-name">${p.name} <span class="prod-price">${p.price}</span></div>
+        <div class="prod-name"><a class="gladly-link" href="#" onclick="event.preventDefault();showToast('Opening ${p.name}…')">${p.name}</a> <span class="prod-price">${p.price}</span></div>
         <div class="prod-reason">${p.reason}</div>
-        <div class="prod-link">${p.link}</div>
       </div>
     </div>`).join('');
   return `<div class="prod-list">${rows}</div>`;
 }
 
 function sideEffectApproveRun() {
-  // Find the most recent action card and replace its actions row with checkmarks
   const cards = document.querySelectorAll('.action-card');
   const lastCard = cards[cards.length - 1];
   const card = session.jordanActionCard;
   if (!lastCard || !card) return;
-  const completionLines = [
-    "Refund queued · $189.99 to his original payment method",
-    "Label generated · UPS 1Z999AA10123456784",
-    "Email sent · jordan.rivera@gmail.com"
-  ];
+
+  // Map step text → completion line. Generic fallback for user-added steps.
+  const completionMap = {
+    "Issue refund — $189.99 to his original payment method":            "Refund queued · $189.99 to his original payment method",
+    "Generate return label — UPS Ground, Austin":                        "Label generated · UPS 1Z999AA10123456784",
+    "Email label + tracking — jordan.rivera@gmail.com":                  "Email sent · jordan.rivera@gmail.com",
+    "Send SMS recap — (512) 555-0192":                                   "SMS recap sent · (512) 555-0192",
+    "Send SMS recap — (212) 555-0147":                                   "SMS recap sent · (212) 555-0147",
+    "Recommend recovery products — Ora Slide, Bondi 8, Clifton Socks":   "Recovery product set queued for follow-up",
+    "Schedule a follow-up — 2 weeks":                                    "Follow-up scheduled · 2 weeks out",
+    "Apply $25 thank-you credit":                                        "$25 credit applied",
+    "Note: no restock fee applies":                                      "Confirmed · no restock fee"
+  };
+  const completionLines = card.steps.map(s => completionMap[s] || `Step complete · ${s}`);
   lastCard.outerHTML = renderActionCardComplete(card, completionLines);
 
-  // Append chronological tl-events
+  // Timeline events
   const tl = document.getElementById('timeline');
-  const events = [
-    "<strong>Joseph</strong> approved the return exception — just now",
-    "Gladly AI issued a $189.99 refund to his original payment method — just now",
-    "Gladly AI emailed a prepaid UPS return label to Jordan — just now"
-  ];
-  events.forEach(text => tl.insertAdjacentHTML('beforeend', `<div class="tl-activity">${text}</div>`));
+  tl.insertAdjacentHTML('beforeend', `<div class="tl-activity"><strong>Joseph</strong> approved the return exception — just now</div>`);
+  completionLines.forEach(text => {
+    tl.insertAdjacentHTML('beforeend', `<div class="tl-activity">Gladly AI · ${text} — just now</div>`);
+  });
   scrollTimeline();
   document.getElementById('conv-status').textContent = 'Resolved';
 }
@@ -1571,6 +1820,36 @@ function updateRecCard(revert) {
   }
   const pill = document.getElementById('pill-modified');
   if (revert) pill.classList.remove('on'); else pill.classList.add('on');
+  // Keep Rachel's inline plan card in sync with credit changes.
+  if (s.id === 'rachel') rerenderRachelPlan({ preserveExtraSteps: true });
+}
+
+// Re-renders Rachel's inline plan card from session state (current credit amount +
+// any user-added steps). The "template" = what approveCard() returns at default credit.
+// Anything on the current card that isn't in the template at any credit amount is
+// treated as a user-added extra and preserved.
+function rerenderRachelPlan(opts) {
+  opts = opts || {};
+  const s = currentScenario();
+  if (!s || s.id !== 'rachel') return;
+  const planEl = document.getElementById('rp-plan');
+  if (!planEl || !session.rachelActionCard) return;
+  if (session.decided) return;
+  const existingSteps = session.rachelActionCard.steps.slice();
+  const fresh = s.decisions.approveCard(session).actionCard;
+  if (opts.preserveExtraSteps) {
+    // Identify extras: steps that don't match the template pattern. The credit step
+    // is variable ("Apply $X VIP thank-you credit ..."), so match on pattern, not text.
+    const isTemplateStep = (step) =>
+      /Cancel order/i.test(step) ||
+      /Issue .* refund/i.test(step) ||
+      /thank-you credit/i.test(step);
+    existingSteps.forEach(step => {
+      if (!isTemplateStep(step) && !fresh.steps.includes(step)) fresh.steps.push(step);
+    });
+  }
+  session.rachelActionCard = fresh;
+  planEl.innerHTML = renderActionCard(fresh);
 }
 
 /* =========================================================================
@@ -1605,8 +1884,9 @@ function pushAIMsg(text, extraOrOpts) {
 }
 
 function renderMessageActions(isDraft, useAction) {
+  const useLabel = 'Use';
   const useBtn = isDraft
-    ? `<button class="cb-use" onclick="onUse(this, '${useAction || 'useDraft'}')">Use</button>`
+    ? `<button class="cb-use" onclick="onUse(this, '${useAction || 'useDraft'}')">${useLabel}</button>`
     : '';
   return `<div class="cb-actions">
     ${useBtn}
@@ -1619,7 +1899,7 @@ function renderMessageActions(isDraft, useAction) {
 
 function onUse(btn, action) {
   const actions = btn.closest('.cb-actions');
-  if (actions) actions.remove(); // Use can't be clicked twice
+  if (actions) actions.remove();
   runScript(action || 'useDraft');
 }
 
@@ -1649,28 +1929,100 @@ function onThumb(btn, dir) {
 }
 
 function onRegen(btn) {
-  // For draft messages, regenerating re-runs the same script beat; otherwise a quick toast.
   const msg = btn.closest('.cm.ai');
   if (msg && msg.querySelector('.cb.draft')) {
-    // Find whether this is the first draft or the warmer
-    const label = msg.querySelector('.cb.draft');
-    showToast("That's my best pass — try 'Make it warmer' for a different tone.");
+    showToast("Regenerating… (demo — single draft in v10)");
     return;
   }
   showToast("That's my take — let me know if you want a different angle.");
 }
 
 function renderActionCard(card) {
-  const steps = card.steps.map(s => `<li>${s}</li>`).join('');
+  const s = currentScenario();
+  const steps = card.steps.map((st, i) => renderStepRow(st, i)).join('');
+  // Context-aware step presets per scenario
+  const presets = (s.stepPresets || DEFAULT_STEP_PRESETS);
+  const menuItems = presets.map(p =>
+    `<div class="ac-step-menu-item" onclick="insertStep(${JSON.stringify(p.step).replace(/"/g,'&quot;')})">${p.label}</div>`
+  ).join('');
   return `<div class="action-card" data-approve="${card.approveAction}">
     <div class="ac-label">${card.label}</div>
-    <ol>${steps}</ol>
+    <ol class="ac-steps">${steps}</ol>
+    <div class="ac-add-row" id="ac-add-row">
+      <button class="ac-add-btn" onclick="toggleStepMenu(event)">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Add a step
+      </button>
+      <div class="ac-step-menu" id="ac-step-menu">
+        ${menuItems}
+        <div class="ac-step-menu-item custom" onclick="insertStepCustom()">Custom step…</div>
+      </div>
+    </div>
     <div class="ac-actions">
       <button class="ac-primary" onclick="runDecision('${card.approveAction}')">Approve &amp; run</button>
-      <button class="ac-secondary" onclick="showToast('Edit steps — not wired in this demo')">Edit steps</button>
     </div>
   </div>`;
 }
+
+const DEFAULT_STEP_PRESETS = [
+  { label: 'Schedule a follow-up', step: 'Schedule a follow-up — 2 weeks' },
+  { label: 'Apply thank-you credit', step: 'Apply $25 thank-you credit' }
+];
+
+function renderStepRow(text, i) {
+  return `<li class="ac-step" data-i="${i}">
+    <span class="ac-step-text">${text}</span>
+    <button class="ac-step-x" onclick="removeStep(this)" title="Remove step">
+      <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </li>`;
+}
+
+function toggleStepMenu(e) {
+  e.stopPropagation();
+  document.getElementById('ac-step-menu').classList.toggle('open');
+}
+
+function insertStep(text) {
+  const card = document.querySelector('.action-card');
+  if (!card) return;
+  const ol = card.querySelector('.ac-steps');
+  const i = ol.children.length;
+  ol.insertAdjacentHTML('beforeend', renderStepRow(text, i));
+  // Persist to the active scenario's action card so completion reflects it
+  const activeCard = session.rachelActionCard || session.jordanActionCard;
+  if (activeCard && !activeCard.steps.includes(text)) {
+    activeCard.steps.push(text);
+  }
+  document.getElementById('ac-step-menu').classList.remove('open');
+}
+
+function insertStepCustom() {
+  const text = prompt('Add a custom step:');
+  if (text && text.trim()) insertStep(text.trim());
+  document.getElementById('ac-step-menu').classList.remove('open');
+}
+
+function removeStep(btn) {
+  const li = btn.closest('.ac-step');
+  if (!li) return;
+  const i = parseInt(li.dataset.i, 10);
+  li.remove();
+  const activeCard = session.rachelActionCard || session.jordanActionCard;
+  if (activeCard) {
+    activeCard.steps.splice(i, 1);
+  }
+  // Reindex
+  document.querySelectorAll('.ac-step').forEach((el, idx) => el.dataset.i = idx);
+}
+
+// Close step menu on outside click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#ac-add-row')) {
+    const m = document.getElementById('ac-step-menu');
+    if (m) m.classList.remove('open');
+  }
+});
 
 function renderActionCardComplete(card, completionLines) {
   const steps = card.steps.map(s => `<li>${s}</li>`).join('');
@@ -1734,25 +2086,23 @@ function sendMessage() {
 
     // Team Assist scripted flow (Jordan) — phrase → script key
     if (s.copilot.script) {
-      if (/catch.*up|summary|summarize|who is/.test(lc))         return runScript('catchMeUp');
-      if (/sentiment|feeling|mood|tone/.test(lc))                return runScript('sentiment');
-      if (/can i approve|policy|allowed|discretion|can we/.test(lc)) return runScript('canApprove');
+      if (/warm(er)?|friendl|kind|softer|softer tone/.test(lc))  return runScript('warmer');
+      if (/why|reason|explain|walk me|justify/.test(lc))         return runScript('whyRec');
+      if (/sentiment|feeling|mood|how is he feel/.test(lc))      return runScript('sentiment');
       if (/send.*sms|text.*him|send it.*sms/.test(lc))           return runScript('sendRecSMS');
       if (/sms|text message/.test(lc))                           return runScript('draftRecSMS');
       if (/recommend|suggest|product|recovery|for him/.test(lc)) return runScript('recommend');
-      if (/warm(er)?|friendl|kind/.test(lc))                     return runScript('warmer');
       if (/^send|use this|use it|send it|send the draft/.test(lc)) return runScript('useDraft');
-      if (/process|refund|return|run.*plan/.test(lc))            return runScript('processReturn');
-      if (/^(approve|yes|go|do it|run it|approve.*run)/.test(lc)) return runScript('approveRun');
       if (/draft|write|respond/.test(lc))                        return runScript('draft');
       if (/skip|nevermind|no thanks/.test(lc))                   return runScript('skipRec');
-      pushAIMsg("Let me know — catch you up, check sentiment, draft a response, or process the return.");
+      pushAIMsg("Let me know — explain my reasoning or draft a response.");
       return;
     }
 
-    // HITL flow (Rachel) — natural-language decision inference
+    // HITL flow (Rachel) — natural-language decision inference.
+    // Plan card is already visible; "yes/approve" runs the plan directly.
     if (/^yes\b|^yep\b|^yeah\b|^go\b|go ahead|do it|approve/.test(lc)) {
-      runDecision('approve'); return;
+      runDecision('approveConfirm'); return;
     }
     if (/^no\b|i'?ll take|let me take|hand off|handoff|take over/.test(lc)) {
       runDecision('handoff'); return;
@@ -1831,6 +2181,147 @@ function selectCustomer(id) {
   renderCopilot(s);
   document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
 }
+
+/* =========================================================================
+   DISPLAY SETTINGS — contrast + primary green (for LED demo stages)
+   ========================================================================= */
+
+const CONTRAST_LABELS = ['Standard', 'High', 'Max'];
+const CONTRAST_CLASSES = ['', 'contrast-high', 'contrast-max'];
+
+function toggleSettings(e) {
+  if (e) e.stopPropagation();
+  const pop = document.getElementById('settings-pop');
+  pop.classList.toggle('open');
+}
+
+function onContrastChange(v) {
+  const i = parseInt(v, 10);
+  document.getElementById('sp-contrast-val').textContent = CONTRAST_LABELS[i];
+  document.body.classList.remove('contrast-high', 'contrast-max');
+  if (CONTRAST_CLASSES[i]) document.body.classList.add(CONTRAST_CLASSES[i]);
+  persistSettings();
+}
+
+function onGreenSwatch(hex) {
+  applyGreen(hex);
+  document.getElementById('sp-hex').value = hex;
+  updateSwatchSelection(hex);
+  persistSettings();
+}
+
+function onHexInput(val) {
+  let v = (val || '').trim();
+  if (v && !v.startsWith('#')) v = '#' + v;
+  if (!/^#[0-9A-Fa-f]{6}$/.test(v)) return;
+  applyGreen(v);
+  updateSwatchSelection(v);
+  persistSettings();
+}
+
+function updateSwatchSelection(hex) {
+  const norm = hex.toUpperCase();
+  document.querySelectorAll('#sp-swatches .sp-sw').forEach(sw => {
+    sw.classList.toggle('on', sw.dataset.hex.toUpperCase() === norm);
+  });
+}
+
+function applyGreen(hex) {
+  const root = document.documentElement;
+  root.style.setProperty('--green-400', hex);
+  // Derive hover/dark variants by shifting lightness
+  root.style.setProperty('--green-300', shiftLightness(hex, 0.14));
+  root.style.setProperty('--green-500', shiftLightness(hex, -0.10));
+  root.style.setProperty('--green-100', shiftLightness(hex, 0.72));
+  root.style.setProperty('--green-50',  shiftLightness(hex, 0.82));
+}
+
+function shiftLightness(hex, amt) {
+  const m = hex.replace('#','').match(/.{2}/g);
+  if (!m) return hex;
+  let [r, g, b] = m.map(h => parseInt(h, 16) / 255);
+  // RGB → HSL
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  l = Math.max(0, Math.min(1, l + amt));
+  // HSL → RGB
+  const hue2rgb = (p, q, t) => {
+    if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+  let r2, g2, b2;
+  if (s === 0) { r2 = g2 = b2 = l; }
+  else {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r2 = hue2rgb(p, q, h + 1/3);
+    g2 = hue2rgb(p, q, h);
+    b2 = hue2rgb(p, q, h - 1/3);
+  }
+  const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+  return '#' + toHex(r2) + toHex(g2) + toHex(b2);
+}
+
+function resetDisplay() {
+  document.getElementById('sp-contrast').value = 0;
+  onContrastChange(0);
+  onGreenSwatch('#009B00');
+}
+
+function persistSettings() {
+  try {
+    localStorage.setItem('gladly-demo-settings', JSON.stringify({
+      contrast: parseInt(document.getElementById('sp-contrast').value, 10),
+      green: document.getElementById('sp-hex').value
+    }));
+  } catch (e) {}
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem('gladly-demo-settings');
+    if (!raw) return;
+    const cfg = JSON.parse(raw);
+    if (typeof cfg.contrast === 'number') {
+      document.getElementById('sp-contrast').value = cfg.contrast;
+      onContrastChange(cfg.contrast);
+    }
+    if (cfg.green && /^#[0-9A-Fa-f]{6}$/.test(cfg.green)) {
+      document.getElementById('sp-hex').value = cfg.green;
+      applyGreen(cfg.green);
+      updateSwatchSelection(cfg.green);
+    }
+  } catch (e) {}
+}
+
+// Close settings on outside click / Esc
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#settings-pop') && !e.target.closest('#settings-btn')) {
+    const pop = document.getElementById('settings-pop');
+    if (pop) pop.classList.remove('open');
+  }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const pop = document.getElementById('settings-pop');
+    if (pop) pop.classList.remove('open');
+  }
+});
+
+loadSettings();
 
 /* =========================================================================
    BOOT
