@@ -143,7 +143,8 @@
   .col-right-drag.dragging .col-right-drag-btn svg{color: #fff}
 
   /* Panel-weighted default for Needs-input scenarios: list 220 / profile 280 / conv flex / copilot 440 */
-  body.panel-weighted .col-cl{width: 220px; min-width: 220px}
+  body.panel-weighted .col-cl{width: 260px; min-width: 260px}
+  body.panel-weighted .col-cl.collapsed{width: 80px; min-width: 80px}
   body.panel-weighted .col-profile{width: 280px; min-width: 280px}
   body.panel-weighted .col-right{width: 440px; min-width: 440px}
 
@@ -190,7 +191,7 @@
   .cle-tag.assist{background: var(--purple-100); color: var(--purple-assist)}
   .cle-tag.chat{background: var(--gray-200); color: var(--gray-700)}
   .cle-channel{font: var(--copy-sm); color: var(--gray-700)}
-  .col-cl.collapsed .cl-header{padding: var(--sp-3) 12px}
+  .col-cl.collapsed .cl-header{padding-left: var(--sp-5)}
   .col-cl.collapsed .cl-htitle{display:none}
   .col-cl.collapsed .cl-filters{display:none}
   .col-cl.collapsed .cle-body{display:none}
@@ -214,7 +215,7 @@
   .contact-row{display:flex; flex-wrap: wrap; align-items:center; gap: var(--sp-2) var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black)}
   .contact-row .ci{color: var(--gray-500); width: 16px; height: 16px; flex-shrink: 0; display:inline-flex; align-items:center; justify-content:center}
   .contact-row .tag{background: var(--black); color: #fff; font: 700 9px/1 var(--ff); padding: 3px 6px; border-radius: 3px; letter-spacing: .5px}
-  .contact-row .tag-grp{margin-left:auto; display:flex; gap: 4px}
+  .contact-row .tag-grp{display:none}
   .contact-sub{font: var(--copy-sm); color: var(--gray-700); padding-left: 28px}
   .pref-row{display:flex; padding: 4px 0; font: var(--copy); color: var(--black)}
   .pref-row .pl{color: var(--gray-700); min-width: 140px}
@@ -274,7 +275,7 @@
   /* COPILOT */
   .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200); position: relative; overflow: visible}
   .rp-gutter{width: 32px; padding: var(--sp-4) 0 var(--sp-6); display:flex; flex-direction:column; align-items: flex-end; gap: var(--sp-1); background: transparent; position: absolute; left: -32px; top: 0; bottom: 0; z-index: 1}
-  .rp-tab{width: 24px; height: 24px; border-radius: 12px 0 0 12px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer}
+  .rp-tab{width: 24px; height: 24px; border-radius: 12px 0 0 12px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer; padding-top: 1px; padding-left: 1px;}
   .rp-tab.active{background: var(--purple-assist); color: #fff}
   .rp-tab.expand{background: var(--white); color: var(--gray-700)}
   .rp-tab.expand:hover{background: var(--gray-200)}
@@ -1814,8 +1815,7 @@ function selectCustomer(id) {
   currentId = id;
   document.querySelectorAll('.cle-card').forEach(el => el.classList.toggle('active', el.dataset.id === id));
 
-  // Panel-weighted layout when a Needs-input customer is selected (copilot is primary surface)
-  document.body.classList.toggle('panel-weighted', s.type === 'assist');
+  document.body.classList.add('panel-weighted');
 
   renderProfile(s);
   renderConversation(s);
