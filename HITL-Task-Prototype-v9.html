@@ -175,7 +175,7 @@
   .cle-card:hover{background: var(--gray-50)}
   .cle-card.active{background: var(--green-50); border-left-color: var(--green-400)}
   .cle-left{position: relative; flex-shrink: 0; width: 40px; height: 40px}
-  .cle-priority-dot{position: absolute; left: -10px; top: 18px; width: 6px; height: 6px; border-radius: 50%; background: var(--green-400)}
+  .cle-priority-dot{position: absolute; left: -10px; top: 18px; width: 8px; height: 8px; border-radius: 50%; background: var(--green-400)}
   .cle-av{width: 40px; height: 40px; border-radius: 50%; display:flex; align-items:center; justify-content:center; font: 700 13px/1 var(--ff); color: #fff; box-shadow: var(--shadow-sm); background: var(--gray-600)}
   .cle-type-pip{position: absolute; right: -2px; bottom: -2px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; display:flex; align-items:center; justify-content:center}
   .cle-type-pip.assist{background: var(--purple-assist); color: #fff}
@@ -194,10 +194,11 @@
   .col-cl.collapsed .cl-htitle{display:none}
   .col-cl.collapsed .cl-filters{display:none}
   .col-cl.collapsed .cle-body{display:none}
-  .col-cl.collapsed .cle-card{padding: 8px 12px; border-bottom: none; border-left: none; gap: 0}
-  .col-cl.collapsed .cle-card.active{background: var(--green-400); border-radius: var(--radius-sm); margin: 2px 8px; padding: 8px}
-  .col-cl.collapsed .cle-card.active .cle-av{box-shadow: 0 0 0 2px #fff}
-  .col-cl.collapsed .cle-priority-dot{left: 2px}
+  .col-cl.collapsed .cle-card{border-bottom: none; border-left: none; gap: 0}
+  .col-cl.collapsed .cle-card.active{background: var(--green-400)}
+  .col-cl.collapsed .cle-card.active .cle-av{}
+  .col-cl.collapsed .cle-priority-dot{display:none}
+
 
   /* PROFILE */
   .profile-card{background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: var(--sp-4); margin-bottom: var(--sp-3)}
@@ -260,7 +261,7 @@
   .bb-inbox{width: 24px; height: 24px; border-radius: var(--radius-round); background: var(--gray-200); display:flex; align-items:center; justify-content:center; color: var(--gray-700)}
   .bb-assigned .at{font: var(--copy-sm); color: var(--black)}
   .bb-assigned .at strong{color: var(--green-400); font-weight: 500; display:block}
-  .bb-fab{width: 32px; height: 32px; border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 700 18px/1 var(--ff)}
+  .bb-fab{width: 32px; height: 32px; border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 500 32px/1 var(--ff); padding-bottom: 4px}
   .bb-input{flex: 1; height: 32px; border: 1px solid var(--gray-400); border-radius: var(--radius-sm); padding: 0 var(--sp-3); font: var(--copy-sm); background: var(--white); color: var(--black)}
   .bb-input:focus{outline: none; border-color: var(--green-400)}
   .bb-topic{display:flex; align-items:center; gap: var(--sp-2); padding: 0 var(--sp-3); color: var(--black); font: var(--copy-sm); cursor: pointer}
@@ -633,12 +634,12 @@
       <div class="bb-inbox"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 10v3a1 1 0 001 1h10a1 1 0 001-1v-3m-4 0h-4a1 1 0 00-1 1v1h6v-1a1 1 0 00-1-1zM2 10l2-7h8l2 7" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></div>
       <div class="at">Assigned to<strong>VIP Response Team — Joseph Ansanelli</strong></div>
     </div>
-    <button class="bb-fab"><span>+</span></button>
-    <input class="bb-input" placeholder="">
     <div class="bb-topic">
       <div>Topic<div class="tval" id="bb-topic-val">Return request</div></div>
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     </div>
+    <button class="bb-fab"><span>+</span></button>
+    <input class="bb-input" placeholder="">
     <div class="bb-split">
       <div class="bbs-main">Close &amp; Next</div>
       <div class="bbs-caret"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
@@ -660,7 +661,6 @@
         </button>
         <button class="rp-tab active" title="Assist"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z" fill="currentColor"/></svg></button>
         <button class="rp-tab" title="Answers"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2a1 1 0 011-1h7l2 2v11a1 1 0 01-1 1H4a1 1 0 01-1-1V2z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 5h5M5 8h5M5 11h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
-        <button class="rp-tab" title="Library"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="4" y="2" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.3" fill="#fff"/></svg></button>
       </div>
       <div class="rp-body">
         <div class="rp-scroll" id="rp-scroll">
@@ -1029,7 +1029,7 @@ const STUB = (p) => ({ ...p, wired: false });
 
 const CUSTOMERS = [
   STUB({ id: 'sarah', type: 'chat', listCard: {
-    name: 'Sarah Kim', initials: 'SK', avatarColor: '#A47BD4',
+    name: 'Sarah Kim', initials: 'SK', avatarColor: '##0F203C',
     preview: "Hey, where's my order? It's been a week…", time: '1m', channel: 'Chat' }}),
   { ...RACHEL, wired: true },
   { ...JORDAN, wired: true },
@@ -1064,19 +1064,10 @@ function renderCustomerList() {
       <div class="cle-left">
         <span class="cle-priority-dot" style="${c.listCard.priority === 'high' ? '' : 'background: var(--gray-400)'}"></span>
         <div class="cle-av" style="background:${c.listCard.avatarColor}">${c.listCard.initials}</div>
-        <div class="cle-type-pip ${c.type === 'assist' ? 'assist' : 'chat'}">
-          ${c.type === 'assist'
-            ? '<svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"/></svg>'
-            : '<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>'}
-        </div>
       </div>
       <div class="cle-body">
         <div class="cle-row1"><span class="cle-name">${c.listCard.name}</span><span class="cle-time">${c.listCard.time}</span></div>
         <div class="cle-preview">${c.listCard.preview}</div>
-        <div class="cle-meta-row">
-          <span class="cle-tag ${c.type === 'assist' ? 'assist' : 'chat'}">${c.type === 'assist' ? 'Needs input' : 'Chat'}</span>
-          <span class="cle-channel">${c.listCard.channel}</span>
-        </div>
       </div>
     </div>
   `).join('');
@@ -1218,7 +1209,7 @@ function renderEvent(e) {
             <li>Recommended path: identify whether you can approve an exception.</li>
           </ul>
         </div>
-        <div class="asb-eyebrow">This summary was created automatically by Gladly.</div>
+        <div class="asb-eyebrow">Summary created automatically by Gladly AI</div>
       </div>
     </div>`;
   }
@@ -1505,7 +1496,7 @@ function sideEffectSendOutbound(channel) {
   setTimeout(() => {
     tl.insertAdjacentHTML('beforeend',
       `<div class="msg-meta"><span class="ch-icon">${icon}</span>Jordan Rivera ${label} — just now</div>
-       <div class="msg inbound"><div class="msg-av" style="background:#6B8E6F">JR</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
+       <div class="msg inbound"><div class="msg-av" style="background:#64b964">JR</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
     scrollTimeline();
   }, 1500);
 }
