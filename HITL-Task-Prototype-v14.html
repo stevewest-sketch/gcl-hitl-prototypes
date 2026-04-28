@@ -367,14 +367,17 @@
     min-width: 80px;
   }
   .tl-task .tlt-tertiary:hover{ background: var(--green-50); }
-  /* Quiet text-only handoff (matches .req-action-secondary on right panel) */
+  /* Outlined "deny" pill — same shape as primary/tertiary, quieter gray treatment. */
   .tl-task .tlt-secondary{
     background: transparent;
     color: var(--gray-700);
-    border: 1px solid transparent;
-    min-width: 0;
+    border: 1px solid var(--gray-300);
   }
-  .tl-task .tlt-secondary:hover{ color: var(--black); text-decoration: underline; }
+  .tl-task .tlt-secondary:hover{
+    background: var(--gray-100);
+    color: var(--black);
+    border-color: var(--gray-700);
+  }
   .tl-task .tlt-resolution{ font: var(--copy-sm); color: var(--gray-700); }
   .tl-task .tlt-resolution .check{ color: var(--green-400); font-weight: 700; margin-right: 4px; }
 
@@ -905,15 +908,17 @@
     min-width: 80px;
   }
   .req-actions .req-action-tertiary:hover{ background: var(--green-50); }
-  /* Tertiary "handoff" — text-only, no border, sits visually quieter than the
-     filled primary and outlined modify (per design spec). */
+  /* Outlined "deny" pill — same shape as primary/tertiary, quieter gray treatment. */
   .req-actions .req-action-secondary{
     background: transparent;
     color: var(--gray-700);
-    border: 1px solid transparent;
-    min-width: 0;
+    border: 1px solid var(--gray-300);
   }
-  .req-actions .req-action-secondary:hover{ color: var(--black); text-decoration: underline; }
+  .req-actions .req-action-secondary:hover{
+    background: var(--gray-100);
+    color: var(--black);
+    border-color: var(--gray-700);
+  }
   /* Collapsible details group */
   .req-details-wrap{ margin-bottom: 18px; }
   .req-details-toggle{
@@ -1950,7 +1955,7 @@ const RACHEL = {
     { kind: 'taskcard',
       meta: 'Gladly AI asked you to approve — just now',
       primary:   { label: 'Approve upgrade',     action: 'approveConfirm' },
-      secondary: { label: 'Replacement only',    action: 'replacementOnly' }
+      secondary: { label: 'Deny upgrade',    action: 'replacementOnly' }
     }
   ],
   copilot: {
@@ -1962,7 +1967,7 @@ const RACHEL = {
       actions: {
         primary:   { label: 'Approve upgrade',    action: 'approveConfirm' },
         tertiary:  { label: 'Modify',             action: 'modifyPlan' },
-        secondary: { label: 'Replacement only',   action: 'replacementOnly' }
+        secondary: { label: 'Deny upgrade',   action: 'replacementOnly' }
       }
     },
     ask: "Want me to authorize the overnight upgrade and the $25 credit?",
@@ -2927,7 +2932,7 @@ function rerenderRecLite() {
       actions = {
         primary:   { label: 'Approve upgrade',     action: 'approveConfirm' },
         tertiary:  { label: 'Modify',              action: 'modifyPlan' },
-        secondary: { label: 'Replacement only',    action: 'replacementOnly' }
+        secondary: { label: 'Deny upgrade',    action: 'replacementOnly' }
       };
     } else if (session.rachelTaskState === 'approved' || session.rachelTaskState === 'replacement-only') {
       actions = null;
@@ -3308,7 +3313,7 @@ function renderTaskcardInner(state) {
     return header + body + prev + plan + `<div class="tlt-actions">
       <button class="tlt-primary" onclick="onTaskAction(this, 'approveConfirm')">Approve upgrade</button>
       <button class="tlt-tertiary" onclick="onTaskAction(this, 'modifyPlan')">Modify</button>
-      <button class="tlt-secondary" onclick="onTaskAction(this, 'replacementOnly')">Replacement only</button>
+      <button class="tlt-secondary" onclick="onTaskAction(this, 'replacementOnly')">Deny upgrade</button>
     </div>`;
   }
 
