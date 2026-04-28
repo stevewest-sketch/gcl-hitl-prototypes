@@ -145,7 +145,7 @@
   /* Panel-weighted default for Needs-input scenarios: list 220 / profile 280 / conv flex / copilot 440 */
   body.panel-weighted .col-cl{width: 260px; min-width: 260px}
   body.panel-weighted .col-cl.collapsed{width: 80px; min-width: 80px}
-  body.panel-weighted .col-profile{width: 280px; min-width: 280px}
+  body.panel-weighted .col-profile{width: 300px; min-width: 300px}
   body.panel-weighted .col-right{width: 440px; min-width: 440px}
 
   /* Focus-copilot: customer list collapses, profile KEEPS visible at 280, copilot grows to 580 */
@@ -153,7 +153,7 @@
   body.focus-copilot .col-cl .cl-htitle,
   body.focus-copilot .col-cl .cl-filters,
   body.focus-copilot .col-cl .cle-body{display:none}
-  body.focus-copilot .col-profile{width: 280px; min-width: 280px; padding: var(--sp-4); opacity: 1}
+  body.focus-copilot .col-profile{width: 300px; min-width: 300px; padding: var(--sp-4); opacity: 1}
   body.focus-copilot .col-conv{min-width: 360px}
   body.focus-copilot .col-right{width: 580px; min-width: 580px}
 
@@ -206,12 +206,12 @@
   .profile-head{display:flex; align-items:center; gap: var(--sp-3); margin-bottom: var(--sp-3)}
   .profile-av{width: 56px; height: 56px; border-radius: var(--radius-round); color: #fff; display:flex; align-items:center; justify-content:center; font: 700 18px/1 var(--ff); box-shadow: var(--shadow-sm); flex-shrink: 0}
   .profile-name{font: var(--h3); color: var(--black)}
-  .profile-dots{margin-left:auto; color: var(--gray-500); font-size: 18px; cursor: pointer; padding: 0 var(--sp-1)}
+  .profile-dots{margin-left:auto; font-weight: 700; color: var(--gray-700); font-size: 24px; cursor: pointer; padding: 0 var(--sp-1)}
   .kv{display:flex; justify-content:space-between; padding: var(--sp-1) 0; font: var(--copy)}
   .link-customer{display:flex; align-items:center; gap: var(--sp-2); padding: var(--sp-3) 0 0; font: var(--button); color: var(--green-400); border-top: 1px solid var(--gray-200); margin-top: var(--sp-3); cursor: pointer}
   .link-customer .suggestion-count{margin-left:auto; color: var(--gray-500); font: var(--copy-sm)}
   .sec-title{font: 700 16px/1 var(--ff); color: var(--black); margin-bottom: var(--sp-3); display:flex; align-items:center; justify-content:space-between}
-  .sec-title .add{color: var(--gray-500); font-size: 18px; font-weight: 400; cursor: pointer}
+  .sec-title .add{color: var(--gray-500); font-size: 24px; font-weight: 500; cursor: pointer}
   .contact-row{display:flex; flex-wrap: wrap; align-items:center; gap: var(--sp-2) var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black)}
   .contact-row .ci{color: var(--gray-500); width: 16px; height: 16px; flex-shrink: 0; display:inline-flex; align-items:center; justify-content:center}
   .contact-row .tag{background: var(--black); color: #fff; font: 700 9px/1 var(--ff); padding: 3px 6px; border-radius: 3px; letter-spacing: .5px}
@@ -219,20 +219,20 @@
   .contact-sub{font: var(--copy-sm); color: var(--gray-700); padding-left: 28px}
   .pref-row{display:flex; padding: 4px 0; font: var(--copy); color: var(--black)}
   .pref-row .pl{color: var(--gray-700); min-width: 140px}
-  .order-card{display:flex; align-items:center; gap: var(--sp-3); padding: var(--sp-2) 0}
+  .order-card{display:flex; align-items:flex-start; gap: var(--sp-3); padding: var(--sp-2) 0}
   .order-thumb{width: 56px; height: 56px; border-radius: var(--radius-sm); background: var(--gray-200); flex-shrink: 0; display:flex; align-items:center; justify-content:center; overflow:hidden}
   .order-info{flex:1}
   .order-info .oid{font: var(--copy); color: var(--black)}
   .order-info .oid a{font-weight: 700}
   .order-info .ometa{font: var(--copy); color: var(--black)}
-  .order-chev{color: var(--gray-500); cursor: pointer}
+  .order-chev{color: var(--gray-500); cursor: pointer; display:flex; align-items:center}
   .conv-row{display:flex; gap: var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black); border-bottom: 1px solid var(--gray-200)}
   .conv-row:last-child{border-bottom: none}
   .conv-row .when{color: var(--gray-700); min-width: 56px}
 
   /* CONVERSATION */
   .conv-wrap{flex:1; display:flex; flex-direction:column; overflow:hidden}
-  .conv-header{background: none; border-bottom: 1px solid var(--gray-200); padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
+  .conv-header{background: none; padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
   .conv-header .title{color: var(--black); font-weight: 700}
   .conv-header-right{position:absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); display:flex; gap: var(--sp-2); color: var(--gray-500)}
   .conv-scroll{flex:1; overflow-y:auto; padding: var(--sp-6) var(--sp-6); background: none;}
@@ -262,7 +262,7 @@
   .bb-inbox{width: 24px; height: 24px; border-radius: var(--radius-round); background: var(--gray-200); display:flex; align-items:center; justify-content:center; color: var(--gray-700)}
   .bb-assigned .at{font: var(--copy-sm); color: var(--black)}
   .bb-assigned .at strong{color: var(--green-400); font-weight: 500; display:block}
-  .bb-fab{width: 32px; height: 32px; border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 500 32px/1 var(--ff); padding-bottom: 4px}
+  .bb-fab{width: 32px; height: 32px; border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 500 32px/1 var(--ff); padding-bottom: 5px}
   .bb-input{flex: 1; height: 32px; border: 1px solid var(--gray-400); border-radius: var(--radius-sm); padding: 0 var(--sp-3); font: var(--copy-sm); background: var(--white); color: var(--black)}
   .bb-input:focus{outline: none; border-color: var(--green-400)}
   .bb-topic{display:flex; align-items:center; gap: var(--sp-2); padding: 0 var(--sp-3); color: var(--black); font: var(--copy-sm); cursor: pointer}
@@ -275,7 +275,7 @@
   /* COPILOT */
   .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200); position: relative; overflow: visible}
   .rp-gutter{width: 32px; padding: var(--sp-4) 0 var(--sp-6); display:flex; flex-direction:column; align-items: flex-end; gap: var(--sp-1); background: transparent; position: absolute; left: -32px; top: 0; bottom: 0; z-index: 1}
-  .rp-tab{width: 24px; height: 24px; border-radius: 12px 0 0 12px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer; padding-top: 1px; padding-left: 1px;}
+  .rp-tab{width: 24px; height: 24px; border-radius: 12px 0 0 12px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer; padding-top: 1px; padding-left: 1px; margin-right: 2px;}
   .rp-tab.active{background: var(--purple-assist); color: #fff}
   .rp-tab.expand{background: var(--white); color: var(--gray-700)}
   .rp-tab.expand:hover{background: var(--gray-200)}
@@ -552,7 +552,7 @@
 
   /* AI Summary card */
   .ai-summary-wrap{margin-bottom: var(--sp-5)}
-  .ai-summary-event{text-align:center; padding: var(--sp-3) 0 var(--sp-2); font: var(--copy-sm); color: var(--gray-700)}
+  .ai-summary-event{text-align:right; padding: var(--sp-3) 0 var(--sp-2); font: var(--copy-sm); color: var(--gray-700)}
   .ai-summary-bub{background: var(--white); border: 1px solid var(--purple-assist); border-radius: 16px; padding: var(--sp-3) var(--sp-4); box-shadow: 0 1px 2px rgba(0,0,0,.04)}
   .ai-summary-bub .asb-eyebrow{font: 500 13px/1 var(--ff); color: var(--gray-700); margin-top: var(--sp-2); margin-bottom: var(--sp-2)}
   .ai-summary-bub .asb-section{margin-top: var(--sp-3)}
@@ -569,6 +569,78 @@
   .conv-scroll::-webkit-scrollbar, .rp-scroll::-webkit-scrollbar, .col-profile::-webkit-scrollbar, .cl-list::-webkit-scrollbar{width: 8px}
   .conv-scroll::-webkit-scrollbar-thumb, .rp-scroll::-webkit-scrollbar-thumb, .col-profile::-webkit-scrollbar-thumb, .cl-list::-webkit-scrollbar-thumb{background: transparent; border-radius: 4px; transition: background .15s}
   .conv-scroll:hover::-webkit-scrollbar-thumb, .rp-scroll:hover::-webkit-scrollbar-thumb, .col-profile:hover::-webkit-scrollbar-thumb, .cl-list:hover::-webkit-scrollbar-thumb{background: var(--gray-300)}
+
+  /* ── THEME SWITCHER ── */
+  .theme-picker{display:flex; align-items:center; gap: 5px; margin-right: 4px}
+  .theme-swatch{width: 14px; height: 14px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: border-color .15s}
+  .theme-swatch.active{border-color: var(--gray-700)}
+  .theme-swatch[data-t="default"]{background: #F6F6F6; border-color: #CECECE}
+  .theme-swatch[data-t="bold"]{background: #DCDCDC; border-color: #9A9A9A}
+  .theme-swatch[data-t="dark"]{background: #1C2030; border-color: #3E4870}
+  .theme-swatch[data-t="warm"]{background: #C4C4C4; border-color: #9A9A9A}
+
+  /* ── THEME: Bold (high-contrast light) ── */
+  [data-theme="bold"] {
+    --white:     #FFFFFF;
+    --black:     #060606;
+    --gray-50:   #EBEBEB;
+    --gray-100:  #e2e1e1;
+    --gray-200:  #C4C4C4;
+    --gray-300:  #9A9A9A;
+    --gray-400:  #9A9A9A;
+    --gray-500:  #5A5A5A;
+    --gray-600:  #4A4A4A;
+    --gray-700:  #323232;
+    --gray-800:  #1E1E1E;
+    --gray-900:  #0E0E0E;
+  }
+
+  /* ── THEME: Dark (TV dark mode) ── */
+  [data-theme="dark"] {
+    --white:          #1C2030;
+    --black:          #E8EDF8;
+    --gray-50:        #1F2438;
+    --gray-100:       #242940;
+    --gray-200:       #2E3550;
+    --gray-300:       #3E4870;
+    --gray-400:       #3E4870;
+    --gray-500:       #8090B8;
+    --gray-600:       #9DADD0;
+    --gray-700:       #B4C0DC;
+    --gray-800:       #CBD4EC;
+    --gray-900:       #DDE4F4;
+    --green-400:      #00D400;
+    --green-500:      #00AA00;
+    --green-300:      #66DD66;
+    --green-100:      #003800;
+    --green-50:       #001E00;
+    --purple-assist:  #A882FF;
+    --purple-100:     #2A1E50;
+    --red-400:        #FF5555;
+    --red-50:         #2A0808;
+    --navy:           #A0B8E8;
+  }
+
+  /* ── THEME: Warm (warm high-contrast) ── */
+  [data-theme="warm"] {
+    --white:     #fff;
+    --black:     #12100A;
+    --gray-50:   #eeedec;
+    --gray-100:  #ededed;
+    --gray-200:  #c6c5c4;
+    --gray-300:  #a8a6a3;
+    --gray-400:  #a09e9a;
+    --gray-500:  #6E5C46;
+    --gray-600:  #5E4C38;
+    --gray-700:  #402E20;
+    --gray-800:  #2A1E14;
+    --gray-900:  #180E08;
+    --green-500: #339633;
+    --green-400: #35a035;
+    --green-300: #067c06;
+    --green-100: #009a00;
+    --green-50:  #b5dfb5;
+  }
 </style>
 </head>
 <body>
@@ -585,6 +657,13 @@
     <div class="tog-wrap"><button class="tog" title="Voice"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M3 3a2 2 0 012-2h1l2 3-1.5 1.5a8 8 0 003 3L10 7l3 2v1a2 2 0 01-2 2A10 10 0 013 3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button><span class="tog-badge">3</span></div>
     <div class="tog-wrap"><button class="tog active" title="Chat"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button><span class="tog-badge">640+</span></div>
     <button class="nav-next">Next</button>
+    <div class="nav-divider"></div>
+    <div class="theme-picker" title="Theme">
+      <div class="theme-swatch active" data-t="default" onclick="setTheme('default')"></div>
+      <div class="theme-swatch" data-t="bold" onclick="setTheme('bold')"></div>
+      <div class="theme-swatch" data-t="dark" onclick="setTheme('dark')"></div>
+      <div class="theme-swatch" data-t="warm" onclick="setTheme('warm')"></div>
+    </div>
     <div class="nav-divider"></div>
     <button class="icon-btn" title="Search"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
     <button class="icon-btn bell" title="Notifications"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 014 4c0 3 1 4 1 6H3c0-2 1-3 1-6a4 4 0 014-4zM6.5 13a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg><span class="badge">7</span></button>
@@ -756,9 +835,9 @@ const JORDAN = {
     ],
     ordersLabel: '7 orders',
     orders: [
-      { id: 'GCL-55892', title: 'Hoka Clifton 9 · Black/White · Size 10.5', status: 'Delivered', total: '$189.99', date: '02/14/2026', icon: 'shoe' },
-      { id: 'GCL-48201', title: 'Hoka Bondi 7 · Black · Size 10.5',          status: 'Delivered', total: '$159.99', date: '09/20/2025', icon: 'shoe' },
-      { id: 'GCL-39877', title: 'Hoka Mach 5 · White/Blue · Size 10.5',       status: 'Delivered', total: '$144.99', date: '04/27/2025', icon: 'shoe' }
+      { id: 'GCL-55892', title: 'Hoka Clifton 9 · Black/White · Size 10.5', status: 'Delivered', total: '$189.99', date: '02/14/2026', icon: 'clifton' },
+      { id: 'GCL-48201', title: 'Hoka Bondi 7 · Black · Size 10.5',          status: 'Delivered', total: '$159.99', date: '09/20/2025', icon: 'bondi' },
+      { id: 'GCL-39877', title: 'Hoka Mach 5 · White/Blue · Size 10.5',       status: 'Delivered', total: '$144.99', date: '04/27/2025', icon: 'mach' }
     ],
     conversations: [
       { when: 'Today',   text: 'Return request (Clifton 9)' },
@@ -935,7 +1014,7 @@ const RACHEL = {
     ],
     ordersLabel: '12 orders',
     orders: [
-      { id: 'ORD-2026-84721', title: 'Hoka Race-Day Pro Pack', status: 'Processing', total: '$847.99', date: '04/19/2026', icon: 'shoe' }
+      { id: 'ORD-2026-84721', title: 'Hoka Race-Day Pro Pack', status: 'Processing', total: '$847.99', date: '04/19/2026', icon: 'speedgoat' }
     ],
     conversations: [
       { when: 'Today',  text: 'Order cancellation request' },
@@ -1074,6 +1153,12 @@ function renderCustomerList() {
   `).join('');
 }
 
+function setTheme(t) {
+  if (t === 'default') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+  document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('active', s.dataset.t === t));
+}
+
 function toggleList() {
   const cl = document.getElementById('col-cl');
   cl.classList.toggle('collapsed');
@@ -1120,7 +1205,7 @@ function renderProfile(s) {
         <div class="ometa">${o.status} • ${o.total}</div>
         <div class="ometa" style="color: var(--gray-700); font-size: 12px">Ordered ${o.date}</div>
       </div>
-      <span class="order-chev">▾</span>
+      <span class="order-chev"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </div>`).join('');
 
   const convos = p.conversations.map(c => `<div class="conv-row"><span class="when">${c.when}</span><span>${c.text}</span></div>`).join('');
@@ -1134,10 +1219,6 @@ function renderProfile(s) {
       </div>
       <div class="kv"><span>Customer since</span><span>${p.customerSince}</span></div>
       <div class="kv"><span>Lifetime Value</span><span>${p.ltv}</span></div>
-      <div class="link-customer">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 10l-2 2a2 2 0 102 2l2-2M10 6l2-2a2 2 0 10-2-2L8 4M6 10l4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
-        Link to customer <span class="suggestion-count">1 suggestion</span>
-      </div>
     </div>
     <div class="profile-card">
       <div class="sec-title">Contact <span class="add">+</span></div>
@@ -1159,7 +1240,13 @@ function renderProfile(s) {
 }
 
 function orderIcon(kind) {
-  if (kind === 'shoe') return '<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 20c0-2 2-4 4-5l3-1 2-3 6 1c3 1 9 3 9 7v3H4v-2z" stroke="#919191" stroke-width="1.3" fill="#F1F1F1"/><path d="M11 14l2 2M14 12l2 2M17 10l2 2" stroke="#919191" stroke-width="1.2" stroke-linecap="round"/></svg>';
+  const imgs = {
+    clifton:   'images/Hoka_Clifton.png',
+    bondi:     'images/running_shoe.png',
+    mach:      'images/speedgoat.png',
+    speedgoat: 'images/speedgoat.png'
+  };
+  if (imgs[kind]) return `<img src="${imgs[kind]}" alt="" style="width:100%;height:100%;object-fit:cover">`;
   return '<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="22" rx="2" fill="#E3E3E3"/><circle cx="16" cy="17" r="6" stroke="#919191" stroke-width="1.4" fill="none"/><path d="M12 6v-2h8v2" stroke="#919191" stroke-width="1.4" fill="none"/></svg>';
 }
 
