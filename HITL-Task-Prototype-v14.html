@@ -153,8 +153,9 @@
   .col-right-drag.dragging .col-right-drag-btn svg{color: #fff}
 
   /* Panel-weighted default for Needs-input scenarios: list 220 / profile 280 / conv flex / copilot 440 */
-  body.panel-weighted .col-cl{width: 220px; min-width: 220px}
-  body.panel-weighted .col-profile{width: 280px; min-width: 280px}
+  body.panel-weighted .col-cl{width: 260px; min-width: 260px}
+  body.panel-weighted .col-cl.collapsed{width: 80px; min-width: 80px}
+  body.panel-weighted .col-profile{width: 300px; min-width: 300px}
   body.panel-weighted .col-right{width: 440px; min-width: 440px}
 
   /* Focus-copilot: customer list collapses, profile KEEPS visible at 280, copilot grows to 580 */
@@ -162,7 +163,7 @@
   body.focus-copilot .col-cl .cl-htitle,
   body.focus-copilot .col-cl .cl-filters,
   body.focus-copilot .col-cl .cle-body{display:none}
-  body.focus-copilot .col-profile{width: 280px; min-width: 280px; padding: var(--sp-4); opacity: 1}
+  body.focus-copilot .col-profile{width: 300px; min-width: 300px; padding: var(--sp-4); opacity: 1}
   body.focus-copilot .col-conv{min-width: 360px}
   body.focus-copilot .col-right{width: 580px; min-width: 580px}
 
@@ -185,7 +186,7 @@
   .cle-card:hover{background: var(--gray-50)}
   .cle-card.active{background: var(--green-50); border-left-color: var(--green-400)}
   .cle-left{position: relative; flex-shrink: 0; width: 40px; height: 40px}
-  .cle-priority-dot{position: absolute; left: -10px; top: 18px; width: 6px; height: 6px; border-radius: 50%; background: var(--green-400)}
+  .cle-priority-dot{position: absolute; left: -10px; top: 18px; width: 8px; height: 8px; border-radius: 50%; background: var(--green-400)}
   .cle-av{width: 40px; height: 40px; border-radius: 50%; display:flex; align-items:center; justify-content:center; font: 700 13px/1 var(--ff); color: #fff; box-shadow: var(--shadow-sm); background: var(--gray-600)}
   .cle-type-pip{position: absolute; right: -2px; bottom: -2px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; display:flex; align-items:center; justify-content:center}
   .cle-type-pip.assist{background: var(--purple-assist); color: #fff}
@@ -200,47 +201,46 @@
   .cle-tag.assist{background: var(--purple-100); color: var(--purple-assist)}
   .cle-tag.chat{background: var(--gray-200); color: var(--gray-700)}
   .cle-channel{font: var(--copy-sm); color: var(--gray-700)}
-  .col-cl.collapsed .cl-header{padding: var(--sp-3) 12px}
+  .col-cl.collapsed .cl-header{padding-left: var(--sp-5)}
   .col-cl.collapsed .cl-htitle{display:none}
   .col-cl.collapsed .cl-filters{display:none}
   .col-cl.collapsed .cle-body{display:none}
-  .col-cl.collapsed .cle-card{padding: 8px 12px; border-bottom: none; border-left: none; gap: 0}
-  .col-cl.collapsed .cle-card.active{background: var(--green-400); border-radius: var(--radius-sm); margin: 2px 8px; padding: 8px}
-  .col-cl.collapsed .cle-card.active .cle-av{box-shadow: 0 0 0 2px #fff}
-  .col-cl.collapsed .cle-priority-dot{left: 2px}
+  .col-cl.collapsed .cle-card{border-bottom: none; border-left: none; gap: 0}
+  .col-cl.collapsed .cle-card.active{background: var(--green-400)}
+  .col-cl.collapsed .cle-priority-dot{display:none}
 
   /* PROFILE */
   .profile-card{background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: var(--sp-4); margin-bottom: var(--sp-3)}
   .profile-head{display:flex; align-items:center; gap: var(--sp-3); margin-bottom: var(--sp-3)}
   .profile-av{width: 56px; height: 56px; border-radius: var(--radius-round); color: #fff; display:flex; align-items:center; justify-content:center; font: 700 18px/1 var(--ff); box-shadow: var(--shadow-sm); flex-shrink: 0}
   .profile-name{font: var(--h3); color: var(--black)}
-  .profile-dots{margin-left:auto; color: var(--gray-500); font-size: 18px; cursor: pointer; padding: 0 var(--sp-1)}
+  .profile-dots{margin-left:auto; font-weight: 700; color: var(--gray-700); font-size: 24px; cursor: pointer; padding: 0 var(--sp-1)}
   .kv{display:flex; justify-content:space-between; padding: var(--sp-1) 0; font: var(--copy)}
   .link-customer{display:flex; align-items:center; gap: var(--sp-2); padding: var(--sp-3) 0 0; font: var(--button); color: var(--green-400); border-top: 1px solid var(--gray-200); margin-top: var(--sp-3); cursor: pointer}
   .link-customer .suggestion-count{margin-left:auto; color: var(--gray-500); font: var(--copy-sm)}
   .sec-title{font: 700 16px/1 var(--ff); color: var(--black); margin-bottom: var(--sp-3); display:flex; align-items:center; justify-content:space-between}
-  .sec-title .add{color: var(--gray-500); font-size: 18px; font-weight: 400; cursor: pointer}
+  .sec-title .add{color: var(--gray-500); font-size: 24px; font-weight: 500; cursor: pointer}
   .contact-row{display:flex; flex-wrap: wrap; align-items:center; gap: var(--sp-2) var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black)}
   .contact-row .ci{color: var(--gray-500); width: 16px; height: 16px; flex-shrink: 0; display:inline-flex; align-items:center; justify-content:center}
   .contact-row .tag{background: var(--black); color: #fff; font: 700 9px/1 var(--ff); padding: 3px 6px; border-radius: 3px; letter-spacing: .5px}
-  .contact-row .tag-grp{margin-left:auto; display:flex; gap: 4px}
+  .contact-row .tag-grp{display:none}
   .contact-sub{font: var(--copy-sm); color: var(--gray-700); padding-left: 28px}
   .pref-row{display:flex; padding: 4px 0; font: var(--copy); color: var(--black)}
   .pref-row .pl{color: var(--gray-700); min-width: 140px}
-  .order-card{display:flex; align-items:center; gap: var(--sp-3); padding: var(--sp-2) 0}
+  .order-card{display:flex; align-items:flex-start; gap: var(--sp-3); padding: var(--sp-2) 0}
   .order-thumb{width: 56px; height: 56px; border-radius: var(--radius-sm); background: var(--gray-200); flex-shrink: 0; display:flex; align-items:center; justify-content:center; overflow:hidden}
   .order-info{flex:1}
   .order-info .oid{font: var(--copy); color: var(--black)}
   .order-info .oid a{font-weight: 700}
   .order-info .ometa{font: var(--copy); color: var(--black)}
-  .order-chev{color: var(--gray-500); cursor: pointer}
+  .order-chev{color: var(--gray-500); cursor: pointer; display:flex; align-items:center}
   .conv-row{display:flex; gap: var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black); border-bottom: 1px solid var(--gray-200)}
   .conv-row:last-child{border-bottom: none}
   .conv-row .when{color: var(--gray-700); min-width: 56px}
 
   /* CONVERSATION */
   .conv-wrap{flex:1; display:flex; flex-direction:column; overflow:hidden}
-  .conv-header{background: none; border-bottom: 1px solid var(--gray-200); padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
+  .conv-header{background: none; padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
   .conv-header .title{color: var(--black); font-weight: 700}
   .conv-header-right{position:absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); display:flex; gap: var(--sp-2); color: var(--gray-500)}
   /* padding-bottom = ~70vh of scroll buffer below the last message so the
@@ -249,7 +249,7 @@
      progresses. */
   .conv-scroll{
     flex:1; overflow-y:auto;
-    padding: var(--sp-6) var(--sp-6) 70vh;
+    padding: var(--sp-6);
     background: none;
     position: relative;
   }
@@ -612,7 +612,7 @@
   .bb-assigned .at{line-height: 1.3}
   .bb-assigned .at .at-name{display:block; font: 400 12px/1.2 var(--ff); color: var(--black)}
   .bb-assigned .at strong{display:block; font: 400 11px/1.2 var(--ff); color: var(--gray-700); font-weight: 400}
-  .bb-fab{width: 32px; height: 32px; border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 700 18px/1 var(--ff)}
+  .bb-fab{width: 32px; height: 32px; border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 500 32px/1 var(--ff); padding-bottom: 5px}
   .bb-input{flex: 1; height: 32px; border: 1px solid var(--gray-300); border-radius: 6px; padding: 0 12px; font: 400 12px/1 var(--ff); background: var(--white); color: var(--black); box-shadow: inset 0 1px 2px rgba(0,0,0,.02)}
   .bb-input:focus{outline: none; border-color: var(--green-400)}
 
@@ -635,7 +635,7 @@
   /* COPILOT */
   .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200); position: relative; overflow: visible}
   .rp-gutter{width: 32px; padding: var(--sp-4) 0 var(--sp-6); display:flex; flex-direction:column; align-items: flex-end; gap: var(--sp-1); background: transparent; position: absolute; left: -32px; top: 0; bottom: 0; z-index: 1}
-  .rp-tab{width: 24px; height: 24px; border-radius: 12px 0 0 12px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer}
+  .rp-tab{width: 24px; height: 24px; border-radius: 12px 0 0 12px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer; padding-top: 1px; padding-left: 1px; margin-right: 2px;}
   .rp-tab.active{background: var(--purple-assist); color: #fff}
   .rp-tab.expand{background: var(--white); color: var(--gray-700)}
   .rp-tab.expand:hover{background: var(--gray-200)}
@@ -1233,7 +1233,7 @@
 
   /* AI Summary card */
   .ai-summary-wrap{margin-bottom: var(--sp-5)}
-  .ai-summary-event{text-align:center; padding: var(--sp-3) 0 var(--sp-2); font: var(--copy-sm); color: var(--gray-700)}
+  .ai-summary-event{text-align:right; padding: var(--sp-3) 0 var(--sp-2); font: var(--copy-sm); color: var(--gray-700)}
   .ai-summary-bub{background: var(--white); border: 1px solid var(--purple-assist); border-radius: 16px; padding: var(--sp-3) var(--sp-4); box-shadow: 0 1px 2px rgba(0,0,0,.04)}
   .ai-summary-bub .asb-eyebrow{font: 500 13px/1 var(--ff); color: var(--gray-700); margin-top: var(--sp-2); margin-bottom: var(--sp-2)}
   .ai-summary-bub .asb-section{margin-top: var(--sp-3)}
@@ -1322,6 +1322,101 @@
   .conv-scroll::-webkit-scrollbar, .rp-scroll::-webkit-scrollbar, .col-profile::-webkit-scrollbar, .cl-list::-webkit-scrollbar{width: 8px}
   .conv-scroll::-webkit-scrollbar-thumb, .rp-scroll::-webkit-scrollbar-thumb, .col-profile::-webkit-scrollbar-thumb, .cl-list::-webkit-scrollbar-thumb{background: transparent; border-radius: 4px; transition: background .15s}
   .conv-scroll:hover::-webkit-scrollbar-thumb, .rp-scroll:hover::-webkit-scrollbar-thumb, .col-profile:hover::-webkit-scrollbar-thumb, .cl-list:hover::-webkit-scrollbar-thumb{background: var(--gray-300)}
+
+  /* ── THEME SWITCHER ── */
+  .theme-picker{display:flex; align-items:center; gap: 5px; margin-right: 4px}
+  .theme-swatch{width: 14px; height: 14px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: border-color .15s}
+  .theme-swatch.active{border-color: var(--gray-700)}
+  .theme-swatch[data-t="default"]{background: #F6F6F6; border-color: #CECECE}
+  .theme-swatch[data-t="bold"]{background: #DCDCDC; border-color: #9A9A9A}
+  .theme-swatch[data-t="dark"]{background: #1C2030; border-color: #3E4870}
+  .theme-swatch[data-t="warm"]{background: #C4C4C4; border-color: #9A9A9A}
+
+  /* Avatar menu popover (contrast / theme picker) */
+  .nav-av{cursor: pointer}
+  .av-pop{
+    position: fixed; top: 56px; right: 16px;
+    width: 200px;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 32px rgba(0,0,0,.14);
+    padding: var(--sp-3);
+    z-index: 400;
+    display: none;
+  }
+  .av-pop.open{display: block}
+  .av-pop .ap-title{font: 700 12px/1 var(--ff); color: var(--gray-700); text-transform: uppercase; letter-spacing: .5px; padding: 4px 8px var(--sp-2)}
+  .av-pop .ap-row{display:flex; align-items:center; gap: 10px; padding: 8px; cursor: pointer; border-radius: var(--radius-sm); font: var(--copy); color: var(--black)}
+  .av-pop .ap-row:hover{background: var(--gray-50)}
+
+  /* ── THEME: Bold (high-contrast light) ── */
+  [data-theme="bold"] {
+    --white:     #FFFFFF;
+    --black:     #000000;
+    --gray-50:   #F2F2F2;
+    --gray-100:  #E6E6E6;
+    --gray-200:  #B0B0B0;
+    --gray-300:  #828282;
+    --gray-400:  #5E5E5E;
+    --gray-500:  #383838;
+    --gray-600:  #242424;
+    --gray-700:  #161616;
+    --gray-800:  #0A0A0A;
+    --gray-900:  #000000;
+    --green-400: #006A00;
+    --green-500: #004D00;
+    --green-300: #2C8C2C;
+    --green-100: #BCE6BC;
+    --green-50:  #DCEFDC;
+  }
+
+  /* ── THEME: Dark (TV dark mode) ── */
+  [data-theme="dark"] {
+    --white:          #1C2030;
+    --black:          #E8EDF8;
+    --gray-50:        #1F2438;
+    --gray-100:       #242940;
+    --gray-200:       #2E3550;
+    --gray-300:       #3E4870;
+    --gray-400:       #3E4870;
+    --gray-500:       #8090B8;
+    --gray-600:       #9DADD0;
+    --gray-700:       #B4C0DC;
+    --gray-800:       #CBD4EC;
+    --gray-900:       #DDE4F4;
+    --green-400:      #17a717;
+    --green-500:      #00AA00;
+    --green-300:      #53b553;
+    --green-100:      #003800;
+    --green-50:       #001E00;
+    --purple-assist:  #A882FF;
+    --purple-100:     #2A1E50;
+    --red-400:        #FF5555;
+    --red-50:         #2A0808;
+    --navy:           #A0B8E8;
+  }
+
+  /* ── THEME: Warm (warm high-contrast) ── */
+  [data-theme="warm"] {
+    --white:     #fff;
+    --black:     #050300;
+    --gray-50:   #F2EFEC;
+    --gray-100:  #E5E0DA;
+    --gray-200:  #B2ADA6;
+    --gray-300:  #847E76;
+    --gray-400:  #635D54;
+    --gray-500:  #4A3820;
+    --gray-600:  #382810;
+    --gray-700:  #281A0A;
+    --gray-800:  #180E04;
+    --gray-900:  #0A0500;
+    --green-500: #2A7A2A;
+    --green-400: #2C8C2C;
+    --green-300: #056905;
+    --green-100: #008500;
+    --green-50:  #b5dfb5;
+  }
 </style>
 </head>
 <body>
@@ -1346,7 +1441,7 @@
     <div class="nav-divider"></div>
     <button class="icon-btn" title="Search"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
     <button class="icon-btn" id="settings-btn" title="Display settings" onclick="toggleSettings(event)"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
-    <div class="nav-av">JA</div>
+    <div class="nav-av" id="nav-av" title="Profile" onclick="toggleAvatarMenu(event)">JA</div>
   </div>
 </nav>
 
@@ -1393,12 +1488,12 @@
       <div class="bb-av" style="background:#7BB86F">JA</div>
       <div class="at"><span class="at-name">Joseph Ansanelli (You)</span><strong>VIP Response Team</strong></div>
     </div>
-    <button class="bb-fab"><span>+</span></button>
-    <input class="bb-input" placeholder="Reply to Jordan…">
     <div class="bb-topic">
       <div>Topic<div class="tval" id="bb-topic-val">Return request</div></div>
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     </div>
+    <button class="bb-fab"><span>+</span></button>
+    <input class="bb-input" placeholder="Reply to Jordan…">
     <div class="bb-split">
       <div class="bbs-main">Close &amp; Next</div>
       <div class="bbs-caret"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
@@ -1420,7 +1515,6 @@
         </button>
         <button class="rp-tab active" title="Assist"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z" fill="currentColor"/></svg></button>
         <button class="rp-tab" title="Answers"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2a1 1 0 011-1h7l2 2v11a1 1 0 01-1 1H4a1 1 0 01-1-1V2z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 5h5M5 8h5M5 11h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
-        <button class="rp-tab" title="Library"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="4" y="2" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.3" fill="#fff"/></svg></button>
       </div>
       <div class="rp-body">
         <div class="rp-scroll" id="rp-scroll">
@@ -1500,6 +1594,15 @@
   </div>
 </div>
 
+<!-- Avatar menu popover — theme / contrast picker -->
+<div class="av-pop" id="av-pop" onclick="event.stopPropagation()">
+  <div class="ap-title">Theme</div>
+  <div class="ap-row" onclick="setTheme('default')"><span class="theme-swatch active" data-t="default"></span>Default</div>
+  <div class="ap-row" onclick="setTheme('bold')"><span class="theme-swatch" data-t="bold"></span>Bold</div>
+  <div class="ap-row" onclick="setTheme('dark')"><span class="theme-swatch" data-t="dark"></span>Dark</div>
+  <div class="ap-row" onclick="setTheme('warm')"><span class="theme-swatch" data-t="warm"></span>Warm</div>
+</div>
+
 <script>
 /* =========================================================================
    SCENARIOS — v7
@@ -1540,9 +1643,9 @@ const JORDAN = {
     ],
     ordersLabel: '7 orders',
     orders: [
-      { id: 'GCL-55892', title: 'Hoka Clifton 9 · Black/White · Size 10.5', status: 'Delivered', total: '$189.99', date: '02/14/2026', icon: 'shoe' },
-      { id: 'GCL-48201', title: 'Hoka Bondi 7 · Black · Size 10.5',          status: 'Delivered', total: '$159.99', date: '09/20/2025', icon: 'shoe' },
-      { id: 'GCL-39877', title: 'Hoka Mach 5 · White/Blue · Size 10.5',       status: 'Delivered', total: '$144.99', date: '04/27/2025', icon: 'shoe' }
+      { id: 'GCL-55892', title: 'Hoka Clifton 9 · Black/White · Size 10.5', status: 'Delivered', total: '$189.99', date: '02/14/2026', icon: 'clifton' },
+      { id: 'GCL-48201', title: 'Hoka Bondi 7 · Black · Size 10.5',          status: 'Delivered', total: '$159.99', date: '09/20/2025', icon: 'bondi' },
+      { id: 'GCL-39877', title: 'Hoka Mach 5 · White/Blue · Size 10.5',       status: 'Delivered', total: '$144.99', date: '04/27/2025', icon: 'mach' }
     ],
     conversations: [
       { when: 'Today',   text: 'Return request (Clifton 9)' },
@@ -1755,7 +1858,7 @@ const RACHEL = {
     ],
     ordersLabel: '12 orders',
     orders: [
-      { id: 'ORD-2026-84721', title: 'Hoka Rocket X 2 · Black/White · Size 8.5', status: 'Delivered', total: '$250.00', date: '04/22/2026', icon: 'shoe' }
+      { id: 'ORD-2026-84721', title: 'Hoka Rocket X 2 · Black/White · Size 8.5', status: 'Delivered', total: '$250.00', date: '04/22/2026', icon: 'speedgoat' }
     ],
     conversations: [
       { when: 'Today',  text: 'Damaged shipment report' },
@@ -1907,7 +2010,7 @@ const STUB = (p) => ({ ...p, wired: false });
 
 const CUSTOMERS = [
   STUB({ id: 'sarah', type: 'chat', listCard: {
-    name: 'Sarah Kim', initials: 'SK', avatarColor: '#A47BD4',
+    name: 'Sarah Kim', initials: 'SK', avatarColor: '#0F203C',
     preview: "Hey, where's my order? It's been a week…", time: '1m', channel: 'Chat' }}),
   { ...RACHEL, wired: true },
   { ...JORDAN, wired: true },
@@ -1944,22 +2047,22 @@ function renderCustomerList() {
       <div class="cle-left">
         <span class="cle-priority-dot" style="${c.listCard.priority === 'high' ? '' : 'background: var(--gray-400)'}"></span>
         <div class="cle-av" style="background:${c.listCard.avatarColor}">${c.listCard.initials}</div>
-        <div class="cle-type-pip ${c.type === 'assist' ? 'assist' : 'chat'}">
-          ${c.type === 'assist'
-            ? '<svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l1.5 4.5L14 7l-4.5 1.5L8 13l-1.5-4.5L2 7l4.5-1.5z"/></svg>'
-            : '<svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>'}
-        </div>
       </div>
       <div class="cle-body">
         <div class="cle-row1"><span class="cle-name">${c.listCard.name}</span><span class="cle-time">${c.listCard.time}</span></div>
         <div class="cle-preview">${c.listCard.preview}</div>
-        <div class="cle-meta-row">
-          <span class="cle-tag ${c.type === 'assist' ? 'assist' : 'chat'}">${c.type === 'assist' ? 'Needs input' : 'Chat'}</span>
-          <span class="cle-channel">${c.listCard.channel}</span>
-        </div>
       </div>
     </div>
   `).join('');
+}
+
+function setTheme(t) {
+  const root = document.documentElement;
+  if (t === 'default') root.removeAttribute('data-theme');
+  else root.setAttribute('data-theme', t);
+  // Clear inline green vars set by applyGreen() so theme's CSS greens take effect.
+  ['--green-400','--green-500','--green-300','--green-100','--green-50'].forEach(p => root.style.removeProperty(p));
+  document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('active', s.dataset.t === t));
 }
 
 function toggleList() {
@@ -2008,7 +2111,7 @@ function renderProfile(s) {
         <div class="ometa">${o.status} • ${o.total}</div>
         <div class="ometa" style="color: var(--gray-700); font-size: 12px">Ordered ${o.date}</div>
       </div>
-      <span class="order-chev">▾</span>
+      <span class="order-chev"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </div>`).join('');
 
   const convos = p.conversations.map(c => `<div class="conv-row"><span class="when">${c.when}</span><span>${c.text}</span></div>`).join('');
@@ -2047,7 +2150,13 @@ function renderProfile(s) {
 }
 
 function orderIcon(kind) {
-  if (kind === 'shoe') return '<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 20c0-2 2-4 4-5l3-1 2-3 6 1c3 1 9 3 9 7v3H4v-2z" stroke="#919191" stroke-width="1.3" fill="#F1F1F1"/><path d="M11 14l2 2M14 12l2 2M17 10l2 2" stroke="#919191" stroke-width="1.2" stroke-linecap="round"/></svg>';
+  const imgs = {
+    clifton:   'images/Hoka_Clifton.png',
+    bondi:     'images/running_shoe.png',
+    mach:      'images/speedgoat.png',
+    speedgoat: 'images/speedgoat.png'
+  };
+  if (imgs[kind]) return `<img src="${imgs[kind]}" alt="" style="width:100%;height:100%;object-fit:cover">`;
   return '<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="22" rx="2" fill="#E3E3E3"/><circle cx="16" cy="17" r="6" stroke="#919191" stroke-width="1.4" fill="none"/><path d="M12 6v-2h8v2" stroke="#919191" stroke-width="1.4" fill="none"/></svg>';
 }
 
@@ -2559,7 +2668,7 @@ function sideEffectSendOutbound(channel) {
   setTimeout(() => {
     tl.insertAdjacentHTML('beforeend',
       `<div class="msg-meta"><span class="ch-icon">${icon}</span>Jordan Rivera ${label} — just now</div>
-       <div class="msg inbound"><div class="msg-av" style="background:#6B8E6F">JR</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
+       <div class="msg inbound"><div class="msg-av" style="background:#64b964">JR</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
     scrollTimeline();
   }, 1500);
 }
@@ -3593,8 +3702,7 @@ function selectCustomer(id) {
   currentId = id;
   document.querySelectorAll('.cle-card').forEach(el => el.classList.toggle('active', el.dataset.id === id));
 
-  // Panel-weighted layout when a Needs-input customer is selected (copilot is primary surface)
-  document.body.classList.toggle('panel-weighted', s.type === 'assist');
+  document.body.classList.add('panel-weighted');
 
   // Reset session state BEFORE rendering — Rachel bootstraps directly into the
   // 'planned' state so her taskcard mounts with the plan already built. This
@@ -3639,6 +3747,12 @@ const CONTRAST_CLASSES = ['', 'contrast-high', 'contrast-max'];
 function toggleSettings(e) {
   if (e) e.stopPropagation();
   const pop = document.getElementById('settings-pop');
+  pop.classList.toggle('open');
+}
+
+function toggleAvatarMenu(e) {
+  if (e) e.stopPropagation();
+  const pop = document.getElementById('av-pop');
   pop.classList.toggle('open');
 }
 
@@ -3760,11 +3874,17 @@ document.addEventListener('click', (e) => {
     const pop = document.getElementById('settings-pop');
     if (pop) pop.classList.remove('open');
   }
+  if (!e.target.closest('#av-pop') && !e.target.closest('#nav-av')) {
+    const ap = document.getElementById('av-pop');
+    if (ap) ap.classList.remove('open');
+  }
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     const pop = document.getElementById('settings-pop');
     if (pop) pop.classList.remove('open');
+    const ap = document.getElementById('av-pop');
+    if (ap) ap.classList.remove('open');
   }
 });
 
