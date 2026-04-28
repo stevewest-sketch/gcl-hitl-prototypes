@@ -740,6 +740,37 @@
   /* Shared "Request for X" pattern — used by both the timeline taskcard
      (pending state) and the right-panel rec-lite. Row-based label/value
      layout per Gladly product Task card style. */
+  /* Gladly AI Request badge — pill header on Rachel's request module.
+     Hosts the lifecycle dot (red pending, green ✓ approved) inline with the label. */
+  .req-badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 5px;
+    background: #8C69F0;
+    color: var(--white);
+    font: 600 14px/1 var(--ff);
+    letter-spacing: 0.3px;
+    margin-bottom: 12px;
+  }
+  .req-badge .req-dot{
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #F5C518;
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    font: 700 8px/1 var(--ff);
+    color: var(--white);
+  }
+  .req-badge .req-dot-approved{ background: var(--white); color: #009b00; }
+  /* Pending state — thin purple border (matches the badge fill) around the
+     request container while the AI's request is still awaiting approval. */
+  .rec-lite.req-pending{ border-color: #8C69F0; }
+  .tl-task.req-pending{ border-color: #8C69F0; }
+  /* Approved state — muted green fill, border drops away once Approve & run fires. */
+  .rec-lite.req-approved{ background: var(--green-50); border-color: transparent; }
+  .tl-task.req-approved{ background: var(--green-50); border-color: transparent; }
+
   .req-head{
     display: flex; align-items: center; gap: 8px;
     margin-bottom: 14px;
@@ -755,8 +786,8 @@
     color: var(--white);
   }
   .req-head .req-dot-approved{ background: var(--green-400); }
-  .req-head .req-label-text{ font: var(--copy-bold); color: var(--black); font-size: 14px; }
-  .req-head .req-for{ color: var(--green-400); font-weight: 600; }
+  .req-head .req-label-text{ font: 400 14px/1.4 var(--ff); color: #009b00; }
+  .req-head .req-for{ color: #009b00; font-weight: 400; }
   .req-head .req-chev{ color: var(--gray-700); font-size: 12px; }
   .req-title{
     font: 600 13px/1.4 var(--ff);
@@ -1902,7 +1933,7 @@ const RACHEL = {
       { when: 'Feb 2',  text: 'Product question — Bondi' }
     ]
   },
-  convHeader: { title: '{TODAY} · Damaged shipment', status: 'Assigned to Gladly AI' },
+  convHeader: { title: '{TODAY} · Damaged shipment', status: 'Assigned to Joseph Ansanelli' },
   topic: 'Damaged shipment',
   events: [
     { kind: 'event', current: true, text: '<strong>{TODAY}</strong> · Today · Damaged shipment' },
@@ -2209,10 +2240,31 @@ function subToday(str) {
   return (str || '').replace(/\{TODAY\}/g, formatToday());
 }
 
+// Rachel's conversation is driven by Gladly AI (Joseph supervises and approves);
+// Jordan's is staffed by Joseph directly. Reflect that in the bottom-bar assignee.
+function updateBottomBarAssignee(s) {
+  const av = document.querySelector('.bb-assigned .bb-av');
+  const name = document.querySelector('.bb-assigned .at-name');
+  const team = document.querySelector('.bb-assigned .at strong');
+  if (!av || !name || !team) return;
+  if (s && s.id === 'rachel') {
+    av.textContent = 'AI';
+    av.style.background = 'var(--navy)';
+    name.textContent = 'Gladly AI';
+    team.textContent = 'AI VIP Response Team';
+  } else {
+    av.textContent = 'JA';
+    av.style.background = '#7BB86F';
+    name.textContent = 'Joseph Ansanelli (You)';
+    team.textContent = 'VIP Response Team';
+  }
+}
+
 function renderConversation(s) {
   document.getElementById('conv-title').textContent = subToday(s.convHeader.title);
   document.getElementById('conv-status').textContent = s.convHeader.status;
   document.getElementById('bb-topic-val').textContent = s.topic;
+  updateBottomBarAssignee(s);
 
   const tl = document.getElementById('timeline');
   tl.innerHTML = s.events.map(e => renderEvent(e, s)).join('');
@@ -2298,7 +2350,8 @@ function renderEvent(e) {
     // 'planned' in resetSessionForScenario, so the taskcard mounts with the
     // plan already visible.
     const state = session.rachelTaskState || 'pending';
-    return `${meta}<div class="tl-task">${renderTaskcardInner(state)}</div>`;
+    const stateClass = (state === 'approved' || state === 'replacement-only') ? 'req-approved' : 'req-pending';
+    return `${meta}<div class="tl-task ${stateClass}">${renderTaskcardInner(state)}</div>`;
   }
   return '';
 }
@@ -2330,11 +2383,13 @@ function renderCopilot(s) {
   if (c.rec) {
     recEl.style.display = '';
     recEl.innerHTML = renderRecLite(c.rec);
+    applyRequestModuleState(recEl, s);
     askEl.textContent = c.ask || '';
     askEl.style.display = c.ask ? '' : 'none';
   } else {
     recEl.style.display = 'none';
     askEl.style.display = 'none';
+    recEl.classList.remove('req-pending', 'req-approved');
   }
 
   // Rachel's action card is now pushed to the chat stream via prepPlan
@@ -2880,6 +2935,22 @@ function rerenderRecLite() {
   }
   const overlay = Object.assign({}, rec, { actions });
   recEl.innerHTML = renderRecLite(overlay);
+  applyRequestModuleState(recEl, s);
+}
+
+// Toggle the Gladly-green border (pending) and muted-green fill (approved)
+// on Rachel's request modules. No-op for scenarios that don't use the
+// Request layout (e.g. Jordan's Handoff Context).
+function applyRequestModuleState(el, s) {
+  if (!el) return;
+  el.classList.remove('req-pending', 'req-approved');
+  if (!s || s.id !== 'rachel') return;
+  const state = session.rachelTaskState || 'pending';
+  if (state === 'approved' || state === 'replacement-only') {
+    el.classList.add('req-approved');
+  } else {
+    el.classList.add('req-pending');
+  }
 }
 
 function pushPlanCard(card) {
@@ -3262,6 +3333,7 @@ function rerenderRachelTaskcard() {
   const taskcard = document.querySelector('.tl-task');
   if (!taskcard || !session.rachelTaskcardData) return;
   taskcard.innerHTML = renderTaskcardInner(session.rachelTaskState || 'pending');
+  applyRequestModuleState(taskcard, currentScenario());
 }
 
 // Shared "Gladly AI Request for X" header. Dot state signals lifecycle:
@@ -3274,13 +3346,13 @@ function renderRequestHeader(rec) {
   const isResolved = state === 'approved' || state === 'replacement-only';
   const dotClass = isResolved ? 'req-dot req-dot-approved' : 'req-dot';
   const dotContent = isResolved ? '✓' : '';
+  const badge = `<div class="req-badge"><span class="${dotClass}">${dotContent}</span>Gladly AI Request</div>`;
   const head = `<div class="req-head">
-    <span class="${dotClass}">${dotContent}</span>
-    <span class="req-label-text">Gladly AI Request for <span class="req-for">${rec.forName || ''}</span></span>
+    <span class="req-label-text">Assigned to <span class="req-for">${rec.forName || ''}</span></span>
     <span class="req-chev">▾</span>
   </div>`;
   const title = rec.title ? `<div class="req-title">${rec.title}</div>` : '';
-  return head + title;
+  return badge + head + title;
 }
 
 // Shared body block: description line + Recommendation row + collapsible Details group.
