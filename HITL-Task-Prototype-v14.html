@@ -1758,7 +1758,11 @@ Let me know if there's anything else I can help with.` },
 I've approved the return on your Clifton 9s. You'll see a full refund of $189.99 to your original payment method in 5–7 business days, and a prepaid return label will hit your email shortly.
 
 Wishing you a smooth recovery — when you're ready to lace up again, we'll be here.` },
-        nextChips: []
+        nextChips: [
+          { text: "Make it warmer",  kind: 'secondary', action: 'warmer' },
+          { text: "Make it shorter", kind: 'secondary', action: 'warmer' },
+          { text: "Make it longer",  kind: 'secondary', action: 'warmer' }
+        ]
       },
 
       // ── Post-send (relationship, not upsell) ──────────────────────
@@ -1779,8 +1783,16 @@ Wishing you a smooth recovery — when you're ready to lace up again, we'll be h
         ],
         followup: "Want me to draft a message?",
         nextChips: [
-          { text: "Draft a response", kind: 'primary',   action: 'draftRecSMS' },
-          { text: "End conversation",      kind: 'secondary', action: 'skipRec' }
+          { text: "Draft a response",         kind: 'primary',   action: 'draftRecSMS' },
+          { text: "What else do you recommend?", kind: 'secondary', action: 'whatElseRec' }
+        ]
+      },
+      whatElseRec: {
+        reply: "A few non-product ideas for staying connected through his recovery:<br><br>• <strong>Schedule a check-in</strong> in 4–6 weeks once he's past surgery — a quick \"how's recovery going?\" without a sales angle.<br>• <strong>Apply a $25 thank-you credit</strong> to his account so it's waiting whenever he's ready to lace up again.<br>• <strong>Add him to the comeback list</strong> — early access to next season's race-day drops once he's training again.",
+        followup: "Want me to draft a message?",
+        nextChips: [
+          { text: "Draft a response",         kind: 'primary',   action: 'draftRecSMS' },
+          { text: "What else do you recommend?", kind: 'secondary', action: 'whatElseRec' }
         ]
       },
       draftRecSMS: {
@@ -1796,7 +1808,31 @@ No rush — they'll be here when you are.`,
           bodyHtml: `Hey Jordan — wishing you a smooth recovery. A few Hokas built for the phase you're in:<br><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Ora Recovery Slide</a><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Bondi 8</a><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Clifton Recovery Socks</a><br><br>No rush — they'll be here when you are.`
         },
         useAction: 'sendRecSMS',
-        nextChips: []
+        nextChips: [
+          { text: "Make it warmer",  kind: 'secondary', action: 'warmerSMS' },
+          { text: "Make it shorter", kind: 'secondary', action: 'warmerSMS' },
+          { text: "Make it longer",  kind: 'secondary', action: 'warmerSMS' }
+        ]
+      },
+      warmerSMS: {
+        preface: "Warmer tone:",
+        draftCard: {
+          label: 'SMS draft · warmer tone',
+          body: `Hey Jordan — thinking of you. Whenever you're ready, here are a few Hokas built for exactly the phase you're in:
+
+• Ora Recovery Slide — easy on/off, max cushion
+• Bondi 8 — the cushion you already trust
+• Clifton Recovery Socks — a small kindness
+
+No pressure at all. Take care of yourself first — we'll be here when you're back on your feet.`,
+          bodyHtml: `Hey Jordan — thinking of you. Whenever you're ready, here are a few Hokas built for exactly the phase you're in:<br><br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Ora Recovery Slide</a> — easy on/off, max cushion<br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Bondi 8</a> — the cushion you already trust<br>• <a class="gladly-link" href="#" onclick="event.preventDefault()">Clifton Recovery Socks</a> — a small kindness<br><br>No pressure at all. Take care of yourself first — we'll be here when you're back on your feet.`
+        },
+        useAction: 'sendRecSMS',
+        nextChips: [
+          { text: "Make it warmer",  kind: 'secondary', action: 'warmerSMS' },
+          { text: "Make it shorter", kind: 'secondary', action: 'warmerSMS' },
+          { text: "Make it longer",  kind: 'secondary', action: 'warmerSMS' }
+        ]
       },
       sendRecSMS: {
         reply: "Sent via SMS.",
@@ -2588,6 +2624,8 @@ function runScript(action) {
   // The message gets an inline Use button + feedback icons via pushAIMsg({draft:true}).
   if (beat.draftCard) {
     session.jordanLastDraft = (action === 'warmer') ? 'warmer' : 'draft';
+    if (action === 'warmerSMS')   session.jordanLastSMS = 'warmer';
+    if (action === 'draftRecSMS') session.jordanLastSMS = 'draft';
     const rawBody = beat.draftCard.bodyHtml || escapeHtml(beat.draftCard.body).replace(/\n/g, '<br>');
     const label = beat.draftCard.label || 'Draft';
     const body = `<div class="dc-label">${label}</div><div class="dc-body">${rawBody}</div>`;
@@ -2675,7 +2713,12 @@ function sideEffectSendOutbound(channel) {
 
 function sideEffectSendOutboundSMS() {
   const s = currentScenario();
-  const body = s.copilot.outboundSMSBodyHtml || (s.copilot.outboundSMSBody || '').replace(/\n/g, '<br>');
+  let body;
+  if (session.jordanLastSMS === 'warmer') {
+    const warmer = s.copilot.script.warmerSMS && s.copilot.script.warmerSMS.draftCard;
+    if (warmer) body = warmer.bodyHtml || (warmer.body || '').replace(/\n/g, '<br>');
+  }
+  if (!body) body = s.copilot.outboundSMSBodyHtml || (s.copilot.outboundSMSBody || '').replace(/\n/g, '<br>');
   const tl = document.getElementById('timeline');
   const icon = CH_ICON.sms;
   tl.insertAdjacentHTML('beforeend',
