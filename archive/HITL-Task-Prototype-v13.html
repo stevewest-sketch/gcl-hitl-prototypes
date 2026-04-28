@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1440, initial-scale=1">
-<title>Gladly Team — HITL + Team Assist Prototype v9</title>
+<title>Gladly Team — HITL + Team Assist Prototype v13</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
@@ -243,17 +243,310 @@
   .conv-header{background: none; border-bottom: 1px solid var(--gray-200); padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
   .conv-header .title{color: var(--black); font-weight: 700}
   .conv-header-right{position:absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); display:flex; gap: var(--sp-2); color: var(--gray-500)}
-  .conv-scroll{flex:1; overflow-y:auto; padding: var(--sp-6) var(--sp-6); background: none;}
-  .tl-event{text-align:center; padding: var(--sp-3) 0; font: var(--copy-sm); color: var(--gray-700)}
-  .tl-event strong{color: var(--black); font-weight: 700}
-  .tl-event a{color: var(--green-400); font-weight: 500}
-  .tl-event .check{color: var(--green-400); font-weight: 700; margin-right: 6px}
+  /* padding-bottom = ~70vh of scroll buffer below the last message so the
+     agent can scroll the latest exchange up to the top of the viewport.
+     New demo-flow messages land in that empty space as the conversation
+     progresses. */
+  .conv-scroll{
+    flex:1; overflow-y:auto;
+    padding: var(--sp-6) var(--sp-6) 70vh;
+    background: none;
+    position: relative;
+  }
+  /* Conversation date dividers — plain text sitting on the timeline's gray
+     background (no card, no border). Match Gladly product style: gray/secondary
+     for previous conversations; bold/black for the current conversation header.
+     Dividers scroll naturally with the timeline (NOT sticky) — the timeline
+     auto-positions the current header at top on customer-load. */
+  .tl-event{
+    text-align: center;
+    padding: var(--sp-5) var(--sp-6) var(--sp-3);
+    font: var(--copy-sm);
+    color: var(--gray-700);
+    background: none;
+  }
+  .tl-event strong{ color: var(--gray-800); font-weight: 700 }
+  .tl-event a{ color: var(--green-400); font-weight: 500 }
+  .tl-event .check{ color: var(--green-400); font-weight: 700; margin-right: 6px }
+  .tl-event.current{
+    color: var(--black);
+    font: 600 13px/1.4 var(--ff);
+    padding-top: var(--sp-4);
+    padding-bottom: var(--sp-4);
+  }
+  .tl-event.current strong{ color: var(--black); font-weight: 700; }
 
   /* Activity acknowledgements — outbound-side actions (agent decisions, AI executions).
      Right-aligned like outbound messages, not centered like routing/date dividers. */
   .tl-activity{text-align:right; padding: var(--sp-1) 0; font: var(--copy-sm); color: var(--gray-700)}
   .tl-activity strong{color: var(--black); font-weight: 700}
   .tl-activity a{color: var(--green-400); font-weight: 500}
+
+  /* Approval summary card — replaces a stack of tl-activity lines after Approve & run.
+     Same border-only Gladly card language as .rec-lite. */
+  .tl-approval{
+    margin: 12px 0;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .tl-approval .tla-label{
+    font: 600 10px/1 var(--ff);
+    color: var(--gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tl-approval .tla-label::before{
+    content: "";
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--green-400);
+    flex-shrink: 0;
+  }
+  .tl-approval .tla-title{ font: var(--copy-bold); color: var(--black); margin-bottom: 10px; }
+  .tl-approval .tla-events{ margin: 0; padding-left: 16px; list-style: disc; }
+  .tl-approval .tla-events li{ font: var(--copy); color: var(--gray-800); padding: 3px 0; line-height: 1.55; }
+  .tl-approval .tla-events li strong{ color: var(--black); font-weight: 700; }
+
+  /* AI-to-agent task card — mirrors a copilot prompt as a timeline element.
+     Pattern reference: Gladly product "Task for Support" card. */
+  .tl-task{
+    margin: 8px 0 16px auto;
+    max-width: 88%;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .tl-task .tlt-head{
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .tl-task .tlt-dot{
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green-400);
+    flex-shrink: 0;
+  }
+  .tl-task .tlt-label{ font: var(--copy-bold); color: var(--black); }
+  .tl-task .tlt-for{ font: var(--copy); color: var(--green-400); font-weight: 500; }
+  .tl-task .tlt-body{
+    font: var(--copy);
+    color: var(--black);
+    margin-bottom: 14px;
+    line-height: 1.62;
+  }
+  .tl-task .tlt-actions{
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .tl-task .tlt-primary,
+  .tl-task .tlt-secondary{
+    font: 500 13px/1 var(--ff);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    min-width: 80px;
+  }
+  .tl-task .tlt-primary{
+    background: var(--green-400);
+    color: var(--white);
+    border: 1px solid var(--green-400);
+  }
+  .tl-task .tlt-primary:hover{ background: var(--green-300); border-color: var(--green-300); }
+  .tl-task .tlt-tertiary{
+    background: transparent;
+    color: var(--green-400);
+    border: 1px solid var(--green-400);
+    font: 500 13px/1 var(--ff);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    min-width: 80px;
+  }
+  .tl-task .tlt-tertiary:hover{ background: var(--green-50); }
+  /* Quiet text-only handoff (matches .req-action-secondary on right panel) */
+  .tl-task .tlt-secondary{
+    background: transparent;
+    color: var(--gray-700);
+    border: 1px solid transparent;
+    min-width: 0;
+  }
+  .tl-task .tlt-secondary:hover{ color: var(--black); text-decoration: underline; }
+  .tl-task .tlt-resolution{ font: var(--copy-sm); color: var(--gray-700); }
+  .tl-task .tlt-resolution .check{ color: var(--green-400); font-weight: 700; margin-right: 4px; }
+
+  /* Plan section embedded inside the taskcard. Mirrors the chat-side action card
+     in compact form (steps + label, no inline add/remove). */
+  .tlt-plan{
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .tlt-plan-label{
+    font: 600 10px/1 var(--ff);
+    color: var(--gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+  .tlt-plan ol{
+    list-style: none;
+    counter-reset: tlstep;
+    padding-left: 0;
+    margin: 0;
+  }
+  .tlt-plan ol li{
+    counter-increment: tlstep;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.62;
+  }
+  .tlt-plan ol li::before{
+    content: counter(tlstep) ".";
+    font-weight: 600;
+    color: var(--gray-700);
+    min-width: 16px;
+    flex-shrink: 0;
+  }
+  /* Approved variant: number → checkmark */
+  .tlt-plan.with-checks ol li::before{
+    content: "✓";
+    color: var(--green-400);
+    font-weight: 700;
+  }
+  /* Editing variant: dashed accent + remove buttons + add-step UI at bottom */
+  .tlt-plan.editing{
+    background: var(--white);
+    border: 1px dashed var(--gray-400);
+  }
+  .tlt-plan.editing .tlt-edit-step{
+    counter-increment: tlstep;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.62;
+  }
+  .tlt-plan.editing .tlt-edit-step::before{
+    content: counter(tlstep) ".";
+    font-weight: 600;
+    color: var(--gray-700);
+    min-width: 16px;
+    flex-shrink: 0;
+  }
+  .tlt-plan.editing .tlt-edit-step-text{
+    flex: 1;
+    outline: none;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+  }
+  .tlt-plan.editing .tlt-edit-step-text:hover{ background: var(--gray-100); }
+  .tlt-plan.editing .tlt-edit-step-text:focus{
+    background: var(--white);
+    box-shadow: 0 0 0 1.5px var(--green-400);
+  }
+  .tlt-plan.editing .tlt-edit-step-x{
+    background: none;
+    border: none;
+    color: var(--gray-700);
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 1;
+    padding: 4px 6px;
+    border-radius: 4px;
+  }
+  .tlt-plan.editing .tlt-edit-step-x:hover{
+    color: var(--red-400);
+    background: var(--red-50);
+  }
+  /* Inline "Add a step" affordance shown only in editing mode */
+  .tlt-add-row{
+    margin-top: 10px;
+    position: relative;
+  }
+  .tlt-add-btn{
+    background: var(--white);
+    border: 1px dashed var(--gray-400);
+    color: var(--green-400);
+    font: 500 12px/1 var(--ff);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+  }
+  .tlt-add-btn:hover{ background: var(--green-50); border-color: var(--green-400); }
+  .tlt-add-menu{
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+    margin-top: 4px;
+    z-index: 10;
+  }
+  .tlt-add-menu.open{ display: block; }
+  .tlt-add-menu-item{
+    padding: 8px 12px;
+    cursor: pointer;
+    font: var(--copy);
+    color: var(--black);
+  }
+  .tlt-add-menu-item:hover{ background: var(--green-50); }
+
+  /* Show previous plans link (matches Gladly product "Show N previous comments" pattern) */
+  .tlt-show-prev{
+    background: none;
+    border: none;
+    color: var(--green-400);
+    font: 500 13px/1 var(--ff);
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 12px;
+    text-align: left;
+    display: block;
+  }
+  .tlt-show-prev:hover{ text-decoration: underline; }
+
+  /* Previous plans dropdown — collapsed compact view of older plan snapshots */
+  .tlt-prev-plans{ display: none; margin-bottom: 12px; }
+  .tlt-prev-plans.expanded{ display: block; }
+  .tlt-prev{
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .tlt-prev .tlt-prev-label{
+    font: 600 10px/1 var(--ff);
+    color: var(--gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .tlt-prev ol{
+    margin: 0; padding-left: 18px; list-style: decimal;
+    color: var(--gray-700);
+    font: 400 12px/1.5 var(--ff);
+  }
+  .tlt-prev ol li{ padding: 2px 0; }
   .msg-meta{font: var(--copy-sm); color: var(--gray-700); margin-bottom: var(--sp-2); display:flex; align-items:center; gap: 6px}
   .msg-meta.right{justify-content: flex-end}
   .msg-meta .ch-icon{display:inline-flex; align-items:center; justify-content:center; width: 16px; height: 16px; color: var(--gray-600)}
@@ -282,6 +575,14 @@
   .bb-split .bbs-main{padding: 0 var(--sp-4); color: #fff; font: 500 12px/1 var(--ff); display:flex; align-items:center; cursor:pointer}
   .bb-split .bbs-main:hover{background: var(--green-300)}
   .bb-split .bbs-caret{padding: 0 var(--sp-2); border-left: 1px solid rgba(255,255,255,.25); display:flex; align-items:center; color: #fff; cursor: pointer}
+  /* Closed state — after the post-Approve sequence completes the conversation
+     is finished; the bottom-bar button drops to a quiet greyed appearance and
+     the caret flips up to signal the closed/locked state. */
+  .bb-split.closed{ background: var(--white); border: 1px solid var(--gray-300); height: 32px; }
+  .bb-split.closed .bbs-main{ color: var(--gray-700); cursor: default; }
+  .bb-split.closed .bbs-main:hover{ background: transparent; }
+  .bb-split.closed .bbs-caret{ border-left-color: var(--gray-300); color: var(--gray-700); }
+  .bb-split.closed .bbs-caret svg{ transform: rotate(180deg); }
 
   /* COPILOT */
   .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200); position: relative; overflow: visible}
@@ -359,6 +660,225 @@
   .rec-lite .rl-label .pill-modified.on{ display: inline-flex; }
   .rec-lite .rl-title{ font: var(--copy-bold); color: var(--black); margin-bottom: 4px; }
   .rec-lite .rl-line{ font: var(--copy); color: var(--black); line-height: 1.62; }
+  .rec-lite .rl-bullets{ list-style: disc; padding-left: 16px; margin: 4px 0 0; }
+  .rec-lite .rl-bullets li{ font: var(--copy); color: var(--black); line-height: 1.55; padding: 3px 0; }
+
+  /* Section variant — Jordan's Handoff Context (heading + body or bullets per section).
+     Pattern reference: Gladly product summary card with "Reason for contact" + "Summary". */
+  .rec-lite .rl-section{ margin-top: 12px; }
+  .rec-lite .rl-section:first-of-type{ margin-top: 4px; }
+  .rec-lite .rl-section .rl-section-heading{
+    font: 700 13px/1.4 var(--ff);
+    color: var(--black);
+    margin-bottom: 4px;
+  }
+  .rec-lite .rl-section .rl-section-body{
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.55;
+  }
+  .rec-lite .rl-section .rl-section-bullets{
+    list-style: disc;
+    padding-left: 16px;
+    margin: 4px 0 0;
+  }
+  .rec-lite .rl-section .rl-section-bullets li{
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.55;
+    padding: 3px 0;
+  }
+
+  /* Shared "Request for X" pattern — used by both the timeline taskcard
+     (pending state) and the right-panel rec-lite. Row-based label/value
+     layout per Gladly product Task card style. */
+  .req-head{
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+  }
+  /* Lifecycle dot — red while the request is active (awaiting approval),
+     green with a white check once Approve & run has fired. */
+  .req-head .req-dot{
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--red-400);
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    font: 700 10px/1 var(--ff);
+    color: var(--white);
+  }
+  .req-head .req-dot-approved{ background: var(--green-400); }
+  .req-head .req-label-text{ font: var(--copy-bold); color: var(--black); font-size: 14px; }
+  .req-head .req-for{ color: var(--green-400); font-weight: 600; }
+  .req-head .req-chev{ color: var(--gray-700); font-size: 12px; }
+  .req-title{
+    font: 600 13px/1.4 var(--ff);
+    color: var(--black);
+    margin-bottom: 14px;
+  }
+  .req-rows{ margin: 0 0 4px; }
+  .req-rows .req-row{
+    display: flex;
+    gap: 16px;
+    padding: 4px 0;
+    align-items: baseline;
+  }
+  .req-rows .req-row .req-label{
+    flex: 0 0 100px;
+    font: var(--copy);
+    color: var(--gray-700);
+  }
+  .req-rows .req-row .req-value{
+    flex: 1;
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.55;
+  }
+  .req-rows .req-row .req-value strong{ font-weight: 700; }
+
+  /* Description line — sits below the title, secondary tone */
+  .req-desc{
+    font: var(--copy);
+    color: var(--gray-800);
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+  /* Context paragraph — legacy class kept for backward compat; not used by
+     Rachel anymore (replaced by .req-reasoning below). */
+  .req-context{
+    font: var(--copy);
+    color: var(--gray-800);
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+  .rec-lite .req-context{ margin-bottom: 12px; }
+  /* Reasoning paragraph — Rachel's single combined "why" sits between the
+     title and the plan. No green callout; just clean prose with cite refs. */
+  .req-reasoning{
+    font: var(--copy);
+    color: var(--gray-800);
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .rec-lite .req-reasoning{ margin-bottom: 14px; }
+
+  /* Labeled body sections (Recommended Action / Reasoning) — bold label on
+     its own line, value below in body type. Used for Rachel's plan-first module. */
+  .req-section{ margin-bottom: 16px; }
+  .req-section .req-section-label{
+    font: 700 13px/1.4 var(--ff);
+    color: var(--black);
+    margin-bottom: 4px;
+  }
+  .req-section .req-section-value{
+    font: var(--copy);
+    color: var(--gray-800);
+    line-height: 1.6;
+  }
+  .rec-lite .req-section{ margin-bottom: 12px; }
+  /* Recommendation block — heading + paragraph in a callout treatment.
+     Light green tint to draw the eye to the AI's actual recommendation. */
+  .req-rec{
+    background: var(--green-50);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .req-rec .req-rec-label{
+    font: 700 13px/1.4 var(--ff);
+    color: var(--green-500);
+    margin-bottom: 4px;
+  }
+  .req-rec .req-rec-value{
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.55;
+  }
+  /* Action buttons inside the request body (rec.actions) — pill-shaped, Gladly green. */
+  .req-actions{
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .req-actions .req-action-primary,
+  .req-actions .req-action-secondary{
+    font: 500 13px/1 var(--ff);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    min-width: 80px;
+  }
+  .req-actions .req-action-primary{
+    background: var(--green-400);
+    color: var(--white);
+    border: 1px solid var(--green-400);
+  }
+  .req-actions .req-action-primary:hover{ background: var(--green-300); border-color: var(--green-300); }
+  .req-actions .req-action-tertiary{
+    background: transparent;
+    color: var(--green-400);
+    border: 1px solid var(--green-400);
+    font: 500 13px/1 var(--ff);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    min-width: 80px;
+  }
+  .req-actions .req-action-tertiary:hover{ background: var(--green-50); }
+  /* Tertiary "handoff" — text-only, no border, sits visually quieter than the
+     filled primary and outlined modify (per design spec). */
+  .req-actions .req-action-secondary{
+    background: transparent;
+    color: var(--gray-700);
+    border: 1px solid transparent;
+    min-width: 0;
+  }
+  .req-actions .req-action-secondary:hover{ color: var(--black); text-decoration: underline; }
+  /* Collapsible details group */
+  .req-details-wrap{ margin-bottom: 18px; }
+  .req-details-toggle{
+    background: none;
+    border: none;
+    color: var(--green-400);
+    font: 500 13px/1 var(--ff);
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .req-details-toggle:hover{ text-decoration: underline; }
+  .req-details-toggle .req-details-chev{ font-size: 11px; }
+  .req-details-body{ display: none; margin-top: 12px; }
+  .req-details-body.expanded{ display: block; }
+  .req-details-body .req-row{
+    display: flex;
+    gap: 16px;
+    padding: 4px 0;
+    align-items: baseline;
+  }
+  .req-details-body .req-row .req-label{
+    flex: 0 0 100px;
+    font: var(--copy);
+    color: var(--gray-700);
+  }
+  .req-details-body .req-row .req-value{
+    flex: 1;
+    font: var(--copy);
+    color: var(--black);
+    line-height: 1.55;
+  }
+  .req-details-body .req-row .req-value strong{ font-weight: 700; }
+
+  /* Right-panel rec-lite is tighter — narrower label column, slightly less vertical gap */
+  .rec-lite .req-head{ margin-bottom: 10px; }
+  .rec-lite .req-title{ margin-bottom: 10px; }
+  .rec-lite .req-desc{ margin-bottom: 12px; }
+  .rec-lite .req-rec{ margin-bottom: 12px; }
+  .rec-lite .req-details-wrap{ margin-bottom: 0; }
+  .rec-lite .req-details-body .req-row .req-label{ flex: 0 0 84px; }
 
 
   /* Action card — for Team Assist's "here's the plan, approve & run" messages */
@@ -418,6 +938,32 @@
     font: var(--copy); color: var(--black);
   }
   .action-card .ac-done .check{ color: var(--green-400); margin-right: 6px; font-weight: 700; }
+
+  /* Step picker — appears as a chat element when user picks Add a step / Remove a step */
+  .step-picker{
+    border: 1px solid var(--gray-300);
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: var(--white);
+  }
+  .step-picker .sp-label{
+    font: 600 10px/1 var(--ff);
+    color: var(--gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+  .step-picker select{
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    background: var(--white);
+    font: var(--copy);
+    color: var(--black);
+    cursor: pointer;
+  }
+  .step-picker select:focus{ outline: none; border-color: var(--gray-700); }
 
   /* Editable step rows — each step has a remove button that reveals on hover */
   .action-card ol.ac-steps{
@@ -606,12 +1152,19 @@
     flex-shrink: 0;
   }
   .chip:hover{background: var(--gray-100); border-color: var(--gray-500)}
-  .chip.primary{
-    background: var(--green-400); color: #fff; border-color: var(--green-400);
-    font-weight: 600;
+  /* Chip rail under the copilot is uniform — all chips share the same neutral
+     pill style. Green is reserved for genuine action buttons inside modules
+     (Approve & run, Use draft). Suggestions/questions in the rail aren't
+     "primary" actions — they're prompts the agent might pick. */
+  .chip.primary,
+  .chip.secondary{
+    background: var(--white);
+    color: var(--black);
+    border-color: var(--gray-400);
+    font-weight: 500;
   }
-  .chip.primary:hover{background: var(--green-300); border-color: var(--green-300)}
-  .chip.secondary{border-color: var(--gray-400)}
+  .chip.primary:hover,
+  .chip.secondary:hover{ background: var(--gray-100); border-color: var(--gray-500); }
 
   /* 48px TA bar — matches composer bottom-bar height exactly. Input pill
      mirrors .bb-input: 32px tall, 6px radius, gray-300 border, inset shadow. */
@@ -830,12 +1383,7 @@
               <div class="fp-label">Context</div>
               <ul id="rp-facts-list"></ul>
             </div>
-            <div class="rec-lite" id="rec-card">
-              <div class="rl-label">Recommendation<span class="pill-modified" id="pill-modified">Updated</span></div>
-              <div class="rl-title"><span id="rec-title-text"></span></div>
-              <div class="rl-line" id="rec-line1"></div>
-              <div class="rl-line" id="rec-line2"></div>
-            </div>
+            <div class="rec-lite" id="rec-card"></div>
             <div id="rp-plan" style="display:none"></div>
             <div class="ao-ask" id="ao-ask"></div>
           </div>
@@ -928,6 +1476,8 @@ const JORDAN = {
     avatarColor: '#6B8E6F',
     customerSince: '2022',
     ltv: '$4,280.00',
+    tier: 'Trailblazer',
+    sentiment: 2.05,
     contact: {
       address: '2721 Maple Ave<br>Austin, TX 78701',
       email: 'jordan.rivera@gmail.com',
@@ -935,7 +1485,7 @@ const JORDAN = {
       phoneSub: 'Mobile · SMS preferred'
     },
     preferences: [
-      { l: 'Loyalty tier',      v: 'Trailblazer' },
+
       { l: 'Favorite category', v: 'Marathon running' },
       { l: 'Sizing',            v: "Men's 10.5" },
       { l: 'Brand preference',  v: 'Hoka Clifton · Bondi · Mach' }
@@ -952,7 +1502,7 @@ const JORDAN = {
       { when: 'Sep \'25', text: 'Order Bondi 7' }
     ]
   },
-  convHeader: { title: 'Apr 14 · Return request', status: 'Assigned to Joseph' },
+  convHeader: { title: '{TODAY} · Return request', status: 'Assigned to Joseph' },
   topic: 'Return request',
   events: [
     // ---- Prior conversation: Feb 8 — Jordan chats with Gladly AI to pick the Clifton 9 for Austin Marathon ----
@@ -968,37 +1518,42 @@ const JORDAN = {
     { kind: 'event', text: 'Conversation closed — Feb 8, 7:45 PM' },
 
     // ---- Current conversation: Apr 14 — Jordan asks to return, AI auto-rejects, he escalates, routed to Joseph ----
-    { kind: 'event', text: '<strong>Apr 14</strong> · Today · Return request' },
-    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:02 AM', channel: 'chat',
+    { kind: 'event', current: true, text: '<strong>{TODAY}</strong> · Today · Return request' },
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: '{TODAY},9:02 AM', channel: 'chat',
       text: "Hi, I need to return a pair of shoes — Order #GCL-55892. I bought them for a marathon I can no longer run. Is there a way to send them back?" },
-    { kind: 'amsg', time: 'Apr 14, 9:03 AM', channel: 'chat',
+    { kind: 'amsg', time: '{TODAY},9:03 AM', channel: 'chat',
       text: "Hi Jordan, thanks for reaching out. I looked at your order and unfortunately this is past our 30-day return window, so I'm not able to process a return on this one. Let me know if there's anything else I can help with." },
-    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:04 AM', channel: 'chat',
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: '{TODAY},9:04 AM', channel: 'chat',
       text: "It's not a defect issue. I've been training for my first marathon for over a year. I bought these specifically for race day. Last week I found out I have a torn ACL — I'm looking at surgery and months of recovery. The race is gone. I honestly don't even want to look at the shoes right now." },
-    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Apr 14, 9:05 AM', channel: 'chat',
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: '{TODAY},9:05 AM', channel: 'chat',
       text: "They've never been worn outside, just tried on at home. I get that the window is the window, but this isn't me changing my mind. Everything changed. Is there any way to make an exception?" },
-    { kind: 'jmsg', time: 'Apr 14, 9:07 AM', channel: 'chat',
-      text: "I understand, Jordan. That's a really tough situation, especially after everything you put into training. I'm not able to approve a return exception myself, but I can connect you with a member of our team who can review your request. They'll have the full picture on your account and situation. Hang tight — someone will be with you shortly." }
+    { kind: 'jmsg', time: '{TODAY},9:07 AM', channel: 'chat',
+      text: "I understand, Jordan. Since I'm not able to approve a return exception myself, I'm connecting you with a member of our team to review. Hang tight — someone will be with you shortly." }
   ],
   copilot: {
     opening: `Jordan was just escalated to you.
 
-He requested a return on the Clifton 9s — initially declined by policy, then pushed back with additional context.`,
-    factsProse: [
-      "Bought on our recommendation for the Austin Marathon",
-      "Tore his ACL — race no longer happening",
-      "Shoes are unworn",
-      "First return request in 7 orders"
-    ],
+He requested a return outside our 30-day policy I am unable to process. He provided additional context that may warrant an exception under your discretion.`,
     rec: {
-      title: '<span id="rec-title-inner">Decision</span>',
-      line1: 'Outside standard policy — within your discretion.',
-      line2: 'Clean one-time exception with clear context.'
+      label: 'Handoff Summary',
+      sections: [
+        { heading: 'Reason for handoff',
+          body: 'Return falls outside the 30-day policy window — needs human discretion to approve an exception.' },
+        { heading: 'Context',
+          bullets: [
+            "Bought the Clifton 9s for the Austin Marathon",
+            "37 days past our 30-day return window",
+            "No longer needs shoes due to injury",
+            "Shoes are unworn"
+          ]
+        }
+      ]
     },
     ask: "How do you want to handle this?",
     chips: [
-      { text: "Show me the conversation", kind: 'primary',   action: 'showConversation' },
-      { text: "How is he feeling?",       kind: 'secondary', action: 'sentiment' }
+      { text: "Draft a response",       kind: 'primary',   action: 'draft' },
+      { text: "How is he feeling?",     kind: 'secondary', action: 'sentiment' },
+      { text: "What do you recommend?", kind: 'secondary', action: 'recommend' }
     ],
     citations: [
       { title: 'Return Exceptions',      body: "Agents may approve one-off return exceptions on a case-by-case basis, even outside the standard 30-day window, when there's a clear hardship reason and the product is unworn." },
@@ -1010,26 +1565,22 @@ He requested a return on the Clifton 9s — initially declined by policy, then p
       showConversation: {
         reply: "He bought the Clifton 9 after we recommended it for the Austin Marathon.<br><br>After our system declined the return on policy, he came back with the full picture — torn ACL, race off, shoes never worn — and asked for an exception.",
         nextChips: [
-          { text: "How is he feeling?",   kind: 'secondary', action: 'sentiment' },
-          { text: "What are my options?", kind: 'primary',   action: 'options' }
+          { text: "Draft a response",       kind: 'primary',   action: 'draft' },
+          { text: "How is he feeling?",     kind: 'secondary', action: 'sentiment' },
+          { text: "What do you recommend?", kind: 'secondary', action: 'recommend' }
         ]
       },
       sentiment: {
-        reply: "<strong>Frustrated and disappointed.</strong> Sentiment score <strong>-0.62</strong>, down from neutral at the start.<br><br>This isn't about the shoes — it's about losing something he trained a year for.",
+        reply: "<strong>Frustrated and disappointed.</strong> Sentiment score decreased by <strong>2</strong>, down from positive at the start.",
         nextChips: [
-          { text: "What are my options?", kind: 'primary',   action: 'options' }
+          { text: "Draft a response",       kind: 'primary',   action: 'draft' },
+          { text: "What do you recommend?", kind: 'secondary', action: 'recommend' }
         ]
       },
 
       // ── Stage 2: Evaluate ─────────────────────────────────────────
-      options: {
-        reply: "You have two paths:<br><br>• <strong>Enforce policy</strong> — decline the return.<br>• <strong>One-time exception</strong> — approve and refund.<br><br>Given the context, this falls within your discretion<span class='cite' onclick='togglePop(event, 1)'>1</span><span class='cite' onclick='togglePop(event, 3)'>3</span>.",
-        nextChips: [
-          { text: "What would you do?", kind: 'primary', action: 'recommend' }
-        ]
-      },
       recommend: {
-        reply: "I'd approve the exception.<br><br>We influenced the original purchase, the shoes are unworn, and this is a clean one-time situation. Lead with acknowledgment before the logistics.",
+        reply: "<strong>I'd approve the exception.</strong><br><br>We influenced the purchase, he's a Trailblazer, it's his first return, the shoes are unworn, and he's frustrated on top of that.",
         nextChips: [
           { text: "Draft a response", kind: 'primary', action: 'draft' }
         ]
@@ -1044,7 +1595,9 @@ I've approved the return on the Clifton 9s. You'll see a full refund of $189.99 
 
 Let me know if there's anything else I can help with.` },
         nextChips: [
-          { text: "Make it warmer", kind: 'secondary', action: 'warmer' }
+          { text: "Make it warmer", kind: 'secondary', action: 'warmer' },
+                    { text: "Make it shorter", kind: 'secondary', action: 'warmer' },
+                              { text: "Make it longer", kind: 'secondary', action: 'warmer' }
         ]
       },
       warmer: {
@@ -1062,21 +1615,21 @@ Wishing you a smooth recovery — when you're ready to lace up again, we'll be h
         reply: "Sent.<br><br>You handled that well. This might be a good moment to stay connected while he's recovering.",
         sideEffect: 'sendOutboundChat',
         nextChips: [
-          { text: "Suggest recovery products", kind: 'primary',   action: 'recoverProducts' },
-          { text: "Not now",                   kind: 'secondary', action: 'skipRec' }
+          { text: "What would you do?", kind: 'primary',   action: 'recoverProducts' },
+          { text: "End conversation",                   kind: 'secondary', action: 'skipRec' }
         ]
       },
       recoverProducts: {
-        reply: "Based on what Jordan already owns (Bondi 7, Mach 5, and the Clifton 9 he just returned) and where he's at — torn ACL, 8–12 weeks of recovery — here are three that fit:",
+        reply: "Based on what Jordan already owns (Bondi 7, Mach 5, and the Clifton 9 he just returned) and his current injury — suggest products that might help him through his recovery. Here are some options:",
         productList: [
           { name: "Hoka Ora Recovery Slide", price: "$59.99", url: "hoka.com/ora", reason: "Built for post-surgery — easy on/off, max cushion, low drop." },
           { name: "Hoka Bondi 8",            price: "$164.99", url: "hoka.com/bondi8", reason: "The cushion he already trusts, updated — walks before runs." },
           { name: "Hoka Clifton Recovery Socks", price: "$24.99", url: "hoka.com/clifton-socks", reason: "Compression fit. A small kindness." }
         ],
-        followup: "He prefers SMS. Want me to draft a message?",
+        followup: "Want me to draft a message?",
         nextChips: [
-          { text: "Draft an SMS", kind: 'primary',   action: 'draftRecSMS' },
-          { text: "Skip it",      kind: 'secondary', action: 'skipRec' }
+          { text: "Draft a response", kind: 'primary',   action: 'draftRecSMS' },
+          { text: "End conversation",      kind: 'secondary', action: 'skipRec' }
         ]
       },
       draftRecSMS: {
@@ -1095,7 +1648,7 @@ No rush — they'll be here when you are.`,
         nextChips: []
       },
       sendRecSMS: {
-        reply: "Sent via SMS. Nice finish.",
+        reply: "Sent via SMS.",
         sideEffect: 'sendOutboundSMS',
         nextChips: []
       },
@@ -1137,8 +1690,10 @@ const RACHEL = {
     name: 'Rachel Thompson',
     initials: 'RT',
     avatarColor: '#5B8DEF',
-    customerSince: '2022',
-    ltv: '$12,400.00',
+    customerSince: '2023',
+    ltv: '2,247.80',
+    tier: 'Trailblazer',
+    sentiment: 4.65,
     contact: {
       address: '148 Park Pl<br>Brooklyn, NY 11217',
       email: 'rachel.thompson@gmail.com',
@@ -1160,46 +1715,94 @@ const RACHEL = {
       { when: 'Feb 2',  text: 'Product question — Bondi' }
     ]
   },
-  convHeader: { title: 'Apr 21 · Cancellation request', status: 'Waiting' },
+  convHeader: { title: '{TODAY} · Cancellation request', status: 'Assigned to Gladly AI' },
   topic: 'Cancellation request',
   events: [
+    { kind: 'event', current: true, text: '<strong>{TODAY}</strong> · Today · Cancellation request' },
     { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '4 min ago', channel: 'chat',
-      text: "Hi, I need to cancel my order #ORD-2026-84721 — the Hoka Race-Day Pro Pack. I signed up for the Chicago Marathon this year and picked up the bundle for training, but I just tore a tendon at a training run last weekend. 8–12 weeks off, no race for me. Is there any way to get a refund before it ships?" },
+      text: "Hi, I need to cancel my order #ORD-2026-84721" },
     { kind: 'amsg', time: '3 min ago',
-      text: "So sorry to hear about the tendon, Rachel — take care of yourself first. I've confirmed your Race-Day Pro Pack is still in processing, which is the easiest case. You're on our Trailblazer tier, so a full refund before ship is covered — no restock fees, no questions. Want me to go ahead and cancel?" },
+      text: "No problem, Rachel. I've confirmed your Race-Day Pro Pack is still in processing, Before I proceed, can I ask why you are cancelling your order?" },
+        { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '4 min ago', channel: 'chat',
+      text: "I signed up for the Chicago Marathon this year and bought the bundle for training, but I just tore a tendon and can no longer run it." },
+    { kind: 'amsg', time: '3 min ago',
+      text: "So sorry to hear about the tendon, Rachel — take care of yourself first." },
     { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '2 min ago', channel: 'chat',
-      text: "Yes please, that would be amazing. Thank you." },
+      text: "Thank you." },
     { kind: 'amsg', time: '1 min ago',
       text: "You got it. One last check on my end and your refund will be on its way — I'll be right back." },
-    { kind: 'activity', text: 'Gladly AI asked you to approve a VIP cancellation — just now' }
+    { kind: 'taskcard',
+      meta: 'Gladly AI asked you to approve — just now',
+      // Buttons (primary/secondary) below are dead-code now that Rachel boots
+      // directly into 'planned' state — the planned-state buttons are rendered
+      // by renderTaskcardInner / rerenderRecLite (Approve & run / Modify Plan
+      // / handoff). Kept here as fallback for the unused 'pending' state.
+      primary:   { label: 'Approve & run',         action: 'approveConfirm' },
+      secondary: { label: "No, handoff to me",     action: 'handoff' }
+    }
   ],
   copilot: {
-    opening: `Rachel's cancellation is ready.
+    // Opening — conversational setup matching Jordan's voice. Names the
+    // customer, what AI can do alone, and the part that needs human review.
+    opening: `Rachel's asking to cancel her $847.99 Race-Day Pro Pack — she tore a tendon training for the Chicago Marathon. The order's still in processing, so the cancellation is something I can handle on my own.
 
-Order is still in processing — eligible for a full refund.`,
-    factsProse: [
-      "Order value: $847.99 — still in processing (no fees)",
-      "Trailblazer customer, 12 orders, 0 cancellations",
-      "Full refund before ship is covered for Trailblazer<span class='cite' onclick='togglePop(event, 1)'>1</span>",
-      "$25 default thank-you credit for $500–$1K orders<span class='cite' onclick='togglePop(event, 2)'>2</span>"
-    ],
+What I need you for is the credit. She's been with Retalè since 2023, Trailblazer tier, twelve orders, no prior cancellations — and she got hurt, she didn't change her mind. I'd like to add a $10 loyalty credit when I cancel, and I can't issue credit without your approval.`,
     rec: {
-      title: '<span id="rec-title-inner">Cancel + $25 thank-you credit</span>',
-      line1: 'Refund $847.99 to her original payment method',
-      line2: 'Thank-you credit on her account for when she\'s back'
+      forName: 'Joseph Ansanelli',
+      // Three labeled sections: Recommended Action / Reasoning / Plan.
+      // Header reads "Gladly AI Request for Joseph Ansanelli".
+      recommendedAction: 'Cancel the order and add a $10 Trailblazer loyalty credit to her account',
+      reasoning: 'Her tier and the reason she\'s cancelling make this worth a small gesture, but credits between $10 and $75 need your approval to release.<span class=\'cite\' onclick=\'togglePop(event, 1)\'>1</span><span class=\'cite\' onclick=\'togglePop(event, 2)\'>2</span>',
+      actions: {
+        primary:   { label: 'Approve & run',         action: 'approveConfirm' },
+        tertiary:  { label: 'Modify plan',           action: 'modifyPlan' },
+        secondary: { label: "No, handoff to me",     action: 'handoff' }
+      }
     },
-    ask: "Everything is prepared — you can approve as-is or adjust below.",
+    ask: "Want me to go ahead with the cancel and the $10 credit?",
     citations: [
-      { title: 'VIP Cancellation Playbook', body: "Full refund for VIPs on orders still in processing, no questions asked. A $25–$50 thank-you credit is suggested for $500–$1K orders to encourage a return visit." },
-      { title: 'Credit Guidelines', body: "For orders $500–$1K, $25 is the default thank-you credit. For $1K+, the default is $50. Agents can adjust between $10–$75 without escalation." }
+      { title: 'VIP Cancellation Playbook', body: "Full refund for VIPs on orders still in processing, no questions asked. Cancel reasons can be tagged for category reporting (Customer request, VIP cancellation, Order error, Goodwill)." },
+      { title: 'Credit Guidelines', body: "For orders $500–$1K, $25 is the default thank-you credit. For $1K+, the default is $50. Agents can adjust between $10–$75 without escalation." },
+      { title: 'Customer Engagement Playbook', body: "During long recovery or temporary departures, recommend tier-relevant products and schedule a 1–2 week follow-up. Especially valuable for Trailblazer customers — preserves brand affinity for the return-to-running moment." }
     ],
     chips: [
-      { text: "Increase credit to $50", kind: 'secondary', action: 'raise',   arg: 50 },
-      { text: "Lower to $20",           kind: 'secondary', action: 'lower',   arg: 20 },
-      { text: "Add SMS recap",          kind: 'secondary', action: 'addStep', arg: 'sms' },
-      { text: "No, I'll handle it",     kind: 'secondary', action: 'handoff' }
+      { text: "Tell me more",         kind: 'secondary', action: 'whyRecPlan' },
+      { text: "What are my options?", kind: 'secondary', action: 'options' },
+      { text: "Modify plan",          kind: 'secondary', action: 'modifyPlan' }
     ],
-    creditDefault: 25,
+    script: {
+      whyRecPlan: {
+        reply: "Rachel didn't ask for anything — she just told us she tore a tendon and is losing the race she trained for. Combined with her history (twelve orders since 2023, no prior cancellations, Trailblazer tier), this is the kind of moment a small credit makes sense.<span class='cite' onclick='togglePop(event, 3)'>3</span><br><br>I went with $10 because she didn't ask. The default for an order this size is $25<span class='cite' onclick='togglePop(event, 2)'>2</span>, so if that feels more appropriate, it's still within your authority and I can update it in one click.<br><br>This is in your hands because credits are a discretionary spend — I can cancel processing orders on my own, but anything that releases money to a customer needs you<span class='cite' onclick='togglePop(event, 2)'>2</span>.",
+        nextChips: [
+          { text: "What are my options?", kind: 'secondary', action: 'options' },
+          { text: "Modify plan",          kind: 'secondary', action: 'modifyPlan' }
+        ]
+      },
+      howFeeling: {
+        reply: "She's calm. Disappointed about Chicago and the recovery ahead, but not upset with us — when the AI acknowledged the injury, she just said thank you. Sentiment's holding at 4.65.<br><br>You don't need to overcorrect here. A clean, warm resolution with the credit attached will land fine.",
+        nextChips: [
+          { text: "Tell me more",         kind: 'secondary', action: 'whyRecPlan' },
+          { text: "What are my options?", kind: 'secondary', action: 'options' },
+          { text: "Modify plan",          kind: 'secondary', action: 'modifyPlan' }
+        ]
+      },
+      options: {
+        reply: "Three things you can change before approving.<br><br>Credit amount — anywhere from $10 to $75 is yours to call<span class='cite' onclick='togglePop(event, 2)'>2</span>. $25 is the default for an order this size.<br><br>Cancel reason tag — it's set to \"Customer request,\" but I can switch it to \"VIP cancellation\" or another category for reporting<span class='cite' onclick='togglePop(event, 1)'>1</span>.<br><br>SMS recap — I can text (212) 555-0147 with the cancellation and credit code in one place. That's her preferred channel.",
+        nextChips: [
+          { text: "Tell me more", kind: 'secondary', action: 'whyRecPlan' },
+          { text: "Modify plan",  kind: 'secondary', action: 'modifyPlan' }
+        ]
+      },
+      whatElse: {
+        reply: "A few other things worth considering.<br><br>Bump the credit to $25 — the default for an order this size, still within your authority<span class='cite' onclick='togglePop(event, 2)'>2</span>.<br><br>Send an SMS recap to (212) 555-0147 with the cancellation details and credit code.<br><br>Recommend a few Hokas that fit her recovery — Ora Slide, Bondi 8, Clifton Socks<span class='cite' onclick='togglePop(event, 3)'>3</span>.<br><br>Schedule a two-week follow-up so we're around when she's ready to think about running again<span class='cite' onclick='togglePop(event, 3)'>3</span>.",
+        nextChips: [
+          { text: "Increase credit to $25", kind: 'secondary', action: 'raise',         arg: 25 },
+          { text: "Add SMS recap",          kind: 'secondary', action: 'addPresetStep', arg: 'Send SMS recap — (212) 555-0147' },
+          { text: "What else can I do?",    kind: 'secondary', action: 'whatElse' }
+        ]
+      }
+    },
+    creditDefault: 10,
     mode: 'refund'
   },
   stepPresets: [
@@ -1211,48 +1814,47 @@ Order is still in processing — eligible for a full refund.`,
   decisions: {
     approveCard: (s) => {
       const card = {
-        label: 'Cancel order',
+        label: 'Plan',
         steps: [
-          `Cancel order #ORD-2026-84721 in Shopify`,
-          `Issue $847.99 refund to her original payment method`,
-          `Apply $${s.creditAmount} VIP thank-you credit to account`
+          `Cancel order #ORD-2026-84721 via Shopify`,
+          `Tag cancellation reason: customer request (injury)`,
+          `Generate $${s.creditAmount} Trailblazer loyalty code, no expiration`,
+          `Send confirmation reply to Rachel`
         ],
         approveAction: 'approveConfirm'
       };
       return { actionCard: card };
     },
     approveConfirm: (s) => {
-      const events = [`<strong>Lisa</strong> approved the cancellation — just now`];
-      if (s.creditAmount !== 25) {
-        events.push(`<strong>Lisa</strong> updated the thank-you credit to $${s.creditAmount} — just now`);
+      const events = [`<strong>Joseph</strong> approved the cancellation — just now`];
+      if (s.creditAmount !== 10) {
+        events.push(`<strong>Joseph</strong> updated the discount code to $${s.creditAmount} — just now`);
       }
       events.push(`Gladly AI cancelled the order — just now`);
-      events.push(`Gladly AI issued a $847.99 refund to her original payment method — just now`);
+      events.push(`Gladly AI generated a $${s.creditAmount} Trailblazer loyalty discount code — just now`);
       return {
-        copilotReply: `Done.
-
-Order cancelled, $847.99 refund issued, $${s.creditAmount} credit applied.`,
+        copilotReply: `Done — order's cancelled and the $${s.creditAmount} Trailblazer credit is on her account.`,
         timelineEvents: events,
-        customerReply: `Your cancellation is approved, Rachel. A full refund of $847.99 is on its way to your original payment method, and I've added a $${s.creditAmount} thank-you credit to your account.
+        customerReply: `Your cancellation is confirmed, Rachel. The full $847.99 refund will be back on your original payment method in five to seven business days, and I've added a $${s.creditAmount} Trailblazer credit to your account — it's there whenever you're ready to use it.
 
-Wishing you a smooth recovery — we'll be here when you're ready.`,
+Take care of that tendon, and let me know if there's anything else I can help with.`,
         customerChannel: 'chat'
       };
     },
     raise: (s, amt) => ({
-      copilotReply: `Updated — $${amt} credit applied. Still within policy. Ready when you are.`,
+      copilotReply: `Updated to $${amt} — still within your authority and ready to run when you are.`,
       reAsk: true,
       mutate: { credit: amt }
     }),
     lower: (s, amt) => ({
-      copilotReply: `Updated — $${amt} credit applied. Within policy, slightly more conservative. Ready when you are.`,
+      copilotReply: `Updated to $${amt} and ready to run when you are.`,
       reAsk: true,
       mutate: { credit: amt }
     }),
     handoff: (s) => ({
-      copilotReply: "Got it — I'll stop responding to Rachel and hand the conversation to you.",
+      copilotReply: "Got it — I'll step back and hand the conversation over to you.",
       timelineEvents: [
-        `<strong>Lisa</strong> took over the conversation — just now`,
+        `<strong>Joseph</strong> took over the conversation — just now`,
         `Gladly AI stopped responding — manual handling now`
       ]
     })
@@ -1283,7 +1885,7 @@ const CUSTOMERS = [
    ========================================================================= */
 
 let currentId = 'jordan';           // default open to Jordan — richer story
-let session = { creditAmount: 25, mode: 'refund', decided: false, awaitingReconfirm: false };
+let session = { creditAmount: 10, mode: 'refund', decided: false, awaitingReconfirm: false };
 
 function currentScenario() { return CUSTOMERS.find(c => c.id === currentId); }
 
@@ -1378,17 +1980,10 @@ function renderProfile(s) {
       </div>
       <div class="kv"><span>Customer since</span><span>${p.customerSince}</span></div>
       <div class="kv"><span>Lifetime Value</span><span>${p.ltv}</span></div>
-      <div class="link-customer">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 10l-2 2a2 2 0 102 2l2-2M10 6l2-2a2 2 0 10-2-2L8 4M6 10l4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
-        Link to customer <span class="suggestion-count">1 suggestion</span>
+            <div class="kv"><span>Loyalty Tier</span><span>${p.tier}</span></div>
+                  <div class="kv"><span>Sentiment</span><span>${p.sentiment}</span></div>
+
       </div>
-    </div>
-    <div class="profile-card">
-      <div class="sec-title">Contact <span class="add">+</span></div>
-      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1a5 5 0 015 5c0 4-5 9-5 9S3 10 3 6a5 5 0 015-5z" stroke="currentColor" stroke-width="1.3" fill="none"/><circle cx="8" cy="6" r="1.8" fill="currentColor"/></svg></span>${p.contact.address}</div>
-      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span>${p.contact.email}<span class="tag-grp"><span class="tag">Main</span></span></div>
-      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 3a1.5 1.5 0 011-1h1.5l1.5 2-1 1a7 7 0 003 3l1-1 2 1.5V11a1.5 1.5 0 01-1 1A9 9 0 013 3z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span>${p.contact.phone}<span class="tag-grp"><span class="tag">SMS</span><span class="tag">Main</span></span></div>
-      <div class="contact-sub">${p.contact.phoneSub}</div>
     </div>
     ${prefs}
     <div class="profile-card">
@@ -1398,6 +1993,13 @@ function renderProfile(s) {
     <div class="profile-card">
       <div class="sec-title">Conversations</div>
       ${convos}
+    </div>
+        <div class="profile-card">
+      <div class="sec-title">Contact <span class="add">+</span></div>
+      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1a5 5 0 015 5c0 4-5 9-5 9S3 10 3 6a5 5 0 015-5z" stroke="currentColor" stroke-width="1.3" fill="none"/><circle cx="8" cy="6" r="1.8" fill="currentColor"/></svg></span>${p.contact.address}</div>
+      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span>${p.contact.email}<span class="tag-grp"><span class="tag">Main</span></span></div>
+      <div class="contact-row"><span class="ci"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 3a1.5 1.5 0 011-1h1.5l1.5 2-1 1a7 7 0 003 3l1-1 2 1.5V11a1.5 1.5 0 01-1 1A9 9 0 013 3z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span>${p.contact.phone}<span class="tag-grp"><span class="tag">SMS</span><span class="tag">Main</span></span></div>
+      <div class="contact-sub">${p.contact.phoneSub}</div>
     </div>
   `;
 }
@@ -1411,13 +2013,62 @@ function orderIcon(kind) {
    RENDER: CONVERSATION
    ========================================================================= */
 
+// Format today's date as "Mon D" (e.g. "Apr 27"). Used to substitute {TODAY}
+// placeholders in scenario data so the demo always feels current.
+function formatToday() {
+  return new Date().toLocaleString('en-US', { month: 'short', day: 'numeric' });
+}
+function subToday(str) {
+  return (str || '').replace(/\{TODAY\}/g, formatToday());
+}
+
 function renderConversation(s) {
-  document.getElementById('conv-title').textContent = s.convHeader.title;
+  document.getElementById('conv-title').textContent = subToday(s.convHeader.title);
   document.getElementById('conv-status').textContent = s.convHeader.status;
   document.getElementById('bb-topic-val').textContent = s.topic;
 
   const tl = document.getElementById('timeline');
   tl.innerHTML = s.events.map(e => renderEvent(e, s)).join('');
+
+  // Default scroll position lands on the current conversation header — anything
+  // older (prior conversations, closed events) sits above the viewport and is
+  // only visible if the agent scrolls up. Wrapped in two RAFs so layout has
+  // settled before we read offsetTop (otherwise the value may be stale).
+  scrollToCurrentConversation(tl);
+}
+
+function scrollToCurrentConversation(tl) {
+  const set = () => {
+    const currentEv = tl.querySelector('.tl-event.current');
+    if (!currentEv) { tl.scrollTop = 0; return; }
+    // Land with the CURRENT conversation header at the top of the viewport.
+    // Anything older (prior conversations + close events) sits above and is
+    // only visible if the agent scrolls up. Below the last message is empty
+    // gray space (from the conv-scroll padding-bottom) — that's where new
+    // demo-flow messages land as the conversation progresses.
+    if (currentEv.offsetTop > 0) {
+      tl.scrollTop = currentEv.offsetTop;
+    } else {
+      // Fallback to bounding-rect math if offsetTop is 0 (layout incomplete)
+      const tlRect = tl.getBoundingClientRect();
+      const evRect = currentEv.getBoundingClientRect();
+      const delta = evRect.top - tlRect.top;
+      if (Math.abs(delta) > 1) tl.scrollTop += delta;
+    }
+  };
+  // Fire on every plausible "layout-is-now-stable" signal — initial-load
+  // timing is the slipperiest case (script runs before fonts/CSS settle).
+  set();
+  requestAnimationFrame(() => requestAnimationFrame(set));
+  setTimeout(set, 60);
+  setTimeout(set, 200);
+  setTimeout(set, 500);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(set);
+  }
+  if (document.readyState !== 'complete') {
+    window.addEventListener('load', () => setTimeout(set, 50), { once: true });
+  }
 }
 
 function renderEvent(e) {
@@ -1426,26 +2077,41 @@ function renderEvent(e) {
       ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>'
       : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
     const ch = e.channel === 'email' ? 'sent an email' : 'sent a chat';
-    return `<div class="msg-meta"><span class="ch-icon">${chIcon}</span>${e.who} ${ch} — ${e.time}</div>
+    return `<div class="msg-meta"><span class="ch-icon">${chIcon}</span>${e.who} ${ch} — ${subToday(e.time)}</div>
       <div class="msg inbound"><div class="msg-av" style="background:${e.avColor}">${e.av}</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
   }
   if (e.kind === 'amsg') {
     const chIcon = e.channel === 'email'
       ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>'
       : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
-    return `<div class="msg-meta right">Gladly AI replied — ${e.time}<span class="ch-icon">${chIcon}</span></div>
+    return `<div class="msg-meta right">Gladly AI replied — ${subToday(e.time)}<span class="ch-icon">${chIcon}</span></div>
       <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
   }
   if (e.kind === 'jmsg') {
     const chIcon = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
-    return `<div class="msg-meta right">Gladly AI replied — ${e.time}<span class="ch-icon">${chIcon}</span></div>
+    return `<div class="msg-meta right">Gladly AI replied — ${subToday(e.time)}<span class="ch-icon">${chIcon}</span></div>
       <div class="msg outbound"><div class="msg-av" style="background:#7BB86F">JA</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
   }
   if (e.kind === 'event') {
-    return `<div class="tl-event">${e.text}</div>`;
+    const cls = e.current ? 'tl-event current' : 'tl-event';
+    return `<div class="${cls}">${subToday(e.text)}</div>`;
   }
   if (e.kind === 'activity') {
     return `<div class="tl-activity">${e.text}</div>`;
+  }
+  if (e.kind === 'taskcard') {
+    // Cache the action buttons so rerenderRachelTaskcard() can rebuild through
+    // state transitions. Header/title/contextParagraph pulled from currentScenario().copilot.rec.
+    session.rachelTaskcardData = {
+      primary: e.primary,
+      secondary: e.secondary
+    };
+    const meta = e.meta ? `<div class="msg-meta right">${e.meta}</div>` : '';
+    // Use the session's current state — for Rachel this is bootstrapped to
+    // 'planned' in resetSessionForScenario, so the taskcard mounts with the
+    // plan already visible.
+    const state = session.rachelTaskState || 'pending';
+    return `${meta}<div class="tl-task">${renderTaskcardInner(state)}</div>`;
   }
   return '';
 }
@@ -1456,11 +2122,9 @@ function renderEvent(e) {
 
 function renderCopilot(s) {
   const c = s.copilot;
-  session.creditAmount = c.creditDefault || 25;
-  session.mode = c.mode || 'refund';
-  session.decided = false;
-  session.awaitingReconfirm = false;
-  session.jordanLastDraft = null;   // 'draft' or 'warmer' — used when useDraft fires
+  // Session state is reset earlier in resetSessionForScenario(s), called from
+  // selectCustomer before renderConversation. This function is now purely about
+  // rendering the copilot panel UI from the already-prepared session state.
 
   document.getElementById('ao-text').innerHTML = c.opening;
 
@@ -1471,32 +2135,27 @@ function renderCopilot(s) {
 
   if (c.factsProse) {
     factsEl.style.display = '';
-    recEl.style.display = '';
     document.getElementById('rp-facts-list').innerHTML = c.factsProse.map(f => `<li>${f}</li>`).join('');
-    document.getElementById('rec-title-text').innerHTML = c.rec.title;
-    document.getElementById('rec-line1').innerHTML = c.rec.line1;
-    document.getElementById('rec-line2').innerHTML = c.rec.line2;
-    document.getElementById('pill-modified').classList.remove('on');
+  } else {
+    factsEl.style.display = 'none';
+  }
+
+  if (c.rec) {
+    recEl.style.display = '';
+    recEl.innerHTML = renderRecLite(c.rec);
     askEl.textContent = c.ask || '';
     askEl.style.display = c.ask ? '' : 'none';
   } else {
-    factsEl.style.display = 'none';
     recEl.style.display = 'none';
     askEl.style.display = 'none';
   }
 
-  // Rachel: render the plan (action card) inline upfront. "Plan mode" UX.
+  // Rachel's action card is now pushed to the chat stream via prepPlan
+  // (see decisions.prepPlan). Keep rp-plan hidden.
   const planEl = document.getElementById('rp-plan');
   if (planEl) {
-    if (s.id === 'rachel' && c.factsProse && s.decisions && s.decisions.approveCard) {
-      const card = s.decisions.approveCard(session);
-      session.rachelActionCard = card.actionCard;
-      planEl.innerHTML = renderActionCard(card.actionCard);
-      planEl.style.display = '';
-    } else {
-      planEl.innerHTML = '';
-      planEl.style.display = 'none';
-    }
+    planEl.innerHTML = '';
+    planEl.style.display = 'none';
   }
 
   // Citations — support up to 3 (Jordan has 3; Rachel has 2)
@@ -1554,31 +2213,77 @@ function runDecision(action, arg) {
     return runScript(action);
   }
 
+  // Rachel plan-mode actions — mutate session state, then update the rec-lite +
+  // timeline taskcard in place. No chat-stream pushes; the plan lives in the
+  // module box and updates dynamically.
+  if (action === 'prepPlan') {
+    if (!session.rachelActionCard) {
+      buildRachelPlanCard();
+      session.rachelTaskState = 'planned';
+    }
+    rerenderRachelTaskcard();
+    rerenderRecLite();
+    // Keep clarifying chips after Yes — modify chips only appear after Modify Plan.
+    renderChips(s.copilot.chips || []);
+    return;
+  }
+  if (action === 'modifyPlan') {
+    if (s.id !== 'rachel') return;
+    if (!session.rachelActionCard) {
+      buildRachelPlanCard();
+      session.rachelTaskState = 'planned';
+    }
+    session.rachelEditing = true;
+    rerenderRachelTaskcard();
+    rerenderRecLite();
+    renderChips(planChipsAfterChange());
+    return;
+  }
+  if (action === 'addPresetStep') {
+    const card = session.rachelActionCard;
+    if (!card || card.steps.includes(arg)) return;
+    snapshotRachelPlan();
+    card.steps.push(arg);
+    rerenderRachelTaskcard();
+    rerenderRecLite();
+    renderChips(planChipsAfterChange());
+    return;
+  }
+  if (action === 'modifyReason') {
+    const card = session.rachelActionCard;
+    if (!card) return;
+    // Reason step format: "Tag cancellation reason: customer request (injury)". Toggle to a different category tag.
+    const idx = card.steps.findIndex(st => /Tag cancellation reason:/.test(st));
+    if (idx === -1) return;
+    const newText = "Tag cancellation reason: VIP cancellation (injury)";
+    if (card.steps[idx] === newText) return;
+    snapshotRachelPlan();
+    card.steps[idx] = newText;
+    rerenderRachelTaskcard();
+    rerenderRecLite();
+    renderChips(planChipsAfterChange());
+    return;
+  }
+  if (action === 'pickAddStep')    { pushStepPicker('add'); return; }
+  if (action === 'pickRemoveStep') { pushStepPicker('remove'); return; }
+
   const handler = s.decisions && s.decisions[action];
   if (!handler) { pushAIMsg("Not sure how to handle that yet."); return; }
 
   if (action === 'raise' || action === 'lower') {
+    if (s.id === 'rachel') snapshotRachelPlan();
     const res = handler(session, arg);
     session.creditAmount = arg;
-    updateRecCard(); // also rerenders the plan card (Rachel)
+    updateRecCard();
     pushAIMsg(res.copilotReply);
-    // Plan-mode chip tray: keep editing options available; swap the clicked direction
-    // for the opposite + a revert.
-    const def = s.copilot.creditDefault;
-    const smsAlreadyAdded = session.rachelActionCard
-      && session.rachelActionCard.steps.some(st => /SMS recap/i.test(st));
-    const chipTray = [];
-    if (action === 'raise') {
-      chipTray.push({ text: "Lower to $20", kind: 'secondary', action: 'lower', arg: 20 });
-    } else {
-      chipTray.push({ text: "Bump credit to $50", kind: 'secondary', action: 'raise', arg: 50 });
+    if (s.id === 'rachel') {
+      // Update the credit step text in place (no template rebuild — preserves edits)
+      updateCreditInPlan();
+      rerenderRachelTaskcard();
+      rerenderRecLite();
+      renderChips(planChipsAfterChange());
+      return;
     }
-    chipTray.push({ text: `Back to $${def}`, kind: 'secondary', action: 'revert' });
-    if (!smsAlreadyAdded) {
-      chipTray.push({ text: "Add SMS recap", kind: 'secondary', action: 'addStep', arg: 'sms' });
-    }
-    chipTray.push({ text: "No, I'll handle it", kind: 'secondary', action: 'handoff' });
-    renderChips(chipTray);
     return;
   }
 
@@ -1611,39 +2316,63 @@ function runDecision(action, arg) {
   if (action === 'approveConfirm') {
     const res = handler(session);
 
-    const cards = document.querySelectorAll('.action-card');
-    const lastCard = cards[cards.length - 1];
-    const card = session.rachelActionCard;
-    if (lastCard && card) {
-      // Base lines cover the 3 template steps. If the plan has more steps
-      // (e.g. user-added SMS recap), append generic completions so the finished
-      // card matches what the agent approved.
-      const completionLines = [
-        `Order #ORD-2026-84721 cancelled`,
-        `Refund queued · $847.99 to her original payment method`,
-        `$${session.creditAmount} thank-you credit applied to account`
-      ];
-      const extraSteps = card.steps.slice(3);
-      extraSteps.forEach(step => {
-        if (/SMS recap/i.test(step)) completionLines.push(`SMS recap sent · (212) 555-0147`);
-        else if (/recovery products/i.test(step)) completionLines.push(`Recovery product set queued for follow-up`);
-        else if (/follow-up/i.test(step)) completionLines.push(`Follow-up scheduled · 2 weeks out`);
-        else completionLines.push(`Step complete · ${step}`);
-      });
-      lastCard.outerHTML = renderActionCardComplete(card, completionLines);
-    }
-
     pushAIMsg(res.copilotReply);
 
-    const tl = document.getElementById('timeline');
-    res.timelineEvents.forEach(text => {
-      tl.insertAdjacentHTML('beforeend', `<div class="tl-activity">${text}</div>`);
-    });
+    // Plan now lives in the rec-lite + timeline taskcard (mirrored). Both
+    // transition to 'approved' via rerender — steps grow green ✓ checkmarks.
+    if (s.id === 'rachel') {
+      session.rachelTaskState = 'approved';
+      session.rachelEditing = false;
+      rerenderRachelTaskcard();
+      rerenderRecLite();
+    }
 
-    const chIcon = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
+    const tl = document.getElementById('timeline');
+    const chIcon = CH_ICON.chat;
+    const smsIcon = CH_ICON.sms;
     tl.insertAdjacentHTML('beforeend',
       `<div class="msg-meta right">Gladly AI replied — just now<span class="ch-icon">${chIcon}</span></div>
        <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">${res.customerReply}</div><span class="msg-dots">⋮</span></div>`);
+
+    // Choreograph the post-approve sequence: Rachel reply → AI close →
+    // SMS recap → timeline "ended chat" notification → button → End & Close.
+    if (s.id === 'rachel') {
+      const credit = session.creditAmount;
+      // 1.5s — Rachel responds in chat
+      setTimeout(() => {
+        tl.insertAdjacentHTML('beforeend',
+          `<div class="msg-meta">Rachel Thompson sent a chat — just now<span class="ch-icon">${chIcon}</span></div>
+           <div class="msg"><div class="msg-av" style="background:#5B8DEF">RT</div><div class="msg-bub">No thanks that's it and appreciate the additional credit!</div></div>`);
+        scrollTimeline();
+      }, 1500);
+      // 3.0s — AI closes the chat warmly
+      setTimeout(() => {
+        tl.insertAdjacentHTML('beforeend',
+          `<div class="msg-meta right">Gladly AI replied — just now<span class="ch-icon">${chIcon}</span></div>
+           <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">Have a great day, Rachel — take care of that tendon!</div><span class="msg-dots">⋮</span></div>`);
+        scrollTimeline();
+      }, 3000);
+      // 4.5s — AI sends an SMS recap with the loyalty code
+      setTimeout(() => {
+        tl.insertAdjacentHTML('beforeend',
+          `<div class="msg-meta right">Gladly AI sent an SMS — just now<span class="ch-icon">${smsIcon}</span></div>
+           <div class="msg outbound"><div class="msg-av" style="background:var(--navy)">AI</div><div class="msg-bub">Hi Rachel — quick recap: order #ORD-2026-84721 cancelled and refund processing. Your $${credit} Trailblazer loyalty code lands in your email shortly. — Gladly</div><span class="msg-dots">⋮</span></div>`);
+        scrollTimeline();
+      }, 4500);
+      // 6.0s — timeline event: "Gladly AI ended chat — [timestamp]"
+      setTimeout(() => {
+        const now = new Date();
+        const ts = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        tl.insertAdjacentHTML('beforeend', `<div class="tl-event">Gladly AI ended chat — ${ts}</div>`);
+        // Bottom-bar button transitions to "End & Close" closed-state
+        const btnText = document.querySelector('.bb-split .bbs-main');
+        const btn = document.querySelector('.bb-split');
+        if (btnText) btnText.textContent = 'End & Close';
+        if (btn) btn.classList.add('closed');
+        renderChips([]);
+        scrollTimeline();
+      }, 6000);
+    }
 
     session.decided = true;
     document.getElementById('conv-status').textContent = 'Resolved by AI';
@@ -1658,11 +2387,25 @@ function runDecision(action, arg) {
     res.timelineEvents.forEach(text => {
       tl.insertAdjacentHTML('beforeend', `<div class="tl-activity">${text}</div>`);
     });
-    document.getElementById('conv-status').textContent = 'Handed off to Lisa';
+    document.getElementById('conv-status').textContent = 'Handed off to Joseph';
     session.decided = true;
+    if (s.id === 'rachel') {
+      session.rachelTaskState = 'handed-off';
+      session.rachelEditing = false;
+      rerenderRachelTaskcard();
+      rerenderRecLite();
+    }
+    renderChips([]);
     scrollTimeline();
     return;
   }
+}
+
+// Click handler for AI task cards in the timeline. Dispatches through
+// runDecision; the runDecision handlers update the taskcard in place
+// via rerenderRachelTaskcard (state machine: pending → planned → approved).
+function onTaskAction(btn, action) {
+  runDecision(action);
 }
 
 /* =========================================================================
@@ -1731,8 +2474,7 @@ function runScript(action) {
 // Jordan's chip catalog (so runScript can rebuild any chip by action name)
 const JORDAN_CHIP_DEFS = {
   sentiment:  { text: "How is he feeling?",         kind: 'secondary', action: 'sentiment' },
-  options:    { text: "What are my options?",      kind: 'primary',   action: 'options' },
-  recommend:  { text: "What would you do?",         kind: 'primary',   action: 'recommend' },
+  recommend:  { text: "What do you recommend?",     kind: 'primary',   action: 'recommend' },
   draft:      { text: "Draft a response",           kind: 'primary',   action: 'draft' },
   useDraft:   { text: "Send to Jordan",             kind: 'primary',   action: 'useDraft' }
 };
@@ -1802,7 +2544,7 @@ function sideEffectApproveRun() {
     "Send SMS recap — (212) 555-0147":                                   "SMS recap sent · (212) 555-0147",
     "Recommend recovery products — Ora Slide, Bondi 8, Clifton Socks":   "Recovery product set queued for follow-up",
     "Schedule a follow-up — 2 weeks":                                    "Follow-up scheduled · 2 weeks out",
-    "Apply $25 thank-you credit":                                        "$25 credit applied",
+    "Apply $10 thank-you credit":                                        "$25 credit applied",
     "Note: no restock fee applies":                                      "Confirmed · no restock fee"
   };
   const completionLines = card.steps.map(s => completionMap[s] || `Step complete · ${s}`);
@@ -1819,20 +2561,21 @@ function sideEffectApproveRun() {
 }
 
 function updateRecCard(revert) {
+  // The rec-card was rebuilt as a row-based "Request" card; the legacy
+  // rec-title-inner / rec-line2 / pill-modified elements no longer exist.
+  // All updates are no-ops in the new design — Rachel's live state lives
+  // in the timeline taskcard's plan section, refreshed by callers.
   const inner = document.getElementById('rec-title-inner');
   const line2 = document.getElementById('rec-line2');
+  const pill  = document.getElementById('pill-modified');
   const s = currentScenario();
   if (s.id === 'jordan') {
     if (inner) inner.textContent = `Full refund + prepaid return label + $${session.creditAmount} credit`;
     if (line2) line2.textContent = `Prepaid UPS label emailed to Jordan · $${session.creditAmount} thank-you credit`;
-  } else if (s.id === 'rachel') {
-    if (inner) inner.textContent = `Cancel the order + $${session.creditAmount} thank-you credit`;
-    if (line2) line2.textContent = `$${session.creditAmount} loyalty credit on her account`;
   }
-  const pill = document.getElementById('pill-modified');
-  if (revert) pill.classList.remove('on'); else pill.classList.add('on');
-  // Keep Rachel's inline plan card in sync with credit changes.
-  if (s.id === 'rachel') rerenderRachelPlan({ preserveExtraSteps: true });
+  if (pill) {
+    if (revert) pill.classList.remove('on'); else pill.classList.add('on');
+  }
 }
 
 // Re-renders Rachel's inline plan card from session state (current credit amount +
@@ -1861,6 +2604,484 @@ function rerenderRachelPlan(opts) {
   }
   session.rachelActionCard = fresh;
   planEl.innerHTML = renderActionCard(fresh);
+}
+
+/* =========================================================================
+   RACHEL PLAN-MODE CHAT FLOW
+   prepPlan / pickAddStep / pickRemoveStep push action cards + step pickers
+   into the chat stream, replacing the upfront rp-plan render.
+   ========================================================================= */
+
+// Build the plan ONCE (initial render) and treat session.rachelActionCard.steps
+// as the source of truth thereafter. All mutations (raise/lower/add/remove/edit)
+// happen in place, so user edits to step text persist across other actions.
+function buildRachelPlanCard() {
+  const s = currentScenario();
+  if (!s || !s.decisions || !s.decisions.approveCard) return null;
+  if (!session.rachelActionCard) {
+    const fresh = s.decisions.approveCard(session).actionCard;
+    session.rachelActionCard = fresh;
+    session.rachelTemplateLen = fresh.steps.length;
+  }
+  return session.rachelActionCard;
+}
+
+// Find the credit step (by current pattern) and update its text to match
+// session.creditAmount. Used by raise/lower instead of a full rebuild.
+function updateCreditInPlan() {
+  const card = session.rachelActionCard;
+  if (!card) return;
+  card.steps = card.steps.map(step =>
+    /Generate \$\d+ Trailblazer loyalty code/.test(step)
+      ? `Generate $${session.creditAmount} Trailblazer loyalty code, no expiration`
+      : step
+  );
+}
+
+// Re-renders the right-panel rec-lite with state-appropriate action buttons.
+// Pending → [Yes, No]. Planned → [Approve & run, Modify Plan, No]. Final → no buttons.
+function rerenderRecLite() {
+  const recEl = document.getElementById('rec-card');
+  const s = currentScenario();
+  if (!recEl || !s || !s.copilot || !s.copilot.rec) return;
+  const rec = s.copilot.rec;
+  let actions = rec.actions;
+  if (s.id === 'rachel') {
+    if (session.rachelTaskState === 'planned') {
+      actions = {
+        primary:   { label: 'Approve & run',        action: 'approveConfirm' },
+        tertiary:  { label: 'Modify Plan',          action: 'modifyPlan' },
+        secondary: { label: "No, handoff to me", action: 'handoff' }
+      };
+    } else if (session.rachelTaskState === 'approved' || session.rachelTaskState === 'handed-off') {
+      actions = null;
+    }
+  }
+  const overlay = Object.assign({}, rec, { actions });
+  recEl.innerHTML = renderRecLite(overlay);
+}
+
+function pushPlanCard(card) {
+  if (!card) return;
+  const cardHtml = renderActionCard(card, { skipInlineAdd: true, skipInlineRemove: true });
+  pushAIMsg('', { extra: cardHtml, noActions: true });
+}
+
+function planChipsAfterChange() {
+  // Three-chip set shown after Modify Plan is clicked.
+  return [
+    { text: "Increase credit to $25", kind: 'secondary', action: 'raise',         arg: 25 },
+    { text: "Add SMS recap",          kind: 'secondary', action: 'addPresetStep', arg: 'Send SMS recap — (212) 555-0147' },
+    { text: "What else can I do?",    kind: 'secondary', action: 'whatElse' }
+  ];
+}
+
+function pushStepPicker(mode) {
+  const s = currentScenario();
+  let opts = '';
+  let label = '';
+  let onchange = '';
+  if (mode === 'add') {
+    label = 'Add a step';
+    onchange = 'onPickStepAdd(this)';
+    const presets = (s.stepPresets || []);
+    const existing = (session.rachelActionCard && session.rachelActionCard.steps) || [];
+    presets.forEach((p, i) => {
+      if (!existing.includes(p.step)) {
+        opts += `<option value="${i}">${escapeHtml(p.label)}</option>`;
+      }
+    });
+    if (!opts) {
+      pushAIMsg("All available steps are already in the plan.");
+      return;
+    }
+  } else {
+    label = 'Remove a step';
+    onchange = 'onPickStepRemove(this)';
+    const card = session.rachelActionCard;
+    const tlen = session.rachelTemplateLen || 0;
+    const extras = card ? card.steps.slice(tlen) : [];
+    if (extras.length === 0) {
+      pushAIMsg("No optional steps to remove.");
+      return;
+    }
+    extras.forEach((step, i) => {
+      opts += `<option value="${i}">${escapeHtml(step)}</option>`;
+    });
+  }
+  const html = `<div class="step-picker">
+    <div class="sp-label">${label}</div>
+    <select onchange="${onchange}">
+      <option disabled selected value="">Choose…</option>
+      ${opts}
+    </select>
+  </div>`;
+  pushAIMsg('', { extra: html, noActions: true });
+}
+
+function onPickStepAdd(sel) {
+  const i = parseInt(sel.value, 10);
+  const s = currentScenario();
+  const preset = (s.stepPresets || [])[i];
+  const card = session.rachelActionCard;
+  if (!preset || !card || card.steps.includes(preset.step)) return;
+  snapshotRachelPlan();
+  card.steps.push(preset.step);
+  const picker = sel.closest('.cm.ai');
+  if (picker) picker.innerHTML = `<div class="cb">Added — ${escapeHtml(preset.label.toLowerCase())}.</div>`;
+  rerenderRachelTaskcard();
+  rerenderRecLite();
+  renderChips(planChipsAfterChange());
+}
+
+function onPickStepRemove(sel) {
+  const i = parseInt(sel.value, 10);
+  const card = session.rachelActionCard;
+  const tlen = session.rachelTemplateLen || 0;
+  const removeIdx = tlen + i;
+  if (!card || removeIdx < 0 || removeIdx >= card.steps.length) return;
+  snapshotRachelPlan();
+  card.steps.splice(removeIdx, 1);
+  const picker = sel.closest('.cm.ai');
+  if (picker) picker.innerHTML = `<div class="cb">Removed.</div>`;
+  rerenderRachelTaskcard();
+  rerenderRecLite();
+  renderChips(planChipsAfterChange());
+}
+
+/* =========================================================================
+   RACHEL TIMELINE TASKCARD — state machine + history dropdown
+   ========================================================================= */
+
+function snapshotRachelPlan() {
+  if (!session.rachelActionCard) return;
+  if (!session.rachelPlanHistory) session.rachelPlanHistory = [];
+  session.rachelPlanHistory.push({
+    steps: session.rachelActionCard.steps.slice(),
+    creditAmount: session.creditAmount
+  });
+}
+
+function renderTaskcardPlanSection(card, opts) {
+  opts = opts || {};
+  if (!card) return '';
+  const editable = opts.editable === true;
+  const checkClass = opts.withChecks ? ' with-checks' : (editable ? ' editing' : '');
+  const labelText = opts.withChecks ? 'Plan completed' : (editable ? 'Editing plan' : 'Plan');
+  const stepsHtml = card.steps.map((s, i) => {
+    if (editable) {
+      // Every step is text-editable (contenteditable) and removable in edit mode.
+      return `<li class="tlt-edit-step" data-i="${i}">
+        <span class="tlt-edit-step-text" contenteditable="true" oninput="onTaskcardEditStep(this, ${i})" onkeydown="onTaskcardEditKey(event)">${s}</span>
+        <button class="tlt-edit-step-x" onclick="onTaskcardRemoveStep(this, ${i})" title="Remove step">✕</button>
+      </li>`;
+    }
+    return `<li>${s}</li>`;
+  }).join('');
+  let extraUI = '';
+  if (editable) {
+    const sNow = currentScenario();
+    const presets = (sNow && sNow.stepPresets) || [];
+    const existing = card.steps;
+    const menuItems = presets
+      .filter(p => !existing.includes(p.step))
+      .map(p =>
+        `<div class="tlt-add-menu-item" onclick="onTaskcardAddExtra(${JSON.stringify(p.step).replace(/"/g, '&quot;')})">${p.label}</div>`
+      ).join('');
+    extraUI = `<div class="tlt-add-row">
+      <button class="tlt-add-btn" onclick="toggleTaskcardAddMenu(event)">+ Add a step</button>
+      ${menuItems ? `<div class="tlt-add-menu">${menuItems}</div>` : ''}
+    </div>`;
+  }
+  return `<div class="tlt-plan${checkClass}">
+    <div class="tlt-plan-label">${labelText}</div>
+    <ol>${stepsHtml}</ol>
+    ${extraUI}
+  </div>`;
+}
+
+function toggleTaskcardAddMenu(e) {
+  e.stopPropagation();
+  const wrap = e.currentTarget.parentElement;
+  const menu = wrap && wrap.querySelector('.tlt-add-menu');
+  if (menu) menu.classList.toggle('open');
+}
+
+// Inline text edit on a step. Mutates session state and syncs the parallel
+// span in the other surface (rec-lite ↔ timeline taskcard) without rerendering
+// the active surface — that would steal focus mid-edit.
+function onTaskcardEditStep(span, i) {
+  const card = session.rachelActionCard;
+  if (!card || i < 0 || i >= card.steps.length) return;
+  const newText = span.textContent;
+  card.steps[i] = newText;
+  document.querySelectorAll(`.tlt-edit-step[data-i="${i}"] .tlt-edit-step-text`).forEach(el => {
+    if (el !== span && el.textContent !== newText) el.textContent = newText;
+  });
+}
+
+// Don't insert <div>/<br> on Enter inside a step — keep edits as plain text.
+function onTaskcardEditKey(e) {
+  if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+}
+
+function onTaskcardAddExtra(stepText) {
+  const card = session.rachelActionCard;
+  if (!card || card.steps.includes(stepText)) return;
+  snapshotRachelPlan();
+  card.steps.push(stepText);
+  rerenderRachelTaskcard();
+  rerenderRecLite();
+  renderChips(planChipsAfterChange());
+}
+
+function onTaskcardRemoveStep(btn, i) {
+  const card = session.rachelActionCard;
+  if (!card || i < 0 || i >= card.steps.length) return;
+  snapshotRachelPlan();
+  card.steps.splice(i, 1);
+  rerenderRachelTaskcard();
+  rerenderRecLite();
+  renderChips(planChipsAfterChange());
+}
+
+// Close the inline add-menu on outside click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.tlt-add-row')) {
+    document.querySelectorAll('.tlt-add-menu.open').forEach(m => m.classList.remove('open'));
+  }
+});
+
+function renderTaskcardPrevPlan(snapshot, idx) {
+  const stepsHtml = snapshot.steps.map(s => `<li>${s}</li>`).join('');
+  return `<div class="tlt-prev">
+    <div class="tlt-prev-label">Plan v${idx + 1} · $${snapshot.creditAmount} credit</div>
+    <ol>${stepsHtml}</ol>
+  </div>`;
+}
+
+function renderTaskcardPrevSection() {
+  const history = session.rachelPlanHistory || [];
+  if (history.length === 0) return '';
+  const list = history.map((p, i) => renderTaskcardPrevPlan(p, i)).join('');
+  const word = history.length === 1 ? 'plan' : 'plans';
+  return `<button class="tlt-show-prev" onclick="togglePrevPlans(this)">Show ${history.length} previous ${word}</button>
+    <div class="tlt-prev-plans">${list}</div>`;
+}
+
+function togglePrevPlans(btn) {
+  const wrap = btn.parentElement.querySelector('.tlt-prev-plans');
+  if (!wrap) return;
+  wrap.classList.toggle('expanded');
+  const n = (session.rachelPlanHistory || []).length;
+  const word = n === 1 ? 'plan' : 'plans';
+  btn.textContent = wrap.classList.contains('expanded')
+    ? `Hide previous ${word}`
+    : `Show ${n} previous ${word}`;
+}
+
+// Shared body for Rachel's planned/approved module. Three labeled sections:
+// Recommended Action (headline action), Reasoning (the why with citations),
+// then the Plan section is appended by the caller.
+function renderRachelPlannedBody(rec) {
+  if (!rec) return '';
+  let html = '';
+  if (rec.recommendedAction) {
+    html += `<div class="req-section">
+      <div class="req-section-label">Recommended Action</div>
+      <div class="req-section-value">${rec.recommendedAction}</div>
+    </div>`;
+  }
+  if (rec.reasoning) {
+    html += `<div class="req-section">
+      <div class="req-section-label">Reasoning</div>
+      <div class="req-section-value">${rec.reasoning}</div>
+    </div>`;
+  }
+  return html;
+}
+
+function renderTaskcardInner(state) {
+  const s = currentScenario();
+  const rec = s && s.copilot && s.copilot.rec;
+  const data = session.rachelTaskcardData || {};
+  if (!rec) return '';
+  const header = renderRequestHeader(rec);
+
+  if (state === 'pending') {
+    // rec.actions provides Yes/No buttons inside the request body — no duplicate set.
+    return header + renderRequestBody(rec);
+  }
+
+  if (state === 'planned') {
+    const body = renderRachelPlannedBody(rec);
+    const prev = renderTaskcardPrevSection();
+    const editable = session.rachelEditing === true;
+    const plan = renderTaskcardPlanSection(session.rachelActionCard, { editable });
+    return header + body + prev + plan + `<div class="tlt-actions">
+      <button class="tlt-primary" onclick="onTaskAction(this, 'approveConfirm')">Approve &amp; run</button>
+      <button class="tlt-tertiary" onclick="onTaskAction(this, 'modifyPlan')">Modify Plan</button>
+      <button class="tlt-secondary" onclick="onTaskAction(this, 'handoff')">No, handoff to me</button>
+    </div>`;
+  }
+
+  if (state === 'approved') {
+    const body = renderRachelPlannedBody(rec);
+    const prev = renderTaskcardPrevSection();
+    const plan = renderTaskcardPlanSection(session.rachelActionCard, { withChecks: true });
+    return header + body + prev + plan;
+  }
+
+  if (state === 'handed-off') {
+    return header + `<div class="tlt-resolution"><span class="check">✓</span>No, handoff to me · just now</div>`;
+  }
+
+  return header;
+}
+
+function rerenderRachelTaskcard() {
+  const taskcard = document.querySelector('.tl-task');
+  if (!taskcard || !session.rachelTaskcardData) return;
+  taskcard.innerHTML = renderTaskcardInner(session.rachelTaskState || 'pending');
+}
+
+// Shared "Gladly AI Request for X" header. Dot state signals lifecycle:
+//   - active (red) while the request is awaiting approval
+//   - approved (green with ✓) once Approve & run has fired
+function renderRequestHeader(rec) {
+  if (!rec) return '';
+  const s = currentScenario();
+  const state = (s && s.id === 'rachel') ? session.rachelTaskState : 'pending';
+  const isApproved = state === 'approved';
+  const dotClass = isApproved ? 'req-dot req-dot-approved' : 'req-dot';
+  const dotContent = isApproved ? '✓' : '';
+  const head = `<div class="req-head">
+    <span class="${dotClass}">${dotContent}</span>
+    <span class="req-label-text">Gladly AI Request for <span class="req-for">${rec.forName || ''}</span></span>
+    <span class="req-chev">▾</span>
+  </div>`;
+  const title = rec.title ? `<div class="req-title">${rec.title}</div>` : '';
+  return head + title;
+}
+
+// Shared body block: description line + Recommendation row + collapsible Details group.
+function renderRequestBody(rec) {
+  if (!rec) return '';
+  let html = '';
+  if (rec.description) {
+    html += `<div class="req-desc">${rec.description}</div>`;
+  }
+  if (rec.recommendation) {
+    const recLabel = rec.recommendationLabel || 'Recommendation';
+    html += `<div class="req-rec">
+      <div class="req-rec-label">${recLabel}</div>
+      <div class="req-rec-value">${rec.recommendation}</div>
+    </div>`;
+  }
+  if (rec.details && rec.details.length > 0) {
+    const rows = rec.details.map(r =>
+      `<div class="req-row"><span class="req-label">${r.l}</span><span class="req-value">${r.v}</span></div>`
+    ).join('');
+    html += `<div class="req-details-wrap">
+      <button class="req-details-toggle" onclick="toggleReqDetails(this)">Details <span class="req-details-chev">▾</span></button>
+      <div class="req-details-body">${rows}</div>
+    </div>`;
+  }
+  if (rec.actions) {
+    const a = rec.actions;
+    const primary = a.primary
+      ? `<button class="req-action-primary" onclick="runDecision('${a.primary.action}')">${a.primary.label}</button>`
+      : '';
+    const tertiary = a.tertiary
+      ? `<button class="req-action-tertiary" onclick="runDecision('${a.tertiary.action}')">${a.tertiary.label}</button>`
+      : '';
+    const secondary = a.secondary
+      ? `<button class="req-action-secondary" onclick="runDecision('${a.secondary.action}')">${a.secondary.label}</button>`
+      : '';
+    html += `<div class="req-actions">${primary}${tertiary}${secondary}</div>`;
+  }
+  return html;
+}
+
+function renderRequestCardContent(rec) {
+  return renderRequestHeader(rec) + renderRequestBody(rec);
+}
+
+function toggleReqDetails(btn) {
+  const wrap = btn.parentElement;
+  const body = wrap && wrap.querySelector('.req-details-body');
+  const chev = btn.querySelector('.req-details-chev');
+  if (!body) return;
+  const open = body.classList.toggle('expanded');
+  if (chev) chev.textContent = open ? '▴' : '▾';
+}
+
+// Right-panel rec-lite renderer. Uses the shared Request layout when rec.rows
+// is present; falls back to legacy bullets/lines for scenarios still on the
+// older shape (Jordan currently uses bullets).
+// Right-panel rec-lite renderer. Branches on data shape:
+//   - rec.forName  → "Request for X" layout (Rachel) — also state-aware: in
+//                    'planned'/'approved'/'handed-off' the body becomes the
+//                    plan section, mirroring the timeline taskcard.
+//   - rec.sections → labeled sections with body + bullets (Jordan: Handoff Context)
+//   - rec.bullets  → legacy bullet list
+//   - rec.line1/2  → legacy two-line
+function renderRecLite(rec) {
+  if (!rec) return '';
+  if (rec.forName) {
+    const s = currentScenario();
+    const state = (s && s.id === 'rachel') ? session.rachelTaskState : 'pending';
+    if (state === 'planned' || state === 'approved') {
+      const head = renderRequestHeader(rec);
+      // Combined module: context paragraph + green Recommendation block
+      // sit between the header and the plan steps. Mirrors the timeline taskcard.
+      const body = renderRachelPlannedBody(rec);
+      const prev = renderTaskcardPrevSection();
+      const editable = state === 'planned' && session.rachelEditing === true;
+      const withChecks = state === 'approved';
+      const plan = renderTaskcardPlanSection(session.rachelActionCard, { editable, withChecks });
+      // Actions for the planned/approved state come from rec.actions overlay
+      // (rerenderRecLite supplies state-appropriate actions; null for approved).
+      let actionsHtml = '';
+      if (rec.actions) {
+        const a = rec.actions;
+        if (a.primary)   actionsHtml += `<button class="req-action-primary" onclick="runDecision('${a.primary.action}')">${a.primary.label}</button>`;
+        if (a.tertiary)  actionsHtml += `<button class="req-action-tertiary" onclick="runDecision('${a.tertiary.action}')">${a.tertiary.label}</button>`;
+        if (a.secondary) actionsHtml += `<button class="req-action-secondary" onclick="runDecision('${a.secondary.action}')">${a.secondary.label}</button>`;
+      }
+      const actionsBlock = actionsHtml ? `<div class="req-actions">${actionsHtml}</div>` : '';
+      return head + body + prev + plan + actionsBlock;
+    }
+    if (state === 'handed-off') {
+      const head = renderRequestHeader(rec);
+      return head + `<div class="tlt-resolution"><span class="check">✓</span>No, handoff to me · just now</div>`;
+    }
+    return renderRequestCardContent(rec);
+  }
+  const labelText = rec.label || 'Request';
+  const head = `<div class="rl-label">${labelText}</div>`;
+  if (rec.sections) {
+    const sections = rec.sections.map(sec => {
+      let content = '';
+      if (sec.body) content += `<div class="rl-section-body">${sec.body}</div>`;
+      if (sec.bullets) {
+        content += '<ul class="rl-section-bullets">' + sec.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>';
+      }
+      return `<div class="rl-section">
+        <div class="rl-section-heading">${sec.heading}</div>
+        ${content}
+      </div>`;
+    }).join('');
+    return head + sections;
+  }
+  const title = rec.title ? `<div class="rl-title">${rec.title}</div>` : '';
+  let body = '';
+  if (rec.bullets) {
+    body = '<ul class="rl-bullets">' + rec.bullets.map(b => `<li>${b}</li>`).join('') + '</ul>';
+  } else if (rec.line1 || rec.line2) {
+    body = `<div class="rl-line">${rec.line1 || ''}</div><div class="rl-line">${rec.line2 || ''}</div>`;
+  }
+  return head + title + body;
 }
 
 /* =========================================================================
@@ -1949,18 +3170,16 @@ function onRegen(btn) {
   showToast("That's my take — let me know if you want a different angle.");
 }
 
-function renderActionCard(card) {
+function renderActionCard(card, opts) {
+  opts = opts || {};
   const s = currentScenario();
-  const steps = card.steps.map((st, i) => renderStepRow(st, i)).join('');
+  const steps = card.steps.map((st, i) => renderStepRow(st, i, opts.skipInlineRemove)).join('');
   // Context-aware step presets per scenario
   const presets = (s.stepPresets || DEFAULT_STEP_PRESETS);
   const menuItems = presets.map(p =>
     `<div class="ac-step-menu-item" onclick="insertStep(${JSON.stringify(p.step).replace(/"/g,'&quot;')})">${p.label}</div>`
   ).join('');
-  return `<div class="action-card" data-approve="${card.approveAction}">
-    <div class="ac-label">${card.label}</div>
-    <ol class="ac-steps">${steps}</ol>
-    <div class="ac-add-row" id="ac-add-row">
+  const addRow = opts.skipInlineAdd ? '' : `<div class="ac-add-row" id="ac-add-row">
       <button class="ac-add-btn" onclick="toggleStepMenu(event)">
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         Add a step
@@ -1969,7 +3188,11 @@ function renderActionCard(card) {
         ${menuItems}
         <div class="ac-step-menu-item custom" onclick="insertStepCustom()">Custom step…</div>
       </div>
-    </div>
+    </div>`;
+  return `<div class="action-card" data-approve="${card.approveAction}">
+    <div class="ac-label">${card.label}</div>
+    <ol class="ac-steps">${steps}</ol>
+    ${addRow}
     <div class="ac-actions">
       <button class="ac-primary" onclick="runDecision('${card.approveAction}')">Approve &amp; run</button>
     </div>
@@ -1978,15 +3201,16 @@ function renderActionCard(card) {
 
 const DEFAULT_STEP_PRESETS = [
   { label: 'Schedule a follow-up', step: 'Schedule a follow-up — 2 weeks' },
-  { label: 'Apply thank-you credit', step: 'Apply $25 thank-you credit' }
+  { label: 'Apply thank-you credit', step: 'Apply $10 thank-you credit' }
 ];
 
-function renderStepRow(text, i) {
+function renderStepRow(text, i, skipRemoveBtn) {
+  const removeBtn = skipRemoveBtn ? '' : `<button class="ac-step-x" onclick="removeStep(this)" title="Remove step">
+      <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>`;
   return `<li class="ac-step" data-i="${i}">
     <span class="ac-step-text">${text}</span>
-    <button class="ac-step-x" onclick="removeStep(this)" title="Remove step">
-      <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-    </button>
+    ${removeBtn}
   </li>`;
 }
 
@@ -2063,8 +3287,20 @@ function scrollRP() {
   s.scrollTop = s.scrollHeight;
 }
 function scrollTimeline() {
+  // Minimal scroll: only nudge the timeline up if the newly-appended message
+  // is below the visible viewport. If it's already visible (because the user
+  // has empty buffer space below the latest), don't scroll at all. When the
+  // viewport bottom is reached, scroll up exactly enough to keep the latest
+  // message flush at the bottom edge — no over-scroll.
   const t = document.querySelector('.conv-scroll');
-  t.scrollTop = t.scrollHeight;
+  if (!t) return;
+  const last = t.lastElementChild;
+  if (!last) return;
+  const tlRect = t.getBoundingClientRect();
+  const lastRect = last.getBoundingClientRect();
+  if (lastRect.bottom > tlRect.bottom) {
+    t.scrollTop += (lastRect.bottom - tlRect.bottom);
+  }
 }
 
 /* Clicking an Assist chip in the timeline focuses the copilot (highlight last AI msg) */
@@ -2096,11 +3332,11 @@ function sendMessage() {
     const lc = text.toLowerCase();
     const s = currentScenario();
 
-    // Team Assist scripted flow (Jordan) — phrase → script key
-    if (s.copilot.script) {
+    // Scripted flow — phrase → script/decision key. Gated by scenario id so
+    // Jordan's beat names (recommend/warmer/...) don't fire for Rachel and vice versa.
+    if (s.copilot.script && s.id === 'jordan') {
       if (/warm(er)?|friendl|kind|softer|softer tone/.test(lc))  return runScript('warmer');
-      if (/why|reason|explain|walk me|justify|what would you/.test(lc)) return runScript('recommend');
-      if (/option|paths?|choices/.test(lc))                      return runScript('options');
+      if (/why|reason|explain|walk me|justify|what would you|recommend/.test(lc)) return runScript('recommend');
       if (/conversation|what did he say|what happened/.test(lc)) return runScript('showConversation');
       if (/sentiment|feeling|mood|how is he feel/.test(lc))      return runScript('sentiment');
       if (/send.*sms|text.*him|send it.*sms/.test(lc))           return runScript('sendRecSMS');
@@ -2113,28 +3349,37 @@ function sendMessage() {
       return;
     }
 
-    // HITL flow (Rachel) — natural-language decision inference.
-    // Plan card is already visible; "yes/approve" runs the plan directly.
-    if (/^yes\b|^yep\b|^yeah\b|^go\b|go ahead|do it|approve/.test(lc)) {
-      runDecision('approveConfirm'); return;
-    }
-    if (/^no\b|i'?ll take|let me take|hand off|handoff|take over/.test(lc)) {
-      runDecision('handoff'); return;
-    }
-    const m = lc.match(/\$?(\d+)/);
-    if (m && (lc.includes('credit') || lc.includes('$') || lc.includes('loyalty') || lc.includes('bump') || lc.includes('raise') || lc.includes('lower') || lc.includes('drop'))) {
-      const n = parseInt(m[1], 10);
-      if (n >= 0 && n <= 100) {
-        const action = n > session.creditAmount ? 'raise' : 'lower';
-        runDecision(action, n);
-        return;
+    // HITL flow (Rachel) — natural-language inference. Approve/handoff first
+    // (highest priority), then clarifying questions, then plan modifications.
+    if (s.id === 'rachel') {
+      if (/^yes\b|^yep\b|^yeah\b|^go\b|go ahead|do it|approve/.test(lc)) {
+        runDecision('approveConfirm'); return;
       }
-    }
-    if (lc.includes('policy') || lc.includes('why')) {
-      pushAIMsg("Short version: she fits our playbook — clean history, legitimate reason, within our discretion. The citations in the summary have the details.");
+      if (/^no\b|i'?ll take|let me take|hand off|handoff|take over/.test(lc)) {
+        runDecision('handoff'); return;
+      }
+      // Clarifying questions
+      if (/why|recommend|explain|reasoning|justify/.test(lc)) return runScript('whyRecPlan');
+      if (/feeling|sentiment|mood|emotional|how is/.test(lc)) return runScript('howFeeling');
+      if (/option|choices|alternat|what can/.test(lc))        return runScript('options');
+      if (/what else|else can/.test(lc))                      return runScript('whatElse');
+      // Modifications: SMS recap, cancel reason
+      if (/sms|text recap|send recap/.test(lc))               return runDecision('addPresetStep', 'Send SMS recap — (212) 555-0147');
+      if (/reason|cancel.*reason|change reason/.test(lc))     return runDecision('modifyReason');
+      // Discount/credit + amount → raise/lower
+      const amtMatch = lc.match(/\$?(\d+)/);
+      if (amtMatch && /(discount|credit|loyalty|raise|lower|increase|decrease|bump|drop|to|\$)/.test(lc)) {
+        const n = parseInt(amtMatch[1], 10);
+        if (n >= 0 && n <= 100) {
+          if (n > session.creditAmount) return runDecision('raise', n);
+          if (n < session.creditAmount) return runDecision('lower', n);
+          pushAIMsg(`Already at $${n}. Let me know if you'd like a different amount, modify the cancel reason, or add an SMS recap.`);
+          return;
+        }
+      }
+      pushAIMsg("Try: discount to $25, modify reason, add SMS recap, why, how is she feeling, or what are my options.");
       return;
     }
-    pushAIMsg("I'd still go with the recommendation as-is. Let me know — yes, no, or adjust the credit.");
   }, 800);
 }
 
@@ -2190,10 +3435,37 @@ function selectCustomer(id) {
   // Panel-weighted layout when a Needs-input customer is selected (copilot is primary surface)
   document.body.classList.toggle('panel-weighted', s.type === 'assist');
 
+  // Reset session state BEFORE rendering — Rachel bootstraps directly into the
+  // 'planned' state so her taskcard mounts with the plan already built. This
+  // eliminates the old two-step "Yes, create plan" → plan transition.
+  resetSessionForScenario(s);
+
   renderProfile(s);
   renderConversation(s);
   renderCopilot(s);
   document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+}
+
+function resetSessionForScenario(s) {
+  const c = s.copilot || {};
+  session.creditAmount = c.creditDefault || 10;
+  session.mode = c.mode || 'refund';
+  session.decided = false;
+  session.awaitingReconfirm = false;
+  session.jordanLastDraft = null;
+  session.rachelExtraSteps = [];
+  session.rachelPlanHistory = [];
+  session.rachelEditing = false;
+  session.rachelActionCard = null;
+  session.rachelTemplateLen = 0;
+  // Rachel: bootstrap directly into the planned state. The plan exists from
+  // mount; the taskcard never shows the old "Yes, create plan" intermediate.
+  if (s.id === 'rachel' && s.decisions && s.decisions.approveCard) {
+    session.rachelTaskState = 'planned';
+    buildRachelPlanCard();
+  } else {
+    session.rachelTaskState = 'pending';
+  }
 }
 
 /* =========================================================================
