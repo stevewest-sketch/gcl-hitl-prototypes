@@ -98,8 +98,7 @@
   .icon-btn:hover{background: var(--gray-100)}
   .home-link{display:flex; align-items:center; gap: var(--sp-2); font: var(--button); color: var(--black)}
   .nav-c{position:absolute; left:50%; transform:translateX(-50%); display:flex; align-items:center; pointer-events: none}
-  .gladly-logo{display:inline-flex; align-items:center; gap: 8px; font: 700 22px/1 var(--ff); color: var(--black); letter-spacing: -.3px}
-  .gladly-word{line-height: 1}
+  .gladly-logo{display:block; height: 22px; width: auto}
   .nav-r{display:flex; align-items:center; gap: 6px; margin-left:auto}
   .tog-wrap{position: relative; display:inline-flex}
   .tog{width: 32px; height: 32px; border: 1px solid var(--gray-300); border-radius: var(--radius-round); display:inline-flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer}
@@ -615,7 +614,7 @@
   .bb-assigned .at{line-height: 1.3}
   .bb-assigned .at .at-name{display:block; font: 400 12px/1.2 var(--ff); color: var(--black)}
   .bb-assigned .at strong{display:block; font: 400 11px/1.2 var(--ff); color: var(--gray-700); font-weight: 400}
-  .bb-fab{width: 31px; height: 31px; max-height: 31px; min-width: 31px;border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 500 32px/1 var(--ff); padding-bottom: 5px}
+  .bb-fab{width: 26px; height: 26px; max-height: 26px; min-width: 26px;border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 400 24px/1 var(--ff); padding-bottom: 3px}
   .bb-input{flex: 1; height: 32px; border: 1px solid var(--gray-300); border-radius: 6px; padding: 0 12px; font: 400 12px/1 var(--ff); background: var(--white); color: var(--black); box-shadow: inset 0 1px 2px rgba(0,0,0,.02)}
   .bb-input:focus{outline: none; border-color: var(--green-400)}
 
@@ -1464,10 +1463,7 @@
     <a class="home-link" href="#"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M6 2L3 5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Home</a>
   </div>
   <div class="nav-c" aria-label="Gladly">
-    <span class="gladly-logo" aria-hidden="true">
-      <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="13" fill="#009B00"/><path d="M13 6.5v13M6.5 13h13" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
-      <span class="gladly-word">Gladly</span>
-    </span>
+    <img class="gladly-logo" src="images/logo.svg" alt="Gladly">
   </div>
   <div class="nav-r">
     <div class="tog-wrap"><button class="tog" title="Email"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button></div>
@@ -1477,7 +1473,7 @@
     <div class="nav-divider"></div>
     <button class="icon-btn" title="Search"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
     <button class="icon-btn" id="settings-btn" title="Display settings" onclick="toggleSettings(event)"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.5 1.5M11.5 11.5L13 13M3 13l1.5-1.5M11.5 4.5L13 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
-    <div class="nav-av" id="nav-av" title="Profile" onclick="toggleAvatarMenu(event)">JA</div>
+    <div class="nav-av" id="nav-av" title="Profile" onclick="toggleAvatarMenu(event)" style="background-color:transparent; background-image:url('images/joseph_profile.png'); background-size:130%; background-position:center; background-repeat:no-repeat"></div>
   </div>
 </nav>
 
@@ -1521,7 +1517,7 @@
   <!-- BOTTOM BAR (narrow, flush against panel left edge) -->
   <div class="bottom-bar">
     <div class="bb-assigned">
-      <div class="bb-av" style="background:var(--gray-600)">JA</div>
+      <div class="bb-av" style="background-color:transparent; background-image:url('images/joseph_profile.png'); background-size:130%; background-position:center; background-repeat:no-repeat"></div>
       <div class="at"><span class="at-name">Joseph Ansanelli (You)</span><strong>VIP Response Team</strong></div>
     </div>
     <div class="bb-topic">
@@ -2076,6 +2072,24 @@ Let me know if there's anything else I can help with.`,
 
 const STUB = (p) => ({ ...p, wired: false });
 
+// Avatar photos — name → image path. Falls back to colored initials when missing.
+const AVATAR_PHOTOS = {
+  'Jordan Rivera':     'images/Jordan.png',
+  'Rachel Thompson':   'images/Rachel.png',
+  'Sarah Kim':         'images/sarah.png',
+  'Priya Shah':        'images/Priya.png',
+  'Marcus Klein':      'images/Marcus.png',
+  'Kira Fletcher':     'images/Kira.png',
+  'Joseph Ansanelli':  'images/joseph_profile.png'
+};
+function avBg(name, fallbackColor) {
+  const p = AVATAR_PHOTOS[name];
+  return p ? `background-color:transparent; background-image:url('${p}'); background-size:130%; background-position:center; background-repeat:no-repeat` : `background:${fallbackColor || 'var(--gray-600)'}`;
+}
+function avText(name, initials) {
+  return AVATAR_PHOTOS[name] ? '' : initials;
+}
+
 const CUSTOMERS = [
   STUB({ id: 'sarah', type: 'chat', listCard: {
     name: 'Sarah Kim', initials: 'SK', avatarColor: '#0F203C',
@@ -2113,8 +2127,8 @@ function renderCustomerList() {
   list.innerHTML = CUSTOMERS.map(c => `
     <div class="cle-card ${c.id === currentId ? 'active' : ''}" data-id="${c.id}" onclick="selectCustomer('${c.id}')">
       <div class="cle-left">
-        <span class="cle-priority-dot" style="${c.listCard.priority === 'high' ? '' : 'background: var(--gray-400)'}"></span>
-        <div class="cle-av" style="background:${c.listCard.avatarColor}">${c.listCard.initials}</div>
+        <span class="cle-priority-dot" style="${c.listCard.priority === 'high' ? '' : 'background: var(--green-400)'}"></span>
+        <div class="cle-av" style="${avBg(c.listCard.name, c.listCard.avatarColor)}">${avText(c.listCard.name, c.listCard.initials)}</div>
       </div>
       <div class="cle-body">
         <div class="cle-row1"><span class="cle-name">${c.listCard.name}</span><span class="cle-time">${c.listCard.time}</span></div>
@@ -2187,7 +2201,7 @@ function renderProfile(s) {
   document.getElementById('col-profile').innerHTML = `
     <div class="profile-card">
       <div class="profile-head">
-        <div class="profile-av" style="background:${p.avatarColor}">${p.initials}</div>
+        <div class="profile-av" style="${avBg(p.name, p.avatarColor)}">${avText(p.name, p.initials)}</div>
         <div><div class="profile-name">${p.name}</div></div>
         <span class="profile-dots">⋮</span>
       </div>
@@ -2251,11 +2265,17 @@ function updateBottomBarAssignee(s) {
   if (s && s.id === 'rachel') {
     av.textContent = 'AI';
     av.style.background = 'var(--navy)';
+    av.style.backgroundImage = '';
     name.textContent = 'Gladly AI';
     team.textContent = 'AI VIP Response Team';
   } else {
-    av.textContent = 'JA';
-    av.style.background = '#7BB86F';
+    av.textContent = '';
+    av.style.background = '';
+    av.style.backgroundColor = 'transparent';
+    av.style.backgroundImage = "url('images/joseph_profile.png')";
+    av.style.backgroundSize = '130%';
+    av.style.backgroundPosition = 'center';
+    av.style.backgroundRepeat = 'no-repeat';
     name.textContent = 'Joseph Ansanelli (You)';
     team.textContent = 'VIP Response Team';
   }
@@ -2312,7 +2332,7 @@ function renderEvent(e) {
       : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
     const ch = e.channel === 'email' ? 'sent an email' : 'sent a chat';
     return `<div class="msg-meta"><span class="ch-icon">${chIcon}</span>${e.who} ${ch} — ${subToday(e.time)}</div>
-      <div class="msg inbound"><div class="msg-av" style="background:${e.avColor}">${e.av}</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
+      <div class="msg inbound"><div class="msg-av" style="${avBg(e.who, e.avColor)}">${avText(e.who, e.av)}</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
   }
   if (e.kind === 'amsg') {
     const chIcon = e.channel === 'email'
@@ -2324,7 +2344,7 @@ function renderEvent(e) {
   if (e.kind === 'jmsg') {
     const chIcon = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
     return `<div class="msg-meta right">Gladly AI replied — ${subToday(e.time)}<span class="ch-icon">${chIcon}</span></div>
-      <div class="msg outbound"><div class="msg-av" style="background:var(--gray-600)">JA</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
+      <div class="msg outbound"><div class="msg-av" style="${avBg('Joseph Ansanelli','var(--gray-600)')}">${avText('Joseph Ansanelli','JA')}</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
   }
   if (e.kind === 'event') {
     const cls = e.current ? 'tl-event current' : 'tl-event';
@@ -2571,7 +2591,7 @@ function runDecision(action, arg) {
       setTimeout(() => {
         tl.insertAdjacentHTML('beforeend',
           `<div class="msg-meta">Rachel Thompson sent a chat — just now<span class="ch-icon">${chIcon}</span></div>
-           <div class="msg"><div class="msg-av" style="background:#5B8DEF">RT</div><div class="msg-bub">Thank you so much! That's such a relief — really appreciate the overnight.</div></div>`);
+           <div class="msg"><div class="msg-av" style="${avBg('Rachel Thompson','#5B8DEF')}">${avText('Rachel Thompson','RT')}</div><div class="msg-bub">Thank you so much! That's such a relief — really appreciate the overnight.</div></div>`);
         scrollTimeline();
       }, 1500);
       // 3.0s — AI closes the chat warmly
@@ -2770,13 +2790,13 @@ function sideEffectSendOutbound(channel) {
   const label = CH_LABEL[channel];
   tl.insertAdjacentHTML('beforeend',
     `<div class="msg-meta right">Joseph Ansanelli (You) ${label} — just now<span class="ch-icon">${icon}</span></div>
-     <div class="msg outbound"><div class="msg-av" style="background:var(--gray-600)">JA</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
+     <div class="msg outbound"><div class="msg-av" style="${avBg('Joseph Ansanelli','var(--gray-600)')}">${avText('Joseph Ansanelli','JA')}</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
   scrollTimeline();
   // Jordan replies one beat later (same channel)
   setTimeout(() => {
     tl.insertAdjacentHTML('beforeend',
       `<div class="msg-meta"><span class="ch-icon">${icon}</span>Jordan Rivera ${label} — just now</div>
-       <div class="msg inbound"><div class="msg-av" style="background:#BD650E">JR</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
+       <div class="msg inbound"><div class="msg-av" style="${avBg('Jordan Rivera','#BD650E')}">${avText('Jordan Rivera','JR')}</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
     scrollTimeline();
   }, 1500);
 }
@@ -2793,7 +2813,7 @@ function sideEffectSendOutboundSMS() {
   const icon = CH_ICON.sms;
   tl.insertAdjacentHTML('beforeend',
     `<div class="msg-meta right">Joseph Ansanelli (You) sent an SMS — just now<span class="ch-icon">${icon}</span></div>
-     <div class="msg outbound"><div class="msg-av" style="background:var(--gray-600)">JA</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
+     <div class="msg outbound"><div class="msg-av" style="${avBg('Joseph Ansanelli','var(--gray-600)')}">${avText('Joseph Ansanelli','JA')}</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
   scrollTimeline();
 }
 
