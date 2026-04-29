@@ -1979,14 +1979,14 @@ const RACHEL = {
     chips: [
       { text: "Tell me more",         kind: 'secondary', action: 'whyRecPlan' },
       { text: "What are my options?", kind: 'secondary', action: 'options' },
-      { text: "Modify",               kind: 'secondary', action: 'modifyPlan' }
+      { text: "Modify plan",          kind: 'secondary', action: 'modifyPlan' }
     ],
     script: {
       whyRecPlan: {
         reply: "She's a Trailblazer — twelve orders since 2023 and her first damaged shipment.<span class='cite' onclick='togglePop(event, 1)'>1</span> Damage is clearly on us, photo confirms it, and standard ground won't make Saturday. I've already mapped the policy options: overnight comp is within service recovery authority, $25 is the standard recovery credit for this tier and order size<span class='cite' onclick='togglePop(event, 2)'>2</span>, and you can flex up to $75 if you want. The analysis is done — your call is whether the upgrade fits this moment.",
         nextChips: [
           { text: "What are my options?", kind: 'secondary', action: 'options' },
-          { text: "Modify",               kind: 'secondary', action: 'modifyPlan' }
+          { text: "Modify plan",          kind: 'secondary', action: 'modifyPlan' }
         ]
       },
       howFeeling: {
@@ -1994,14 +1994,14 @@ const RACHEL = {
         nextChips: [
           { text: "Tell me more",         kind: 'secondary', action: 'whyRecPlan' },
           { text: "What are my options?", kind: 'secondary', action: 'options' },
-          { text: "Modify",               kind: 'secondary', action: 'modifyPlan' }
+          { text: "Modify plan",          kind: 'secondary', action: 'modifyPlan' }
         ]
       },
       options: {
         reply: "Three things are within your discretion:<br><br>• Credit amount — anywhere from $10 to $75<span class='cite' onclick='togglePop(event, 2)'>2</span>.<br>• Shipping speed — overnight is what I recommended, but two-day is also an option if you want to dial it back.<br>• SMS recap — text the replacement tracking and credit code to (212) 555-0147, her preferred channel.",
         nextChips: [
           { text: "Tell me more", kind: 'secondary', action: 'whyRecPlan' },
-          { text: "Modify",       kind: 'secondary', action: 'modifyPlan' }
+          { text: "Modify plan",  kind: 'secondary', action: 'modifyPlan' }
         ]
       },
       whatElse: {
@@ -2477,6 +2477,7 @@ function runDecision(action, arg) {
     session.rachelEditing = true;
     rerenderRachelTaskcard();
     rerenderRecLite();
+    pushAIMsg("How do you want to modify the plan?");
     renderChips(planChipsAfterChange());
     return;
   }
@@ -2661,6 +2662,18 @@ function runDecision(action, arg) {
 // runDecision; the runDecision handlers update the taskcard in place
 // via rerenderRachelTaskcard (state machine: pending → planned → approved).
 function onTaskAction(btn, action) {
+  // Modify Plan from the request module: mirror the chip-click flow so the
+  // chat shows the agent's intent + AI's clarifying question.
+  if (action === 'modifyPlan' && currentScenario().id === 'rachel') {
+    pushAgentMsg("Modify plan");
+    clearChips();
+    pushTyping();
+    setTimeout(() => {
+      removeTyping();
+      runDecision(action);
+    }, 700);
+    return;
+  }
   runDecision(action);
 }
 
@@ -3383,7 +3396,7 @@ function renderRequestBody(rec) {
       ? `<button class="req-action-primary" onclick="runDecision('${a.primary.action}')">${a.primary.label}</button>`
       : '';
     const tertiary = a.tertiary
-      ? `<button class="req-action-tertiary" onclick="runDecision('${a.tertiary.action}')">${a.tertiary.label}</button>`
+      ? `<button class="req-action-tertiary" onclick="onTaskAction(this, '${a.tertiary.action}')">${a.tertiary.label}</button>`
       : '';
     const secondary = a.secondary
       ? `<button class="req-action-secondary" onclick="runDecision('${a.secondary.action}')">${a.secondary.label}</button>`
@@ -3435,7 +3448,7 @@ function renderRecLite(rec) {
       if (rec.actions) {
         const a = rec.actions;
         if (a.primary)   actionsHtml += `<button class="req-action-primary" onclick="runDecision('${a.primary.action}')">${a.primary.label}</button>`;
-        if (a.tertiary)  actionsHtml += `<button class="req-action-tertiary" onclick="runDecision('${a.tertiary.action}')">${a.tertiary.label}</button>`;
+        if (a.tertiary)  actionsHtml += `<button class="req-action-tertiary" onclick="onTaskAction(this, '${a.tertiary.action}')">${a.tertiary.label}</button>`;
         if (a.secondary) actionsHtml += `<button class="req-action-secondary" onclick="runDecision('${a.secondary.action}')">${a.secondary.label}</button>`;
       }
       const actionsBlock = actionsHtml ? `<div class="req-actions">${actionsHtml}</div>` : '';
