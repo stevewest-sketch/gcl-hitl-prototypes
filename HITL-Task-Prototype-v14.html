@@ -212,7 +212,7 @@
   /* PROFILE */
   .profile-card{background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: var(--sp-4); margin-bottom: var(--sp-3)}
   .profile-head{display:flex; align-items:center; gap: var(--sp-3); margin-bottom: var(--sp-3)}
-  .profile-av{width: 56px; height: 56px; border-radius: var(--radius-round); color: #fff; display:flex; align-items:center; justify-content:center; font: 700 18px/1 var(--ff); box-shadow: var(--shadow-sm); flex-shrink: 0}
+  .profile-av{width: 40px; height: 40px; border-radius: var(--radius-round); color: #fff; display:flex; align-items:center; justify-content:center; font: 700 13px/1 var(--ff); box-shadow: var(--shadow-sm); flex-shrink: 0}
   .profile-name{font: var(--h3); color: var(--black)}
   .profile-dots{margin-left:auto; font-weight: 700; color: var(--gray-700); font-size: 24px; cursor: pointer; padding: 0 var(--sp-1)}
   .kv{display:flex; justify-content:space-between; padding: var(--sp-1) 0; font: var(--copy)}
@@ -598,8 +598,8 @@
     font: 400 12px/1.5 var(--ff);
   }
   .tlt-prev ol li{ padding: 2px 0; }
-  .msg-meta{font: var(--copy-sm); color: var(--gray-800); margin-bottom: var(--sp-2); display:flex; align-items:center; gap: 6px}
-  .msg-meta.right{justify-content: flex-end}
+  .msg-meta{font: var(--copy-sm); color: var(--gray-800); margin-bottom: var(--sp-2); display:flex; align-items:center; gap: 6px; padding-left: calc(32px + var(--sp-3))}
+  .msg-meta.right{justify-content: flex-end; padding-left: 0; padding-right: calc(32px + var(--sp-3))}
   .msg-meta .ch-icon{display:inline-flex; align-items:center; justify-content:center; width: 16px; height: 16px; color: var(--gray-600)}
   .msg{display:flex; gap: var(--sp-3); margin-bottom: var(--sp-5); max-width: 82%}
   .msg.outbound{margin-left: auto; flex-direction: row-reverse}
@@ -1718,9 +1718,7 @@ const JORDAN = {
       text: "I understand, Jordan. Since I'm not able to approve a return exception myself, I'm connecting you with a member of our team to review. Hang tight — someone will be with you shortly." }
   ],
   copilot: {
-    opening: `Jordan was just escalated to you.
-
-He requested a return outside our 30-day policy I am unable to process. He provided additional context that may warrant an exception under your discretion.`,
+    opening: `Jordan was just escalated to you because he requested a return outside our 30-day policy. I am unable to process. He provided additional context that may warrant an exception under your discretion.`,
     rec: {
       label: 'Handoff Summary',
       sections: [
