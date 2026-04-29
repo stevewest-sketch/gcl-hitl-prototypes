@@ -645,7 +645,7 @@
   body.focus-copilot .rp-tab.expand{background: var(--purple-100); color: var(--purple-assist)}
   .rp-body{flex:1; display:flex; flex-direction:column; background: var(--white); overflow: hidden}
 
-  .rp-scroll{flex:1; overflow-y: auto; padding: var(--sp-4) var(--sp-4) var(--sp-2); display:flex; flex-direction: column; gap: var(--sp-4)}
+  .rp-scroll{flex:1; overflow-y: auto; padding: var(--sp-4) var(--sp-4) var(--sp-5); display:flex; flex-direction: column; gap: var(--sp-4); scroll-padding-bottom: var(--sp-5)}
 
   /* The opening AI message is structurally larger than a chat bubble — it holds
      summary + facts + a minimal "what I'd do" block + the closing question, all as one AI turn. */
@@ -2424,6 +2424,9 @@ function renderChips(chips) {
   ).join('');
   // stash for lookup
   window._chipBank = chips;
+  // Re-scroll the panel — the chip rail's height change shrinks the viewport,
+  // and without this the just-pushed message can sit hidden behind the chips.
+  scrollRP();
 }
 
 function handleChip(i) {
@@ -3682,23 +3685,36 @@ function removeTyping() {
 }
 function scrollRP() {
   const s = document.getElementById('rp-scroll');
-  s.scrollTop = s.scrollHeight;
+  if (!s) return;
+  // Run after layout so any chip rail / footer that renders in the same tick
+  // has already shrunk the scroll viewport. Double rAF guards against the
+  // chip rail being added immediately after the message push.
+  const goToBottom = () => { s.scrollTop = s.scrollHeight; };
+  requestAnimationFrame(() => {
+    goToBottom();
+    requestAnimationFrame(goToBottom);
+  });
 }
 function scrollTimeline() {
-  // Minimal scroll: only nudge the timeline up if the newly-appended message
-  // is below the visible viewport. If it's already visible (because the user
-  // has empty buffer space below the latest), don't scroll at all. When the
-  // viewport bottom is reached, scroll up exactly enough to keep the latest
-  // message flush at the bottom edge — no over-scroll.
+  // Keep the latest timeline element fully visible above the reply input
+  // with a comfortable buffer (24px) — never let it sit flush against the
+  // bottom edge where it can read as cut off. Run after layout via rAF so
+  // any newly-rendered footer/buttons have already shrunk the viewport.
   const t = document.querySelector('.conv-scroll');
   if (!t) return;
-  const last = t.lastElementChild;
-  if (!last) return;
-  const tlRect = t.getBoundingClientRect();
-  const lastRect = last.getBoundingClientRect();
-  if (lastRect.bottom > tlRect.bottom) {
-    t.scrollTop += (lastRect.bottom - tlRect.bottom);
-  }
+  const BOTTOM_BUFFER = 24;
+  const tick = () => {
+    const last = t.lastElementChild;
+    if (!last) return;
+    const tlRect = t.getBoundingClientRect();
+    const lastRect = last.getBoundingClientRect();
+    const overflow = (lastRect.bottom + BOTTOM_BUFFER) - tlRect.bottom;
+    if (overflow > 0) t.scrollTop += overflow;
+  };
+  requestAnimationFrame(() => {
+    tick();
+    requestAnimationFrame(tick);
+  });
 }
 
 /* Clicking an Assist chip in the timeline focuses the copilot (highlight last AI msg) */
