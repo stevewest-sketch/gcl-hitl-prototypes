@@ -402,6 +402,8 @@
   .tl-airequest.req-approved .tlt-plan{ background: var(--green-50); border-color: var(--green-100); }
   .tl-airequest.replacement-only{ background: var(--white); border-color: var(--gray-300); cursor: default; }
   .tl-airequest .air-head{ display:flex; align-items:center; gap:8px; margin-bottom: 8px; }
+  .tl-airequest .air-head .air-assigned{ margin-left: auto; font: 400 13px/1.4 var(--ff); color: #009b00; }
+  .tl-airequest .air-head .air-assigned .req-for{ font-weight: 600; }
   .tl-airequest .air-title{ font: 600 13px/1.4 var(--ff); color: var(--black); margin-bottom: 4px; }
   .tl-airequest .air-desc{ font: var(--copy-sm); color: var(--gray-800); line-height: 1.5; margin-bottom: 12px; }
   .tl-airequest .air-status{ font: var(--copy-sm); color: var(--gray-700); margin-top: 10px; display:flex; align-items:center; gap:6px; }
@@ -435,6 +437,13 @@
      chat bubble. Reuses .req-section. */
   .cm.ai .cb.rec-context .req-section{ margin-bottom: 12px; }
   .cm.ai .cb.rec-context .req-section:last-child{ margin-bottom: 0; }
+  /* "Gladly AI Request" title heading in the panel — text only, no badge box. */
+  #chat-msgs .chat-section-title{
+    font: 700 13px/1.4 var(--ff);
+    color: var(--black);
+    margin: 8px 2px 0;
+    padding: 0;
+  }
 
   /* Plan section embedded inside the taskcard. Mirrors the chat-side action card
      in compact form (steps + label, no inline add/remove). */
@@ -2010,8 +2019,9 @@ const RACHEL = {
     }
   ],
   copilot: {
-    // v15 — shorter handoff tee-up. The detail moves to the breakdown / recommendation beats.
-    opening: `Rachel's race-day Rocket X 2s arrived damaged. I've drafted a fix — overnight replacement plus a service-recovery credit. The replacement is mine to send; the upgrade and credit need your sign-off. Want me to walk you through it?`,
+    // v15 — shorter handoff tee-up. The walk-through (rec context + plan) is
+    // pre-populated on initial render, so the trailing question is dropped.
+    opening: `Rachel's race-day Rocket X 2s arrived damaged. I've drafted a fix — overnight replacement plus a service-recovery credit. The replacement is mine to send; the upgrade and credit need your sign-off.`,
     rec: {
       forName: 'Joseph Ansanelli',
       title: 'Approve overnight upgrade and $25 recovery credit',
@@ -2457,6 +2467,7 @@ function renderCopilot(s) {
     // Approve/Deny + "Want me to authorize…" prompt. Chip rail shows the two
     // secondary options. Mirrors the v14 module content but conversational.
     pushAIMsg(c.opening, { noActions: true });
+    pushSectionTitle('Gladly AI Request');
     pushRecommendationContext();
     pushPlanAsAIMessage({ askApproval: true, askText: rachelAskText() });
   } else {
@@ -2997,6 +3008,19 @@ function pushPlanAsAIMessage(opts) {
     }
   }
   pushAIMsg('', { extra, noActions: true });
+}
+
+// v15 — text-only section heading in the chat thread. Used for the
+// "Gladly AI Request" title that follows the opening greeting (the timeline
+// pill carries the full badge + assigned-to treatment instead).
+function pushSectionTitle(text) {
+  const box = document.getElementById('chat-msgs');
+  if (!box) return;
+  const el = document.createElement('div');
+  el.className = 'chat-section-title';
+  el.textContent = text;
+  box.appendChild(el);
+  scrollRP();
 }
 
 // v15 — push the recommendation context block (Recommended Action + Reasoning)
@@ -3562,7 +3586,8 @@ function renderCondensedAIRequest(state) {
   const isResolved = state === 'approved' || state === 'replacement-only';
   const dotClass = isResolved ? 'req-dot req-dot-approved' : 'req-dot';
   const dotContent = isResolved ? '✓' : '';
-  const head = `<div class="air-head"><div class="req-badge"><span class="${dotClass}">${dotContent}</span>Gladly AI Request</div></div>`;
+  const assignedTo = rec.forName ? `<span class="air-assigned">Assigned to <span class="req-for">${rec.forName}</span></span>` : '';
+  const head = `<div class="air-head"><div class="req-badge"><span class="${dotClass}">${dotContent}</span>Gladly AI Request</div>${assignedTo}</div>`;
   const title = rec.title ? `<div class="air-title">${rec.title}</div>` : '';
   const desc = rec.description ? `<div class="air-desc">${rec.description}</div>` : '';
   // Reuse the existing prev-plans collapse, with a compact list style.
