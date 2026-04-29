@@ -3214,6 +3214,11 @@ function markLastPlanBlockCompleted(opts) {
     replacementOnly: opts.replacementOnly === true
   });
   block.classList.add('completed');
+  // Belt-and-suspenders: paint the completed tint inline so there is zero
+  // chance the CSS cascade (or a stale CDN cache of the stylesheet) leaves
+  // the block looking white. The class still drives any future styling.
+  block.style.backgroundColor = '#D8F4D8';
+  block.style.borderColor = '#009B00';
   const cm = block.closest('.cm.ai');
   if (cm) {
     cm.querySelectorAll('.cb-actions.plan-actions, .cb-ask').forEach(el => el.remove());
@@ -3766,9 +3771,18 @@ function renderCondensedAIRequest(state) {
   // surface for the plan is the panel; the pill is just a status indicator.
   // User explicitly clicks Show Plan to expand; flag persists once set.
   const planExpanded = session.rachelPillPlanExpanded === true;
-  const plan = planExpanded
-    ? renderTaskcardPlanSection(session.rachelActionCard, planOpts)
-    : `<button class="air-show-plan" onclick="onShowPlan(event)">Show Plan <span class="air-chev">▾</span></button>`;
+  let plan;
+  if (planExpanded) {
+    let planHtml = renderTaskcardPlanSection(session.rachelActionCard, planOpts);
+    // Belt-and-suspenders: when approved/replacement-only, paint the green
+    // tint inline so the cascade can't lose to the base .tlt-plan { gray-100 }.
+    if (state === 'approved' || state === 'replacement-only') {
+      planHtml = planHtml.replace('class="tlt-plan', 'style="background:#D8F4D8;border-color:#009B00" class="tlt-plan');
+    }
+    plan = planHtml;
+  } else {
+    plan = `<button class="air-show-plan" onclick="onShowPlan(event)">Show Plan <span class="air-chev">▾</span></button>`;
+  }
   let statusText = 'Awaiting your approval';
   let statusCls = '';
   if (state === 'approved') { statusText = 'Approved · running'; statusCls = 'approved'; }
