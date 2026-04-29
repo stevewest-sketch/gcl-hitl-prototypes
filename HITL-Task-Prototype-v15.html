@@ -4316,14 +4316,27 @@ function selectCustomer(id) {
   renderConversation(s);
   renderCopilot(s);
   document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
-  // v15 — land at the bottom of the timeline so the request pill is fully
-  // visible above the reply input. Without this, the pill sits below the fold
-  // on first paint. Double rAF lets the panel layout settle first.
+  // v15 — initial scroll positioning:
+  //  • timeline (.conv-scroll) → fully bottom so the request pill sits flush
+  //    above the reply input. scrollIntoView on the last child is more reliable
+  //    than scrollTop=scrollHeight when the bottom-bar height is still settling.
+  //  • right panel (#rp-scroll) → top so the user starts at the greeting and
+  //    reads down through the task card / rec context / plan.
   const tl = document.querySelector('.conv-scroll');
-  if (tl) {
-    const goBottom = () => { tl.scrollTop = tl.scrollHeight; };
-    requestAnimationFrame(() => { goBottom(); requestAnimationFrame(goBottom); });
-  }
+  const rp = document.getElementById('rp-scroll');
+  const settle = () => {
+    if (tl && tl.lastElementChild) {
+      tl.lastElementChild.scrollIntoView({ block: 'end', inline: 'nearest' });
+    }
+    if (rp) rp.scrollTop = 0;
+  };
+  requestAnimationFrame(() => {
+    settle();
+    requestAnimationFrame(() => {
+      settle();
+      setTimeout(settle, 80);   // belt-and-suspenders after image/layout settles
+    });
+  });
 }
 
 function resetSessionForScenario(s) {
