@@ -459,9 +459,50 @@
      chat bubble. Reuses .req-section. */
   .cm.ai .cb.rec-context .req-section{ margin-bottom: 12px; }
   .cm.ai .cb.rec-context .req-section:last-child{ margin-bottom: 0; }
-  /* "Gladly AI Request" Tasks-style card in the panel — gray container, green
-     accent on the "for Joseph Ansanelli" text, ellipsis when narrow, due date
-     line below. Shown only in the panel; the timeline pill keeps the badge. */
+  /* v15 — pinned Tasks-style task header at the top of the panel. Full panel
+     width, gray container, persistent — chat scrolls under it. */
+  .rp-pinned-task{
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 12px 16px;
+    flex-shrink: 0;
+  }
+  .rp-pinned-task .ta-task-head{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font: 400 14px/1.4 var(--ff);
+    color: var(--black);
+    min-width: 0;
+  }
+  .rp-pinned-task .ta-task-head .ta-dot{
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--green-400);
+    flex-shrink: 0;
+  }
+  .rp-pinned-task .ta-task-head .ta-name{ font-weight: 700; flex-shrink: 0; }
+  .rp-pinned-task .ta-task-head .ta-for-wrap{
+    color: var(--green-400);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+  .rp-pinned-task .ta-task-head .ta-chev{
+    color: var(--green-400);
+    flex-shrink: 0;
+    margin-left: auto;
+    font-size: 12px;
+  }
+  .rp-pinned-task .ta-task-due{
+    font: 700 14px/1.4 var(--ff);
+    color: var(--black);
+    margin-top: 6px;
+  }
+
+  /* Legacy in-chat .ta-task-card (kept for compat in case it gets pushed
+     elsewhere) — same look as the pinned header but bordered + rounded. */
   #chat-msgs .ta-task-card{
     background: var(--gray-50);
     border: 1px solid var(--gray-200);
@@ -1675,6 +1716,9 @@
         <button class="rp-tab" title="Answers"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2a1 1 0 011-1h7l2 2v11a1 1 0 01-1 1H4a1 1 0 01-1-1V2z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 5h5M5 8h5M5 11h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
       </div>
       <div class="rp-body">
+        <!-- v15 — pinned Tasks-style request card (Rachel only). Lives outside
+             #rp-scroll so it stays at the top while the conversation scrolls. -->
+        <div class="rp-pinned-task" id="rp-pinned-task" style="display:none"></div>
         <div class="rp-scroll" id="rp-scroll">
           <!-- Opening AI message (one turn, holds summary + prose facts + minimal rec block + ask) -->
           <div class="ai-open" id="ai-open">
@@ -2123,13 +2167,7 @@ const RACHEL = {
       },
       options: {
         sideEffect: 'listOptions',
-        nextChips: [
-          { text: "1", kind: 'secondary', action: 'applyOptions', arg: [1] },
-          { text: "2", kind: 'secondary', action: 'applyOptions', arg: [2] },
-          { text: "3", kind: 'secondary', action: 'applyOptions', arg: [3] },
-          { text: "4", kind: 'secondary', action: 'applyOptions', arg: [4] },
-          { text: "5", kind: 'secondary', action: 'applyOptions', arg: [5] }
-        ]
+        nextChips: []   // v15 — no chips; user types numbers via the input ("1 and 3")
       },
       // Free-text fallbacks (still reachable via typed input even though they're
       // no longer pinned to the chip rail).
@@ -2545,14 +2583,16 @@ function renderCopilot(s) {
     if (askEl) askEl.style.display = 'none';
     if (planEl) { planEl.innerHTML = ''; planEl.style.display = 'none'; }
     document.getElementById('chat-msgs').innerHTML = '';
-    // v15 default state: greeting → recommendation context → plan with inline
-    // Approve/Deny + "Want me to authorize…" prompt. Chip rail shows the two
-    // secondary options. Mirrors the v14 module content but conversational.
-    pushAIMsg(c.opening, { noActions: true });
-    pushTaskCard({ name: 'Gladly AI Request', forName: (c.rec && c.rec.forName) || '' });
+    // v15 — pinned Tasks-style header at the top of the panel; chat scrolls
+    // beneath it. Greeting is dropped; the panel opens directly with the
+    // recommendation context + plan (matching v14's module content order).
+    populatePinnedTaskCard({ name: 'Gladly AI Request', forName: (c.rec && c.rec.forName) || '' });
     pushRecommendationContext();
     pushPlanAsAIMessage({ askApproval: true, askText: rachelAskText() });
   } else {
+    // Hide the v15 pinned task card for non-Rachel scenarios.
+    const pinnedEl = document.getElementById('rp-pinned-task');
+    if (pinnedEl) { pinnedEl.style.display = 'none'; pinnedEl.innerHTML = ''; }
     if (aoEl) aoEl.style.display = '';
     document.getElementById('ao-text').innerHTML = c.opening;
 
@@ -3098,27 +3138,23 @@ function pushPlanAsAIMessage(opts) {
   pushAIMsg('', { extra, noActions: true });
 }
 
-// v15 — Tasks-style card in the panel chat for the request title. Header
-// reads "● Gladly AI Request for [Name]" with green accent on the assignee
-// (truncated with ellipsis when the panel is narrow) plus a due-date line.
-// SLA is fixed at 5 minutes from page load, formatted as "Due Mon D, YYYY h:mmam".
-function pushTaskCard(opts) {
-  const box = document.getElementById('chat-msgs');
-  if (!box) return;
+// v15 — populate the pinned Tasks-style header at the top of the panel. The
+// header sits OUTSIDE the chat scroll area (in #rp-pinned-task) so it stays
+// visible while the conversational flow scrolls under it. SLA = 5 min.
+function populatePinnedTaskCard(opts) {
+  const host = document.getElementById('rp-pinned-task');
+  if (!host) return;
   const name = (opts && opts.name) || 'Gladly AI Request';
   const forName = (opts && opts.forName) || '';
   const due = (opts && opts.due) || rachelDueText();
-  const el = document.createElement('div');
-  el.className = 'ta-task-card';
-  el.innerHTML = `<div class="ta-task-head">
+  host.innerHTML = `<div class="ta-task-head">
       <span class="ta-dot"></span>
       <span class="ta-name">${name}</span>
       <span class="ta-for-wrap">for ${forName}</span>
       <span class="ta-chev">▾</span>
     </div>
     <div class="ta-task-due">${due}</div>`;
-  box.appendChild(el);
-  scrollRP();
+  host.style.display = '';
 }
 
 // v15 — SLA: 5 minutes from now. Formatted "Due Apr 29, 2026 3:23pm".
@@ -3193,7 +3229,7 @@ function sideEffectListOptions() {
     <li>Add free Clifton Recovery Socks to the replacement</li>
     <li>Schedule a follow-up after the San Diego Half</li>
   </ol>`;
-  pushAIMsg(`Here's what I can do — you can mix and match:${list}Which would you like to do? You can type the numbers (e.g., "1 and 3") or tap a chip.`);
+  pushAIMsg(`Here's what I can do — you can mix and match:${list}Which would you like to do? Type the numbers (e.g., "1 and 3").`);
 }
 
 function sideEffectApproveRun() {
