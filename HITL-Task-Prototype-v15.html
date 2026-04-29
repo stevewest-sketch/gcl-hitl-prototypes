@@ -396,8 +396,11 @@
   }
   .tl-airequest:hover{ border-color: var(--gray-400); box-shadow: 0 1px 4px rgba(0,0,0,.05); }
   .tl-airequest.req-pending{ border-color: #8C69F0; }
-  .tl-airequest.req-approved{ background: var(--green-50); border-color: transparent; cursor: default; }
-  .tl-airequest.replacement-only{ background: var(--gray-50); border-color: var(--gray-300); cursor: default; }
+  /* Approved: pill itself stays white — only the inner plan container fills
+     with the green tint (via .tlt-plan rule below). */
+  .tl-airequest.req-approved{ background: var(--white); border-color: var(--gray-300); cursor: default; }
+  .tl-airequest.req-approved .tlt-plan{ background: var(--green-50); border-color: var(--green-100); }
+  .tl-airequest.replacement-only{ background: var(--white); border-color: var(--gray-300); cursor: default; }
   .tl-airequest .air-head{ display:flex; align-items:center; gap:8px; margin-bottom: 8px; }
   .tl-airequest .air-title{ font: 600 13px/1.4 var(--ff); color: var(--black); margin-bottom: 4px; }
   .tl-airequest .air-desc{ font: var(--copy-sm); color: var(--gray-800); line-height: 1.5; margin-bottom: 12px; }
@@ -410,6 +413,8 @@
   /* Plan-as-chat-message host: lets the plan render inside an AI bubble. */
   .cm.ai .cb.plan-block{ background: var(--white); border: 1px solid var(--gray-300); border-radius: 10px; padding: 12px 14px; max-width: 460px; }
   .cm.ai .cb.plan-block .tlt-plan{ margin: 0; border: none; padding: 0; background: transparent; }
+  /* Completed plan-block — same green tint as the timeline pill's plan box. */
+  .cm.ai .cb.plan-block.completed{ background: var(--green-50); border-color: var(--green-100); }
   /* Inline Approve/Deny actions sitting beneath the plan-block, mirroring the
      "Use" affordance Jordan's draft cards have. */
   .cm.ai .cb-actions.plan-actions{ margin-top: 10px; }
@@ -2453,7 +2458,7 @@ function renderCopilot(s) {
     // secondary options. Mirrors the v14 module content but conversational.
     pushAIMsg(c.opening, { noActions: true });
     pushRecommendationContext();
-    pushPlanAsAIMessage({ askApproval: true, askText: c.ask || 'Want me to authorize the additional steps?' });
+    pushPlanAsAIMessage({ askApproval: true, askText: rachelAskText() });
   } else {
     if (aoEl) aoEl.style.display = '';
     document.getElementById('ao-text').innerHTML = c.opening;
@@ -2611,7 +2616,7 @@ function runDecision(action, arg) {
       pushAIMsg(`Got it — ${humanList(summaries)}. Here's the updated plan:`);
       // v15 — updated plan card carries the same inline Approve/Deny affordance
       // as the initial render, so the user can act without scrolling to chips.
-      pushPlanAsAIMessage({ askApproval: true, askText: 'Want me to authorize the additional steps?' });
+      pushPlanAsAIMessage({ askApproval: true, askText: rachelAskText() });
     }
     renderChips([
       { text: "What are my options?", kind: 'secondary', action: 'options' },
@@ -2847,7 +2852,7 @@ function runScript(action) {
   if (beat.sideEffect === 'approveRun')       sideEffectApproveRun();
   if (beat.sideEffect === 'sendOutboundSMS')  sideEffectSendOutboundSMS();
   // v15 Rachel — push the live plan as an AI chat message with inline Approve/Deny.
-  if (beat.sideEffect === 'pushPlanInChat')   pushPlanAsAIMessage({ askApproval: true, askText: 'Want me to authorize the additional steps?' });
+  if (beat.sideEffect === 'pushPlanInChat')   pushPlanAsAIMessage({ askApproval: true, askText: rachelAskText() });
   // v15 Rachel — list the 5 numbered options the human can pick from.
   if (beat.sideEffect === 'listOptions')      sideEffectListOptions();
 
@@ -2943,6 +2948,13 @@ function renderProductList(items) {
   return `<div class="prod-list">${rows}</div>`;
 }
 
+// v15 — Rachel's authorize prompt, kept in sync with the current credit amount
+// so it stays accurate after the user modifies the plan.
+function rachelAskText() {
+  const credit = session.creditAmount;
+  return `Want me to authorize the overnight upgrade and the $${credit} credit?`;
+}
+
 // v15 — join a list with commas and "and" before the last item.
 function humanList(arr) {
   if (!arr || arr.length === 0) return '';
@@ -2965,11 +2977,20 @@ function pushPlanAsAIMessage(opts) {
     withChecks: opts.withChecks === true,
     replacementOnly: opts.replacementOnly === true
   });
-  let extra = `<div class="cb plan-block">${html}</div>`;
+  // Approved + replacement-only states get the green-tinted plan-block.
+  const finalState = opts.withChecks || opts.replacementOnly;
+  const blockCls = finalState ? 'cb plan-block completed' : 'cb plan-block';
+  let extra = `<div class="${blockCls}">${html}</div>`;
   if (opts.askApproval) {
+    // Approve / Deny + the same feedback icons that follow every AI output.
+    // Icons reuse the existing handlers (onRegen / onCopy / onThumb).
     extra += `<div class="cb-actions plan-actions">
       <button class="cb-use" onclick="onPlanApprove(this)">Approve</button>
       <button class="cb-deny" onclick="onPlanDeny(this)">Deny</button>
+      <button class="cb-icon regen" title="Regenerate" onclick="onRegen(this)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 8a5.5 5.5 0 11-1.6-3.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M13.5 2.5v2.5H11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>
+      <button class="cb-icon copy" title="Copy" onclick="onCopy(this)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="5" y="3" width="8" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="3" y="5" width="8" height="10" rx="1" stroke="currentColor" stroke-width="1.3" fill="#fff"/></svg></button>
+      <button class="cb-icon thumb up" title="Helpful" onclick="onThumb(this, 'up')"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 7v6h7l2-5V6h-4V3a1 1 0 00-2 0l-1 4H4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></button>
+      <button class="cb-icon thumb down" title="Not helpful" onclick="onThumb(this, 'down')"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 9V3h7l2 5v2h-4v3a1 1 0 01-2 0l-1-4H4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></button>
     </div>`;
     if (opts.askText) {
       extra += `<div class="cb-ask">${opts.askText}</div>`;
