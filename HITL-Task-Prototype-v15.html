@@ -410,9 +410,26 @@
   /* Plan-as-chat-message host: lets the plan render inside an AI bubble. */
   .cm.ai .cb.plan-block{ background: var(--white); border: 1px solid var(--gray-300); border-radius: 10px; padding: 12px 14px; max-width: 460px; }
   .cm.ai .cb.plan-block .tlt-plan{ margin: 0; border: none; padding: 0; background: transparent; }
+  /* Inline Approve/Deny actions sitting beneath the plan-block, mirroring the
+     "Use" affordance Jordan's draft cards have. */
+  .cm.ai .cb-actions.plan-actions{ margin-top: 10px; }
+  .cm.ai .cb-deny{
+    background: var(--white); color: var(--gray-800);
+    padding: 7px 16px;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-pill);
+    font: var(--button); cursor: pointer;
+  }
+  .cm.ai .cb-deny:hover{ background: var(--gray-100); border-color: var(--gray-700); color: var(--black); }
+  /* "Want me to authorize…" prompt under the inline actions. */
+  .cm.ai .cb-ask{ font: var(--copy-sm); color: var(--gray-700); margin-top: 8px; padding-left: 2px; }
   /* "What are my options?" numbered list inside an AI message. */
   .cm.ai .cb .opt-list{ margin: 8px 0 8px; padding-left: 22px; }
   .cm.ai .cb .opt-list li{ margin: 3px 0; line-height: 1.5; }
+  /* Recommendation context block (Recommended Action + Reasoning) inside a
+     chat bubble. Reuses .req-section. */
+  .cm.ai .cb.rec-context .req-section{ margin-bottom: 12px; }
+  .cm.ai .cb.rec-context .req-section:last-child{ margin-bottom: 0; }
 
   /* Plan section embedded inside the taskcard. Mirrors the chat-side action card
      in compact form (steps + label, no inline add/remove). */
@@ -2008,12 +2025,13 @@ const RACHEL = {
       { title: 'Service Recovery Authority', body: "Agents can authorize shipping upgrades and recovery credits up to $75 at their discretion when service failure has impacted a customer commitment or event. Trailblazer-tier customers receive elevated discretion." },
       { title: 'Customer Engagement Playbook', body: "When a customer mentions a time-sensitive event impacted by Retalè's service failure, prioritize fast resolution and proactive recovery. Sentiment recovery within the same conversation is the goal." }
     ],
-    // v15 — two opening chips. "I need help here" intentionally dropped per
-    // meeting transcript ("maybe no button"). whyRecPlan / howFeeling / whatElse
-    // remain reachable via free-text fallback in sendMessage().
+    // v15 — full content surfaces in the panel on initial load (recommendation
+    // context + plan with inline Approve/Deny). Chip rail offers two secondary
+    // ways to act on the plan. Modify plan routes to the same options beat
+    // (both verbs map to "show me what I can change").
     chips: [
-      { text: "Yes — walk me through it", kind: 'primary',   action: 'breakdown' },
-      { text: "What are my options?",     kind: 'secondary', action: 'options'   }
+      { text: "What are my options?", kind: 'secondary', action: 'options' },
+      { text: "Modify plan",          kind: 'secondary', action: 'options' }
     ],
     script: {
       breakdown: {
@@ -2025,11 +2043,9 @@ const RACHEL = {
       recommendation: {
         reply: "Overnight the replacement at no charge and issue a $25 Trailblazer service-recovery credit<span class='cite' onclick='togglePop(event, 2)'>2</span>. Both are within your discretion. Here's the plan — autonomous steps run no matter what; the bottom two need you to authorize:",
         sideEffect: 'pushPlanInChat',
-        followup: "Do you want to authorize the additional steps?",
         nextChips: [
-          { text: "Approve",              kind: 'primary',   action: 'approveConfirm' },
-          { text: "What are my options?", kind: 'secondary', action: 'options'        },
-          { text: "Deny",                 kind: 'secondary', action: 'replacementOnly' }
+          { text: "What are my options?", kind: 'secondary', action: 'options' },
+          { text: "Modify plan",          kind: 'secondary', action: 'options' }
         ]
       },
       options: {
@@ -2047,17 +2063,15 @@ const RACHEL = {
       whyRecPlan: {
         reply: "She's a Trailblazer — twelve orders since 2023 and her first damaged shipment.<span class='cite' onclick='togglePop(event, 1)'>1</span> Damage is clearly on us, photo confirms it, and standard ground won't make Saturday. Overnight comp is within service recovery authority, $25 is the standard recovery credit for this tier and order size<span class='cite' onclick='togglePop(event, 2)'>2</span>, and you can flex up to $75 if you want.",
         nextChips: [
-          { text: "Approve",              kind: 'primary',   action: 'approveConfirm' },
-          { text: "What are my options?", kind: 'secondary', action: 'options'        },
-          { text: "Deny",                 kind: 'secondary', action: 'replacementOnly' }
+          { text: "What are my options?", kind: 'secondary', action: 'options' },
+          { text: "Modify plan",          kind: 'secondary', action: 'options' }
         ]
       },
       howFeeling: {
         reply: "She's stressed but not angry. The race timing is doing most of the work — sentiment dipped from 4.65 to 3.4 when she sent the photo, but she's been polite throughout. Fast resolution will recover the moment.",
         nextChips: [
-          { text: "Approve",              kind: 'primary',   action: 'approveConfirm' },
-          { text: "What are my options?", kind: 'secondary', action: 'options'        },
-          { text: "Deny",                 kind: 'secondary', action: 'replacementOnly' }
+          { text: "What are my options?", kind: 'secondary', action: 'options' },
+          { text: "Modify plan",          kind: 'secondary', action: 'options' }
         ]
       }
     },
@@ -2434,7 +2448,12 @@ function renderCopilot(s) {
     if (askEl) askEl.style.display = 'none';
     if (planEl) { planEl.innerHTML = ''; planEl.style.display = 'none'; }
     document.getElementById('chat-msgs').innerHTML = '';
+    // v15 default state: greeting → recommendation context → plan with inline
+    // Approve/Deny + "Want me to authorize…" prompt. Chip rail shows the two
+    // secondary options. Mirrors the v14 module content but conversational.
     pushAIMsg(c.opening, { noActions: true });
+    pushRecommendationContext();
+    pushPlanAsAIMessage({ askApproval: true, askText: c.ask || 'Want me to authorize the additional steps?' });
   } else {
     if (aoEl) aoEl.style.display = '';
     document.getElementById('ao-text').innerHTML = c.opening;
@@ -2590,13 +2609,13 @@ function runDecision(action, arg) {
       pushAIMsg("Those changes are already in the plan.");
     } else {
       pushAIMsg(`Got it — ${humanList(summaries)}. Here's the updated plan:`);
-      pushPlanAsAIMessage();
-      pushAIMsg("Approve, modify, or deny?");
+      // v15 — updated plan card carries the same inline Approve/Deny affordance
+      // as the initial render, so the user can act without scrolling to chips.
+      pushPlanAsAIMessage({ askApproval: true, askText: 'Want me to authorize the additional steps?' });
     }
     renderChips([
-      { text: "Approve",              kind: 'primary',   action: 'approveConfirm' },
-      { text: "What are my options?", kind: 'secondary', action: 'options'        },
-      { text: "Deny",                 kind: 'secondary', action: 'replacementOnly' }
+      { text: "What are my options?", kind: 'secondary', action: 'options' },
+      { text: "Modify plan",          kind: 'secondary', action: 'options' }
     ]);
     return;
   }
@@ -2827,8 +2846,8 @@ function runScript(action) {
   if (beat.sideEffect === 'sendOutboundChat') sideEffectSendOutbound('chat');
   if (beat.sideEffect === 'approveRun')       sideEffectApproveRun();
   if (beat.sideEffect === 'sendOutboundSMS')  sideEffectSendOutboundSMS();
-  // v15 Rachel — push the live plan as an AI chat message after the recommendation reply.
-  if (beat.sideEffect === 'pushPlanInChat')   pushPlanAsAIMessage();
+  // v15 Rachel — push the live plan as an AI chat message with inline Approve/Deny.
+  if (beat.sideEffect === 'pushPlanInChat')   pushPlanAsAIMessage({ askApproval: true, askText: 'Want me to authorize the additional steps?' });
   // v15 Rachel — list the 5 numbered options the human can pick from.
   if (beat.sideEffect === 'listOptions')      sideEffectListOptions();
 
@@ -2935,6 +2954,10 @@ function humanList(arr) {
 // v15 — push the live Rachel plan as an AI chat bubble. Reuses the existing
 // renderTaskcardPlanSection() so the plan in the chat thread always matches
 // what the condensed timeline pill is showing.
+//   opts.withChecks       → render approved (green ✓) state
+//   opts.replacementOnly  → render replacement-only state (authorized struck)
+//   opts.askApproval      → append inline Approve/Deny buttons (planned state)
+//   opts.askText          → small grey prompt under the buttons
 function pushPlanAsAIMessage(opts) {
   opts = opts || {};
   if (!session.rachelActionCard) return;
@@ -2942,7 +2965,56 @@ function pushPlanAsAIMessage(opts) {
     withChecks: opts.withChecks === true,
     replacementOnly: opts.replacementOnly === true
   });
-  pushAIMsg('', { extra: `<div class="cb plan-block">${html}</div>`, noActions: true });
+  let extra = `<div class="cb plan-block">${html}</div>`;
+  if (opts.askApproval) {
+    extra += `<div class="cb-actions plan-actions">
+      <button class="cb-use" onclick="onPlanApprove(this)">Approve</button>
+      <button class="cb-deny" onclick="onPlanDeny(this)">Deny</button>
+    </div>`;
+    if (opts.askText) {
+      extra += `<div class="cb-ask">${opts.askText}</div>`;
+    }
+  }
+  pushAIMsg('', { extra, noActions: true });
+}
+
+// v15 — push the recommendation context block (Recommended Action + Reasoning)
+// as a styled chat message. Reuses the .req-section markup from the v14 module.
+function pushRecommendationContext() {
+  const s = currentScenario();
+  const rec = s && s.copilot && s.copilot.rec;
+  if (!rec) return;
+  let inner = '';
+  if (rec.recommendedAction) {
+    inner += `<div class="req-section"><div class="req-section-label">Recommended Action</div><div class="req-section-value">${rec.recommendedAction}</div></div>`;
+  }
+  if (rec.reasoning) {
+    inner += `<div class="req-section"><div class="req-section-label">Reasoning</div><div class="req-section-value">${rec.reasoning}</div></div>`;
+  }
+  if (!inner) return;
+  pushAIMsg('', { extra: `<div class="cb rec-context">${inner}</div>`, noActions: true });
+}
+
+// v15 — inline Approve/Deny click handlers on the plan-block. Strip the action
+// row + ask line to prevent double-clicks, then route through the existing
+// runDecision flow (same as the chip rail buttons).
+function onPlanApprove(btn) {
+  const row = btn.closest('.cb-actions');
+  if (row) {
+    const ask = row.nextElementSibling;
+    if (ask && ask.classList.contains('cb-ask')) ask.remove();
+    row.remove();
+  }
+  runDecision('approveConfirm');
+}
+function onPlanDeny(btn) {
+  const row = btn.closest('.cb-actions');
+  if (row) {
+    const ask = row.nextElementSibling;
+    if (ask && ask.classList.contains('cb-ask')) ask.remove();
+    row.remove();
+  }
+  runDecision('replacementOnly');
 }
 
 // v15 — list the 5 numbered options Joseph can mix-and-match. Sets the
