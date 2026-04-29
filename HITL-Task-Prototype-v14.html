@@ -27,9 +27,9 @@
   /* Tokens mirror Gladly's product design system (apps/glados/app/defaultTheme.ts).
      See product-designer-SKILL.md for the canonical palette. */
   :root {
-    --green-400: #009B00;
     --green-500: #0c7c0c;
-    --green-300: #64b964;
+    --green-400: #009B00;
+    --green-300: #2f6c2f;
     --green-100: #D8F4D8;
     --green-50:  #EAF7EA;
     --navy:      #1E293B;
@@ -131,12 +131,12 @@
     display:flex;
     flex: 1;
     min-height: 0;
-    background: var(--gray-100);
+    background: var(--gray-200);
     overflow: hidden;
   }
   .col-cl{
     width: 260px; min-width: 260px; background: var(--white);
-    border-right: 1px solid var(--gray-200);
+    border-right: 1px solid var(--gray-300);
     display:flex; flex-direction: column;
     transition: width .2s, min-width .2s;
     overflow: hidden;
@@ -144,7 +144,7 @@
   .col-cl.collapsed{ width: 80px; min-width: 80px }
   .col-profile{width: 320px; min-width: 320px; background: var(--gray-100); padding: var(--sp-4); overflow-y: auto; transition: width .2s, min-width .2s, padding .2s}
   .col-conv{flex:1; min-width: 420px; background: var(--gray-100); display:flex; flex-direction: column; overflow: hidden; transition: min-width .2s}
-  .col-right{width: 380px; min-width: 280px; display:flex; position: relative; background: var(--white); border-left: 1px solid var(--gray-200); transition: none}
+  .col-right{width: 380px; min-width: 280px; display:flex; position: relative; background: var(--white); border-left: 1px solid var(--gray-300); transition: none}
   .col-right-drag{position:absolute; left: 0; top: 0; bottom: 0; width: 12px; cursor: col-resize; z-index: 20; display:flex; align-items:center; justify-content:center}
   .col-right-drag-btn{width: 12px; height: 40px; background: var(--gray-300); border-radius: 6px; display:flex; align-items:center; justify-content:center; opacity: 0; transition: opacity .15s, background .15s; pointer-events: none}
   .col-right-drag-btn svg{color: var(--gray-600)}
@@ -156,7 +156,7 @@
   body.panel-weighted .col-cl{width: 260px; min-width: 260px}
   body.panel-weighted .col-cl.collapsed{width: 80px; min-width: 80px}
   body.panel-weighted .col-profile{width: 300px; min-width: 300px}
-  body.panel-weighted .col-right{width: 440px; min-width: 440px}
+  body.panel-weighted .col-right{width: 380px; min-width: 380px}
 
   /* Focus-copilot: customer list collapses, profile KEEPS visible at 280, copilot grows to 580 */
   body.focus-copilot .col-cl{width: 80px; min-width: 80px}
@@ -165,20 +165,20 @@
   body.focus-copilot .col-cl .cle-body{display:none}
   body.focus-copilot .col-profile{width: 300px; min-width: 300px; padding: var(--sp-4); opacity: 1}
   body.focus-copilot .col-conv{min-width: 360px}
-  body.focus-copilot .col-right{width: 580px; min-width: 580px}
+  body.focus-copilot .col-right{width: 380px; min-width: 380px}
 
   /* CUSTOMER LIST */
   .cl-header{
     display:flex; align-items:center; gap: var(--sp-2);
     padding: var(--sp-3) var(--sp-4);
-    border-bottom: 1px solid var(--gray-200);
+    border-bottom: 1px solid var(--gray-300);
     flex-shrink: 0;
   }
   .cl-htitle{font: 700 13px/1 var(--ff); color: var(--black); flex: 1; display:flex; align-items:center; gap: var(--sp-2)}
   .cl-htitle .count{font: 700 10px/1 var(--ff); background: var(--gray-200); color: var(--gray-700); padding: 3px 6px; border-radius: 10px}
   .cl-toggle{width: 28px; height: 28px; border-radius: 4px; display:flex; align-items:center; justify-content:center; color: var(--gray-700); cursor: pointer}
   .cl-toggle:hover{background: var(--gray-100)}
-  .cl-filters{display:flex; gap: var(--sp-1); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--gray-200); flex-shrink: 0}
+  .cl-filters{display:flex; gap: var(--sp-1); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--gray-300); flex-shrink: 0}
   .cl-fil{font: 500 11px/1 var(--ff); padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--gray-300); background: var(--white); color: var(--black); cursor: pointer}
   .cl-fil.on{background: var(--black); color: #fff; border-color: var(--black)}
   .cl-list{flex: 1; overflow-y: auto}
@@ -216,7 +216,7 @@
   .profile-name{font: var(--h3); color: var(--black)}
   .profile-dots{margin-left:auto; font-weight: 700; color: var(--gray-700); font-size: 24px; cursor: pointer; padding: 0 var(--sp-1)}
   .kv{display:flex; justify-content:space-between; padding: var(--sp-1) 0; font: var(--copy)}
-  .link-customer{display:flex; align-items:center; gap: var(--sp-2); padding: var(--sp-3) 0 0; font: var(--button); color: var(--green-400); border-top: 1px solid var(--gray-200); margin-top: var(--sp-3); cursor: pointer}
+  .link-customer{display:flex; align-items:center; gap: var(--sp-2); padding: var(--sp-3) 0 0; font: var(--button); color: var(--green-400); border-top: 1px solid var(--gray-300); margin-top: var(--sp-3); cursor: pointer}
   .link-customer .suggestion-count{margin-left:auto; color: var(--gray-500); font: var(--copy-sm)}
   .sec-title{font: 700 16px/1 var(--ff); color: var(--black); margin-bottom: var(--sp-3); display:flex; align-items:center; justify-content:space-between}
   .sec-title .add{color: var(--gray-500); font-size: 24px; font-weight: 500; cursor: pointer}
@@ -234,7 +234,7 @@
   .order-info .oid a{font-weight: 700}
   .order-info .ometa{font: var(--copy); color: var(--black)}
   .order-chev{color: var(--gray-500); cursor: pointer; display:flex; align-items:center}
-  .conv-row{display:flex; gap: var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black); border-bottom: 1px solid var(--gray-200)}
+  .conv-row{display:flex; gap: var(--sp-3); padding: var(--sp-2) 0; font: var(--copy); color: var(--black); border-bottom: 1px solid var(--gray-300)}
   .conv-row:last-child{border-bottom: none}
   .conv-row .when{color: var(--gray-700); min-width: 56px}
 
@@ -355,7 +355,7 @@
     color: var(--white);
     border: 1px solid var(--green-400);
   }
-  .tl-task .tlt-primary:hover{ background: var(--green-300); border-color: var(--green-300); }
+  .tl-task .tlt-primary:hover{ background: var(--green-400); border-color: var(--green-400); }
   .tl-task .tlt-tertiary{
     background: transparent;
     color: var(--green-400);
@@ -385,7 +385,7 @@
      in compact form (steps + label, no inline add/remove). */
   .tlt-plan{
     background: var(--gray-100);
-    border: 1px solid var(--gray-200);
+    border: 1px solid var(--gray-300);
     border-radius: 8px;
     padding: 12px 14px;
     margin-bottom: 14px;
@@ -517,15 +517,15 @@
   .tlt-plan.tlt-plan-split .tlt-plan-section{ margin-top: 10px; }
   .tlt-plan.tlt-plan-split .tlt-plan-section:first-of-type{ margin-top: 0; }
   .tlt-plan-sublabel{
-    font: 600 10px/1 var(--ff);
-    color: var(--gray-700);
+    font: 600 12px/1 var(--ff);
+    color: var(--gray-800);
     text-transform: uppercase;
     letter-spacing: 0.8px;
     margin-bottom: 8px;
   }
-  .tlt-plan-sublabel.muted{ color: var(--gray-500); }
+  .tlt-plan-sublabel.muted{ color: var(--gray-800); }
   .tlt-plan-divider{
-    border-top: 1px solid var(--gray-200);
+    border-top: 1px solid var(--gray-300);
     margin: 12px 0 10px;
   }
   /* Autonomous list: always green ✓ (AI's authority — already decided) */
@@ -541,7 +541,7 @@
     gap: 8px;
     padding: 4px 0;
     font: var(--copy);
-    color: var(--gray-700);
+    color: var(--gray-900);
     line-height: 1.62;
   }
   .tlt-plan .tlt-plan-list.autonomous li::before{
@@ -580,7 +580,7 @@
   .tlt-prev-plans.expanded{ display: block; }
   .tlt-prev{
     background: var(--gray-50);
-    border: 1px solid var(--gray-200);
+    border: 1px solid var(--gray-300);
     border-radius: 6px;
     padding: 10px 12px;
     margin-bottom: 8px;
@@ -598,24 +598,24 @@
     font: 400 12px/1.5 var(--ff);
   }
   .tlt-prev ol li{ padding: 2px 0; }
-  .msg-meta{font: var(--copy-sm); color: var(--gray-700); margin-bottom: var(--sp-2); display:flex; align-items:center; gap: 6px}
+  .msg-meta{font: var(--copy-sm); color: var(--gray-800); margin-bottom: var(--sp-2); display:flex; align-items:center; gap: 6px}
   .msg-meta.right{justify-content: flex-end}
   .msg-meta .ch-icon{display:inline-flex; align-items:center; justify-content:center; width: 16px; height: 16px; color: var(--gray-600)}
   .msg{display:flex; gap: var(--sp-3); margin-bottom: var(--sp-5); max-width: 82%}
   .msg.outbound{margin-left: auto; flex-direction: row-reverse}
   .msg-av{width: 32px; height: 32px; border-radius: var(--radius-round); display:flex; align-items:center; justify-content:center; font: 700 11px/1 var(--ff); color: #fff; flex-shrink: 0; box-shadow: var(--shadow-sm)}
-  .msg-bub{padding: var(--sp-3) var(--sp-4); border-radius: 0 10px 10px 10px; font: var(--copy); color: var(--black); line-height: 1.62; box-shadow: 0 1px 2px rgba(0,0,0,.04); background: var(--white); border: 1px solid var(--gray-200)}
+  .msg-bub{padding: var(--sp-3) var(--sp-4); border-radius: 0 10px 10px 10px; font: var(--copy); color: var(--black); line-height: 1.62; box-shadow: 0 1px 2px rgba(0,0,0,.04); background: var(--white); border: 1px solid var(--gray-300)}
   .msg.outbound .msg-bub{border-radius: 10px 0 10px 10px}
   .msg-dots{display: none}
 
   /* BOTTOM BAR */
-  .bottom-bar{flex-shrink: 0; background: var(--white); border-top: 1px solid var(--gray-200); display:flex; align-items: center; padding: 17px var(--sp-4); gap: var(--sp-3); position: relative}
-  .bb-assigned{display:flex; align-items:center; gap: var(--sp-2); padding-right: var(--sp-4); border-right: 1px solid var(--gray-200); min-width: 220px}
+  .bottom-bar{flex-shrink: 0; background: var(--white); border-top: 1px solid var(--gray-300); display:flex; align-items: center; padding: 17px var(--sp-4); gap: var(--sp-3); position: relative}
+  .bb-assigned{display:flex; align-items:center; gap: var(--sp-2); padding-right: var(--sp-4); border-right: 1px solid var(--gray-300); min-width: 220px}
   .bb-av{width: 28px; height: 28px; border-radius: var(--radius-round); display:flex; align-items:center; justify-content:center; font: 600 10px/1 var(--ff); color: #fff; flex-shrink: 0}
   .bb-assigned .at{line-height: 1.3}
   .bb-assigned .at .at-name{display:block; font: 400 12px/1.2 var(--ff); color: var(--black)}
   .bb-assigned .at strong{display:block; font: 400 11px/1.2 var(--ff); color: var(--gray-700); font-weight: 400}
-  .bb-fab{width: 32px; height: 32px; border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 500 32px/1 var(--ff); padding-bottom: 5px}
+  .bb-fab{width: 31px; height: 31px; max-height: 31px; min-width: 31px;border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 500 32px/1 var(--ff); padding-bottom: 5px}
   .bb-input{flex: 1; height: 32px; border: 1px solid var(--gray-300); border-radius: 6px; padding: 0 12px; font: 400 12px/1 var(--ff); background: var(--white); color: var(--black); box-shadow: inset 0 1px 2px rgba(0,0,0,.02)}
   .bb-input:focus{outline: none; border-color: var(--green-400)}
 
@@ -624,7 +624,7 @@
   .bb-topic .tval{color: var(--green-400)}
   .bb-split{display:flex; background: var(--green-400); border-radius: 16px; overflow: hidden; height: 32px}
   .bb-split .bbs-main{padding: 0 var(--sp-4); color: #fff; font: 500 12px/1 var(--ff); display:flex; align-items:center; cursor:pointer}
-  .bb-split .bbs-main:hover{background: var(--green-300)}
+  .bb-split .bbs-main:hover{background: var(--green-400)}
   .bb-split .bbs-caret{padding: 0 var(--sp-2); border-left: 1px solid rgba(255,255,255,.25); display:flex; align-items:center; color: #fff; cursor: pointer}
   /* Closed state — after the post-Approve sequence completes the conversation
      is finished; the bottom-bar button drops to a quiet greyed appearance and
@@ -636,7 +636,7 @@
   .bb-split.closed .bbs-caret svg{ transform: rotate(180deg); }
 
   /* COPILOT */
-  .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-200); position: relative; overflow: visible}
+  .rp{display:flex; width: 100%; height: 100%; background: var(--white); border-left: 1px solid var(--gray-300); position: relative; overflow: visible}
   .rp-gutter{width: 32px; padding: var(--sp-4) 0 var(--sp-6); display:flex; flex-direction:column; align-items: flex-end; gap: var(--sp-1); background: transparent; position: absolute; left: -32px; top: 0; bottom: 0; z-index: 1}
   .rp-tab{width: 24px; height: 24px; border-radius: 12px 0 0 12px; display:flex; align-items:center; justify-content:center; background: var(--white); color: var(--gray-700); cursor: pointer; padding-top: 1px; padding-left: 1px; margin-right: 2px;}
   .rp-tab.active{background: var(--purple-assist); color: #fff}
@@ -896,7 +896,7 @@
     color: var(--white);
     border: 1px solid var(--green-400);
   }
-  .req-actions .req-action-primary:hover{ background: var(--green-300); border-color: var(--green-300); }
+  .req-actions .req-action-primary:hover{ background: var(--green-400); border-color: var(--green-400); }
   .req-actions .req-action-tertiary{
     background: transparent;
     color: var(--green-400);
@@ -995,7 +995,7 @@
     gap: 12px;
     align-items: center;
     padding-top: 10px;
-    border-top: 1px solid var(--gray-200);
+    border-top: 1px solid var(--gray-300);
   }
   .action-card .ac-primary{
     background: var(--green-400); color: #fff;
@@ -1005,7 +1005,7 @@
     cursor: pointer;
     border: none;
   }
-  .action-card .ac-primary:hover{ background: var(--green-300); }
+  .action-card .ac-primary:hover{ background: var(--green-400); }
   .action-card .ac-primary:disabled{ background: var(--gray-300); color: var(--gray-500); cursor: not-allowed; }
   .action-card .ac-secondary{
     color: var(--gray-700);
@@ -1018,7 +1018,7 @@
   .action-card .ac-done{
     display: flex; flex-direction: column; gap: 4px;
     padding-top: 10px;
-    border-top: 1px solid var(--gray-200);
+    border-top: 1px solid var(--gray-400);
     font: var(--copy); color: var(--black);
   }
   .action-card .ac-done .check{ color: var(--green-400); margin-right: 6px; font-weight: 700; }
@@ -1130,7 +1130,7 @@
   }
   .ac-step-menu-item:hover{ background: var(--gray-100); color: var(--green-400) }
   .ac-step-menu-item.custom{
-    border-top: 1px solid var(--gray-200);
+    border-top: 1px solid var(--gray-300);
     color: var(--gray-700);
     font-style: italic;
     margin-top: 4px;
@@ -1199,7 +1199,7 @@
     font: var(--button); cursor: pointer;
     margin-right: 10px;
   }
-  .cm.ai .cb-use:hover{ background: var(--green-300); }
+  .cm.ai .cb-use:hover{ background: var(--green-500); }
   .cm.ai .cb-icon{
     width: 28px; height: 28px;
     display: inline-flex; align-items: center; justify-content: center;
@@ -1223,7 +1223,7 @@
   /* V1 chip tray — soft gray strip directly above the 48px TA bar.
      Chips live in the tray, not in the bar — keeps the bar pure input
      and lets it match the composer's 48px height exactly. */
-  .rp-sugs{display:flex; flex-wrap: wrap; gap: 6px; padding: 10px var(--sp-4); background: var(--white); border-top: 1px solid var(--gray-200)}
+  .rp-sugs{display:flex; flex-wrap: wrap; gap: 6px; padding: 10px var(--sp-4); background: var(--white); border-top: 1px solid var(--gray-300)}
   .chip{
     white-space: nowrap;
     padding: 7px 14px;
@@ -1252,7 +1252,7 @@
 
   /* 48px TA bar — matches composer bottom-bar height exactly. Input pill
      mirrors .bb-input: 32px tall, 6px radius, gray-300 border, inset shadow. */
-  .rp-foot{padding: 17px var(--sp-4); background: var(--white); border-top: 1px solid var(--gray-200); display:flex; align-items: center; gap: var(--sp-2); flex-shrink: 0}
+  .rp-foot{padding: 17px var(--sp-4); background: var(--white); border-top: 1px solid var(--gray-300); display:flex; align-items: center; gap: var(--sp-2); flex-shrink: 0}
   .rp-input-wrap{flex: 1; display:flex; align-items: center; border: 1px solid var(--gray-300); border-radius: 6px; box-shadow: inset 0 1px 2px rgba(0,0,0,.02); padding: 0 4px 0 12px; height: 32px; background: var(--white)}
   .rp-input{flex:1; border: none; outline: none; background: transparent; font: 400 12px/1 var(--ff); color: var(--black); padding: 0;}
   .rp-input::placeholder{color: var(--gray-700)}
@@ -1261,7 +1261,7 @@
   .rp-more{position: relative; flex-shrink: 0}
   .rp-more-btn{width: 32px; height: 32px; border-radius: var(--radius-round); display:flex; align-items:center; justify-content:center; color: var(--gray-700); cursor: pointer; background: none; border: none}
   .rp-more-btn:hover{background: var(--gray-100)}
-  .rp-more-menu{position: absolute; bottom: 40px; left: 0; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); min-width: 160px; overflow: hidden; display: none; z-index: 50}
+  .rp-more-menu{position: absolute; bottom: 40px; left: 0; background: var(--white); border: 1px solid var(--gray-300); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); min-width: 160px; overflow: hidden; display: none; z-index: 50}
   .rp-more-menu.open{display: block}
   .rp-more-item{padding: 10px var(--sp-4); font: var(--copy); color: var(--black); cursor: pointer; display: flex; align-items: center; gap: var(--sp-2); white-space: nowrap}
   .rp-more-item:hover{background: var(--gray-100)}
@@ -1329,7 +1329,7 @@
   .settings-pop .sp-reset:hover{text-decoration: underline}
   .settings-pop .sp-foot{
     margin-top: var(--sp-4); padding-top: var(--sp-3);
-    border-top: 1px solid var(--gray-200);
+    border-top: 1px solid var(--gray-300);
     display: flex; justify-content: space-between; align-items: center;
   }
   .settings-pop .sp-hint{
@@ -1521,7 +1521,7 @@
   <!-- BOTTOM BAR (narrow, flush against panel left edge) -->
   <div class="bottom-bar">
     <div class="bb-assigned">
-      <div class="bb-av" style="background:#7BB86F">JA</div>
+      <div class="bb-av" style="background:var(--gray-600)">JA</div>
       <div class="at"><span class="at-name">Joseph Ansanelli (You)</span><strong>VIP Response Team</strong></div>
     </div>
     <div class="bb-topic">
@@ -1651,7 +1651,7 @@ const JORDAN = {
   listCard: {
     name: 'Jordan Rivera',
     initials: 'JR',
-    avatarColor: '#6B8E6F',
+    avatarColor: '#BD650E',
     preview: "Return request — Clifton 9, 37 days past window. ACL injury, no race.",
     time: '5m',
     channel: 'Chat',
@@ -1660,7 +1660,7 @@ const JORDAN = {
   profile: {
     name: 'Jordan Rivera',
     initials: 'JR',
-    avatarColor: '#6B8E6F',
+    avatarColor: '#BD650E',
     customerSince: '2022',
     ltv: '$4,280.00',
     tier: 'Trailblazer',
@@ -1694,11 +1694,11 @@ const JORDAN = {
   events: [
     // ---- Prior conversation: Feb 8 — Jordan chats with Gladly AI to pick the Clifton 9 for Austin Marathon ----
     { kind: 'event', text: '<strong>Feb 8</strong> · 2 months ago · Product consultation' },
-    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Feb 8, 7:42 PM', channel: 'chat',
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#BD650E', time: 'Feb 8, 7:42 PM', channel: 'chat',
       text: "Hey — thinking about the Clifton 9 for the Austin Marathon in April. I've been in Bondi 7s for the last year. Worth the switch for race day?" },
     { kind: 'amsg', time: 'Feb 8, 7:42 PM', channel: 'chat',
       text: "Great pick for race day. The <strong>Clifton 9</strong> is ~30% lighter than the Bondi 7 with the same cushion DNA. Runners switching from the Bondi say it feels familiar but faster — the meta-rocker geometry keeps your stride efficient when fatigue sets in. Minimal break-in too, so you'll be ready for long runs right away. Want me to pull it up in your size?" },
-    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: 'Feb 8, 7:44 PM', channel: 'chat',
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#BD650E', time: 'Feb 8, 7:44 PM', channel: 'chat',
       text: "Yeah — men's 10.5, black/white." },
     { kind: 'amsg', time: 'Feb 8, 7:44 PM', channel: 'chat',
       text: "Done — order <strong>#GCL-55892</strong>, shipping to 2721 Maple. Good luck in Austin." },
@@ -1706,15 +1706,15 @@ const JORDAN = {
 
     // ---- Current conversation: Apr 14 — Jordan asks to return, AI auto-rejects, he escalates, routed to Joseph ----
     { kind: 'event', current: true, text: '<strong>{TODAY}</strong> · Today · Return request' },
-    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: '{TODAY},9:02 AM', channel: 'chat',
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#BD650E', time: '{TODAY},9:02 AM', channel: 'chat',
       text: "Hi, I need to return a pair of shoes — Order #GCL-55892. I bought them for a marathon I can no longer run. Is there a way to send them back?" },
     { kind: 'amsg', time: '{TODAY},9:03 AM', channel: 'chat',
       text: "Hi Jordan, thanks for reaching out. I looked at your order and unfortunately this is past our 30-day return window, so I'm not able to process a return on this one. Let me know if there's anything else I can help with." },
-    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: '{TODAY},9:04 AM', channel: 'chat',
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#BD650E', time: '{TODAY},9:04 AM', channel: 'chat',
       text: "It's not a defect issue. I've been training for my first marathon for over a year. I bought these specifically for race day. Last week I found out I have a torn ACL — I'm looking at surgery and months of recovery. The race is gone. I honestly don't even want to look at the shoes right now." },
-    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#6B8E6F', time: '{TODAY},9:05 AM', channel: 'chat',
+    { kind: 'cmsg', who: 'Jordan Rivera', av: 'JR', avColor: '#BD650E', time: '{TODAY},9:05 AM', channel: 'chat',
       text: "They've never been worn outside, just tried on at home. I get that the window is the window, but this isn't me changing my mind. Everything changed. Is there any way to make an exception?" },
-    { kind: 'jmsg', time: '{TODAY},9:07 AM', channel: 'chat',
+    { kind: 'amsg', time: '{TODAY},9:07 AM', channel: 'chat',
       text: "I understand, Jordan. Since I'm not able to approve a return exception myself, I'm connecting you with a member of our team to review. Hang tight — someone will be with you shortly." }
   ],
   copilot: {
@@ -2334,7 +2334,7 @@ function renderEvent(e) {
   if (e.kind === 'jmsg') {
     const chIcon = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>';
     return `<div class="msg-meta right">Gladly AI replied — ${subToday(e.time)}<span class="ch-icon">${chIcon}</span></div>
-      <div class="msg outbound"><div class="msg-av" style="background:#7BB86F">JA</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
+      <div class="msg outbound"><div class="msg-av" style="background:var(--gray-600)">JA</div><div class="msg-bub">${e.text}</div><span class="msg-dots">⋮</span></div>`;
   }
   if (e.kind === 'event') {
     const cls = e.current ? 'tl-event current' : 'tl-event';
@@ -2760,13 +2760,13 @@ function sideEffectSendOutbound(channel) {
   const label = CH_LABEL[channel];
   tl.insertAdjacentHTML('beforeend',
     `<div class="msg-meta right">Joseph Ansanelli (You) ${label} — just now<span class="ch-icon">${icon}</span></div>
-     <div class="msg outbound"><div class="msg-av" style="background:#7BB86F">JA</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
+     <div class="msg outbound"><div class="msg-av" style="background:var(--gray-600)">JA</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
   scrollTimeline();
   // Jordan replies one beat later (same channel)
   setTimeout(() => {
     tl.insertAdjacentHTML('beforeend',
       `<div class="msg-meta"><span class="ch-icon">${icon}</span>Jordan Rivera ${label} — just now</div>
-       <div class="msg inbound"><div class="msg-av" style="background:#64b964">JR</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
+       <div class="msg inbound"><div class="msg-av" style="background:#BD650E">JR</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
     scrollTimeline();
   }, 1500);
 }
@@ -2783,7 +2783,7 @@ function sideEffectSendOutboundSMS() {
   const icon = CH_ICON.sms;
   tl.insertAdjacentHTML('beforeend',
     `<div class="msg-meta right">Joseph Ansanelli (You) sent an SMS — just now<span class="ch-icon">${icon}</span></div>
-     <div class="msg outbound"><div class="msg-av" style="background:#7BB86F">JA</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
+     <div class="msg outbound"><div class="msg-av" style="background:var(--gray-600)">JA</div><div class="msg-bub">${body}</div><span class="msg-dots">⋮</span></div>`);
   scrollTimeline();
 }
 
@@ -4033,26 +4033,29 @@ document.addEventListener('click', () => {
   if (m) m.classList.remove('open');
 });
 
-// Panel drag-to-resize
+// Panel drag-to-resize (with click-to-snap-to-360)
 (function() {
   const panel = document.getElementById('col-right');
   const handle = document.getElementById('col-right-drag');
-  const MIN = 280, MAX = 720;
-  let dragging = false, startX, startW;
+  const MIN = 280, MAX = 720, SNAP = 480, MOVE_THRESHOLD = 3;
+  let dragging = false, moved = false, startX, startW;
 
   handle.addEventListener('mousedown', e => {
     dragging = true;
+    moved = false;
     startX = e.clientX;
     startW = panel.offsetWidth;
     handle.classList.add('dragging');
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
+    panel.style.transition = '';
     e.preventDefault();
   });
 
   document.addEventListener('mousemove', e => {
     if (!dragging) return;
     const delta = startX - e.clientX;
+    if (Math.abs(delta) > MOVE_THRESHOLD) moved = true;
     const newW = Math.min(MAX, Math.max(MIN, startW + delta));
     panel.style.width = newW + 'px';
     panel.style.minWidth = newW + 'px';
@@ -4064,6 +4067,12 @@ document.addEventListener('click', () => {
     handle.classList.remove('dragging');
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
+    if (!moved) {
+      panel.style.transition = 'width .25s ease, min-width .25s ease';
+      panel.style.width = SNAP + 'px';
+      panel.style.minWidth = SNAP + 'px';
+      setTimeout(() => { panel.style.transition = ''; }, 280);
+    }
   });
 })();
 </script>
