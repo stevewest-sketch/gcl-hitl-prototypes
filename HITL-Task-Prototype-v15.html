@@ -400,9 +400,22 @@
   .tl-airequest.req-approved{ background: var(--white); border-color: var(--gray-300); cursor: default; }
   .tl-airequest.req-approved .tlt-plan{ background: var(--green-50); border-color: var(--green-100); }
   .tl-airequest.replacement-only{ background: var(--white); border-color: var(--gray-300); cursor: default; }
-  .tl-airequest .air-head{ display:flex; align-items:center; gap:8px; margin-bottom: 8px; }
-  .tl-airequest .air-head .air-assigned{ margin-left: auto; font: 400 13px/1.4 var(--ff); color: #009b00; }
-  .tl-airequest .air-head .air-assigned .req-for{ font-weight: 600; }
+  .tl-airequest .air-head{ display:flex; align-items:center; gap:10px; margin-bottom: 8px; flex-wrap: wrap; }
+  /* v15 timeline pill — strip the purple-badge treatment from the title.
+     Plain bold black "Gladly AI Request" with the red lifecycle dot inline. */
+  .tl-airequest .req-badge{
+    background: transparent;
+    color: var(--black);
+    padding: 0;
+    margin-bottom: 0;
+    font: 700 14px/1.2 var(--ff);
+    letter-spacing: 0;
+    border-radius: 0;
+  }
+  .tl-airequest .req-badge .req-dot{ background: var(--red-400); color: var(--white); }
+  .tl-airequest .req-badge .req-dot-approved{ background: var(--green-400); color: var(--white); }
+  .tl-airequest .air-head .air-assigned{ font: 400 14px/1.2 var(--ff); color: #009b00; }
+  .tl-airequest .air-head .air-assigned .req-for{ font-weight: 700; }
   .tl-airequest .air-title{ font: 600 13px/1.4 var(--ff); color: var(--black); margin-bottom: 4px; }
   .tl-airequest .air-desc{ font: var(--copy-sm); color: var(--gray-800); line-height: 1.5; margin-bottom: 12px; }
   .tl-airequest .air-status{ font: var(--copy-sm); color: var(--gray-700); margin-top: 10px; display:flex; align-items:center; gap:6px; }
@@ -4303,6 +4316,14 @@ function selectCustomer(id) {
   renderConversation(s);
   renderCopilot(s);
   document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+  // v15 — land at the bottom of the timeline so the request pill is fully
+  // visible above the reply input. Without this, the pill sits below the fold
+  // on first paint. Double rAF lets the panel layout settle first.
+  const tl = document.querySelector('.conv-scroll');
+  if (tl) {
+    const goBottom = () => { tl.scrollTop = tl.scrollHeight; };
+    requestAnimationFrame(() => { goBottom(); requestAnimationFrame(goBottom); });
+  }
 }
 
 function resetSessionForScenario(s) {
