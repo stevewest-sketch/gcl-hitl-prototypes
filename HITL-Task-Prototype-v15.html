@@ -2747,17 +2747,21 @@ function runDecision(action, arg) {
   if (action === 'approveConfirm') {
     const res = handler(session);
 
+    // v15 — clear secondary chips immediately on approve. Covers both the
+    // chip-rail path (handleChip already clears, this is a no-op) and the
+    // inline-button path (otherwise chips linger through the choreography).
+    clearChips();
     pushAIMsg(res.copilotReply);
 
-    // v15 — Rachel's plan lives in the chat thread now (rec-lite is hidden).
-    // Push a final completed plan-block so the audit trail in the panel matches
-    // the green-checkmarked condensed pill in the timeline.
+    // v15 — flip the most recent plan-block in chat to its completed state in
+    // place (.completed class → green tint, numbers → checkmarks). Mirrors
+    // the timeline pill which gets the same treatment via rerenderRachelTaskcard.
     if (s.id === 'rachel') {
       session.rachelTaskState = 'approved';
       session.rachelEditing = false;
       rerenderRachelTaskcard();
       rerenderRecLite();
-      pushPlanAsAIMessage({ withChecks: true });
+      markLastPlanBlockCompleted({ withChecks: true });
     }
 
     const tl = document.getElementById('timeline');
@@ -2814,6 +2818,7 @@ function runDecision(action, arg) {
 
   if (action === 'replacementOnly') {
     const res = handler(session);
+    clearChips();   // v15 — same reasoning as approveConfirm
     pushAIMsg(res.copilotReply);
 
     if (s.id === 'rachel') {
@@ -2821,8 +2826,9 @@ function runDecision(action, arg) {
       session.rachelEditing = false;
       rerenderRachelTaskcard();
       rerenderRecLite();
-      // v15 — push final plan-block (replacement-only style: authorized steps muted/struck).
-      pushPlanAsAIMessage({ replacementOnly: true });
+      // v15 — flip the existing plan-block to replacement-only state in place
+      // (authorized steps struck/muted, .completed class for green tint).
+      markLastPlanBlockCompleted({ replacementOnly: true });
     }
 
     const tl = document.getElementById('timeline');
@@ -3123,26 +3129,33 @@ function pushRecommendationContext() {
   pushAIMsg('', { extra: `<div class="cb rec-context">${inner}</div>`, noActions: true });
 }
 
-// v15 — inline Approve/Deny click handlers on the plan-block. Strip the action
-// row + ask line to prevent double-clicks, then route through the existing
-// runDecision flow (same as the chip rail buttons).
-function onPlanApprove(btn) {
-  const row = btn.closest('.cb-actions');
-  if (row) {
-    const ask = row.nextElementSibling;
-    if (ask && ask.classList.contains('cb-ask')) ask.remove();
-    row.remove();
+// v15 — inline Approve/Deny click handlers on the plan-block. The actual
+// completion visual (action row removal, plan flip to with-checks/green) is
+// handled by markLastPlanBlockCompleted() inside runDecision so the chip-rail
+// path produces the same result. We only swallow the click here.
+function onPlanApprove() { runDecision('approveConfirm'); }
+function onPlanDeny()    { runDecision('replacementOnly'); }
+
+// v15 — convert the most recent plan-block in chat into its completed state:
+// re-render with checkmarks (or replacement-only strikethrough), add the
+// .completed class for the green tint, and strip any leftover Approve/Deny
+// action row + ask line. Called from approveConfirm / replacementOnly so both
+// chip-rail and inline-button paths produce the same in-place finish.
+function markLastPlanBlockCompleted(opts) {
+  opts = opts || {};
+  if (!session.rachelActionCard) return;
+  const blocks = document.querySelectorAll('#chat-msgs .cb.plan-block');
+  if (!blocks.length) return;
+  const block = blocks[blocks.length - 1];
+  block.innerHTML = renderTaskcardPlanSection(session.rachelActionCard, {
+    withChecks: opts.withChecks === true,
+    replacementOnly: opts.replacementOnly === true
+  });
+  block.classList.add('completed');
+  const cm = block.closest('.cm.ai');
+  if (cm) {
+    cm.querySelectorAll('.cb-actions.plan-actions, .cb-ask').forEach(el => el.remove());
   }
-  runDecision('approveConfirm');
-}
-function onPlanDeny(btn) {
-  const row = btn.closest('.cb-actions');
-  if (row) {
-    const ask = row.nextElementSibling;
-    if (ask && ask.classList.contains('cb-ask')) ask.remove();
-    row.remove();
-  }
-  runDecision('replacementOnly');
 }
 
 // v15 — list the 5 numbered options Joseph can mix-and-match. Sets the
