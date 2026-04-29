@@ -1806,7 +1806,7 @@ Wishing you a smooth recovery — when you're ready to lace up again, we'll be h
         reply: "Sent.<br><br>You handled that well. This might be a good moment to stay connected while he's recovering.",
         sideEffect: 'sendOutboundChat',
         nextChips: [
-          { text: "What would you do?", kind: 'primary',   action: 'recoverProducts' },
+          { text: "What would you recommend?", kind: 'primary',   action: 'recoverProducts' },
           { text: "End conversation",                   kind: 'secondary', action: 'skipRec' }
         ]
       },
@@ -2763,6 +2763,10 @@ const CH_LABEL = { email: 'sent an email', chat: 'sent a chat', sms: 'sent an SM
 function sideEffectSendOutbound(channel) {
   channel = channel || 'chat';
   const s = currentScenario();
+  // Mark post-send phase so free-text "recommend"/"what would you recommend"
+  // routes to product recommendations (recoverProducts) instead of the
+  // initial exception recommendation.
+  session.jordanDraftSent = true;
   const bodyKey = session.jordanLastDraft || 'draft';
   const body = s.copilot.outboundBodies[bodyKey];
   const tl = document.getElementById('timeline');
@@ -3750,7 +3754,11 @@ function sendMessage() {
     // Jordan's beat names (recommend/warmer/...) don't fire for Rachel and vice versa.
     if (s.copilot.script && s.id === 'jordan') {
       if (/warm(er)?|friendl|kind|softer|softer tone/.test(lc))  return runScript('warmer');
-      if (/why|reason|explain|walk me|justify|what would you|recommend/.test(lc)) return runScript('recommend');
+      // Post-send: "recommend"/"what would you recommend" means product
+      // recommendations. Pre-send: it means the exception-approval reasoning.
+      if (/why|reason|explain|walk me|justify|what would you|recommend/.test(lc)) {
+        return runScript(session.jordanDraftSent ? 'recoverProducts' : 'recommend');
+      }
       if (/conversation|what did he say|what happened/.test(lc)) return runScript('showConversation');
       if (/sentiment|feeling|mood|how is he feel/.test(lc))      return runScript('sentiment');
       if (/send.*sms|text.*him|send it.*sms/.test(lc))           return runScript('sendRecSMS');
@@ -3865,6 +3873,7 @@ function resetSessionForScenario(s) {
   session.decided = false;
   session.awaitingReconfirm = false;
   session.jordanLastDraft = null;
+  session.jordanDraftSent = false;
   session.rachelExtraSteps = [];
   session.rachelPlanHistory = [];
   session.rachelEditing = false;
