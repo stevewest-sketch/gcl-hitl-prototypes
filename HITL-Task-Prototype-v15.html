@@ -437,12 +437,51 @@
      chat bubble. Reuses .req-section. */
   .cm.ai .cb.rec-context .req-section{ margin-bottom: 12px; }
   .cm.ai .cb.rec-context .req-section:last-child{ margin-bottom: 0; }
-  /* "Gladly AI Request" title heading in the panel — text only, no badge box. */
-  #chat-msgs .chat-section-title{
-    font: 700 13px/1.4 var(--ff);
-    color: var(--black);
+  /* "Gladly AI Request" Tasks-style card in the panel — gray container, green
+     accent on the "for Joseph Ansanelli" text, ellipsis when narrow, due date
+     line below. Shown only in the panel; the timeline pill keeps the badge. */
+  #chat-msgs .ta-task-card{
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 10px 12px;
     margin: 8px 2px 0;
-    padding: 0;
+  }
+  #chat-msgs .ta-task-card .ta-task-head{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font: 400 14px/1.4 var(--ff);
+    color: var(--black);
+    min-width: 0;
+  }
+  #chat-msgs .ta-task-card .ta-task-head .ta-dot{
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--green-400);
+    flex-shrink: 0;
+  }
+  #chat-msgs .ta-task-card .ta-task-head .ta-name{
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  #chat-msgs .ta-task-card .ta-task-head .ta-for-wrap{
+    color: var(--green-400);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+  #chat-msgs .ta-task-card .ta-task-head .ta-chev{
+    color: var(--green-400);
+    flex-shrink: 0;
+    margin-left: auto;
+    font-size: 12px;
+  }
+  #chat-msgs .ta-task-card .ta-task-due{
+    font: 700 14px/1.4 var(--ff);
+    color: var(--black);
+    margin-top: 6px;
   }
 
   /* Plan section embedded inside the taskcard. Mirrors the chat-side action card
@@ -2467,7 +2506,7 @@ function renderCopilot(s) {
     // Approve/Deny + "Want me to authorize…" prompt. Chip rail shows the two
     // secondary options. Mirrors the v14 module content but conversational.
     pushAIMsg(c.opening, { noActions: true });
-    pushSectionTitle('Gladly AI Request');
+    pushTaskCard({ name: 'Gladly AI Request', forName: (c.rec && c.rec.forName) || '' });
     pushRecommendationContext();
     pushPlanAsAIMessage({ askApproval: true, askText: rachelAskText() });
   } else {
@@ -3010,17 +3049,41 @@ function pushPlanAsAIMessage(opts) {
   pushAIMsg('', { extra, noActions: true });
 }
 
-// v15 — text-only section heading in the chat thread. Used for the
-// "Gladly AI Request" title that follows the opening greeting (the timeline
-// pill carries the full badge + assigned-to treatment instead).
-function pushSectionTitle(text) {
+// v15 — Tasks-style card in the panel chat for the request title. Header
+// reads "● Gladly AI Request for [Name]" with green accent on the assignee
+// (truncated with ellipsis when the panel is narrow) plus a due-date line.
+// SLA is fixed at 5 minutes from page load, formatted as "Due Mon D, YYYY h:mmam".
+function pushTaskCard(opts) {
   const box = document.getElementById('chat-msgs');
   if (!box) return;
+  const name = (opts && opts.name) || 'Gladly AI Request';
+  const forName = (opts && opts.forName) || '';
+  const due = (opts && opts.due) || rachelDueText();
   const el = document.createElement('div');
-  el.className = 'chat-section-title';
-  el.textContent = text;
+  el.className = 'ta-task-card';
+  el.innerHTML = `<div class="ta-task-head">
+      <span class="ta-dot"></span>
+      <span class="ta-name">${name}</span>
+      <span class="ta-for-wrap">for ${forName}</span>
+      <span class="ta-chev">▾</span>
+    </div>
+    <div class="ta-task-due">${due}</div>`;
   box.appendChild(el);
   scrollRP();
+}
+
+// v15 — SLA: 5 minutes from now. Formatted "Due Apr 29, 2026 3:23pm".
+function rachelDueText() {
+  const due = new Date(Date.now() + 5 * 60 * 1000);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const m = months[due.getMonth()];
+  const d = due.getDate();
+  const y = due.getFullYear();
+  let h = due.getHours();
+  const min = String(due.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12;
+  return `Due ${m} ${d}, ${y} ${h}:${min}${ampm}`;
 }
 
 // v15 — push the recommendation context block (Recommended Action + Reasoning)
