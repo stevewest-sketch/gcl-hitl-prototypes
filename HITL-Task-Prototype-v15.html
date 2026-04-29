@@ -396,9 +396,10 @@
   .tl-airequest:hover{ border-color: var(--gray-400); box-shadow: 0 1px 4px rgba(0,0,0,.05); }
   .tl-airequest.req-pending{ border-color: #8C69F0; }
   /* Approved: pill itself stays white — only the inner plan container fills
-     with the green tint (via .tlt-plan rule below). */
+     with the green tint (via .tlt-plan rule below). !important defeats the
+     base .tlt-plan { background: var(--gray-100) } and any cascade conflicts. */
   .tl-airequest.req-approved{ background: var(--white); border-color: var(--gray-300); cursor: default; }
-  .tl-airequest.req-approved .tlt-plan{ background: var(--green-100); border-color: var(--green-400); }
+  .tl-airequest.req-approved .tlt-plan{ background: var(--green-100) !important; border-color: var(--green-400) !important; }
   .tl-airequest.replacement-only{ background: var(--white); border-color: var(--gray-300); cursor: default; }
   /* "Show Plan" toggle shown when the pill is in default pending state and the
      user hasn't expanded the plan yet (and no modifications have been made). */
@@ -437,8 +438,10 @@
   /* Plan-as-chat-message host: lets the plan render inside an AI bubble. */
   .cm.ai .cb.plan-block{ background: var(--white); border: 1px solid var(--gray-300); border-radius: 10px; padding: 12px 14px; max-width: 460px; }
   .cm.ai .cb.plan-block .tlt-plan{ margin: 0; border: none; padding: 0; background: transparent; }
-  /* Completed plan-block — same green tint as the timeline pill's plan box. */
-  .cm.ai .cb.plan-block.completed{ background: var(--green-100); border-color: var(--green-400); }
+  /* Completed plan-block — same green tint as the timeline pill's plan box.
+     !important defeats the base .cm.ai .cb { background: transparent } in case
+     the cascade is being beaten by a later rule. */
+  .cm.ai .cb.plan-block.completed{ background: var(--green-100) !important; border-color: var(--green-400) !important; }
   /* Inline Approve/Deny actions sitting beneath the plan-block, mirroring the
      "Use" affordance Jordan's draft cards have. */
   .cm.ai .cb-actions.plan-actions{ margin-top: 10px; }
@@ -3758,12 +3761,11 @@ function renderCondensedAIRequest(state) {
     withChecks: state === 'approved',
     replacementOnly: state === 'replacement-only'
   };
-  // v15 — in the default pending state with no modifications, the plan box
-  // collapses behind a "Show Plan" link. Once expanded (or once the user
-  // modifies / approves / denies), it stays visible.
-  const isFinal = state === 'approved' || state === 'replacement-only';
-  const isModified = (session.rachelPlanHistory || []).length > 0;
-  const planExpanded = session.rachelPillPlanExpanded === true || isFinal || isModified;
+  // v15 — pill plan stays COLLAPSED behind a "Show Plan" toggle in every
+  // state (pending, modified, approved, replacement-only). The conversational
+  // surface for the plan is the panel; the pill is just a status indicator.
+  // User explicitly clicks Show Plan to expand; flag persists once set.
+  const planExpanded = session.rachelPillPlanExpanded === true;
   const plan = planExpanded
     ? renderTaskcardPlanSection(session.rachelActionCard, planOpts)
     : `<button class="air-show-plan" onclick="onShowPlan(event)">Show Plan <span class="air-chev">▾</span></button>`;
