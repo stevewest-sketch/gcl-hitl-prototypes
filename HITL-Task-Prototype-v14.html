@@ -1750,7 +1750,7 @@ He requested a return outside our 30-day policy I am unable to process. He provi
     script: {
       // ── Stage 1: Understand ───────────────────────────────────────
       showConversation: {
-        reply: "He bought the Clifton 9 after we recommended it for the Austin Marathon.<br><br>After our system declined the return on policy, he came back with the full picture — torn ACL, race off, shoes never worn — and asked for an exception.",
+        reply: "He bought the Clifton 9 after we recommended it for the Austin Marathon.<br><br>After our system declined the return on policy, he came back with the full picture — torn ACL, race off, shoes never worn<span class='cite' onclick='togglePop(event, 2)'>2</span> — and asked for an exception<span class='cite' onclick='togglePop(event, 1)'>1</span>.",
         nextChips: [
           { text: "Draft a response",       kind: 'primary',   action: 'draft' },
           { text: "How is he feeling?",     kind: 'secondary', action: 'sentiment' },
@@ -1767,7 +1767,7 @@ He requested a return outside our 30-day policy I am unable to process. He provi
 
       // ── Stage 2: Evaluate ─────────────────────────────────────────
       recommend: {
-        reply: "<strong>I'd approve the exception.</strong><br><br>We influenced the purchase, he's a Trailblazer, it's his first return, the shoes are unworn, and he's frustrated on top of that.",
+        reply: "<strong>I'd approve the exception.</strong><span class='cite' onclick='togglePop(event, 1)'>1</span><br><br>We influenced the purchase, he's a Trailblazer<span class='cite' onclick='togglePop(event, 3)'>3</span>, it's his first return, the shoes are unworn<span class='cite' onclick='togglePop(event, 2)'>2</span>, and he's frustrated on top of that.",
         nextChips: [
           { text: "Draft a response", kind: 'primary', action: 'draft' }
         ]
@@ -1963,7 +1963,7 @@ const RACHEL = {
     rec: {
       forName: 'Joseph Ansanelli',
       recommendedAction: 'Overnight the replacement at no charge and issue a $25 Trailblazer service recovery credit',
-      reasoning: 'Standard ground won\'t get her shoes there in time, and the damage was on us. The overnight upgrade and the $25 recovery credit are within your discretion to authorize — what\'s left is whether we should.<span class=\'cite\' onclick=\'togglePop(event, 2)\'>2</span>',
+      reasoning: 'Standard ground won\'t get her shoes there in time, and the damage was on us<span class=\'cite\' onclick=\'togglePop(event, 1)\'>1</span>. The overnight upgrade and the $25 recovery credit are within your discretion to authorize<span class=\'cite\' onclick=\'togglePop(event, 2)\'>2</span> — what\'s left is whether we should.',
       actions: {
         primary:   { label: 'Approve upgrade',    action: 'approveConfirm' },
         tertiary:  { label: 'Modify',             action: 'modifyPlan' },
@@ -2005,7 +2005,7 @@ const RACHEL = {
         ]
       },
       whatElse: {
-        reply: "A few more moves available:<br><br>Bump the credit higher — up to $75 is yours to call<span class='cite' onclick='togglePop(event, 2)'>2</span>. For a damaged-on-arrival on a $250 order, $50 wouldn't be out of line.<br><br>Send Rachel an SMS recap to (212) 555-0147 with the replacement tracking and credit code.<br><br>Add a free pair of Hoka Clifton Recovery Socks to the replacement shipment — small touch, but Trailblazers tend to remember those<span class='cite' onclick='togglePop(event, 3)'>3</span>.<br><br>Schedule a follow-up after the San Diego Half to make sure the replacement worked out.",
+        reply: "A few more moves available:<br><br>Bump the credit higher — up to $75 is yours to call<span class='cite' onclick='togglePop(event, 2)'>2</span>. For a damaged-on-arrival on a $250 order, $50 wouldn't be out of line.<br><br>Send Rachel an SMS recap to (212) 555-0147 with the replacement tracking and credit code.<br><br>Add a free pair of Hoka Clifton Recovery Socks to the replacement shipment — small touch, but Trailblazers tend to remember those<span class='cite' onclick='togglePop(event, 3)'>3</span>.<br><br>Schedule a follow-up after the San Diego Half<span class='cite' onclick='togglePop(event, 3)'>3</span> to make sure the replacement worked out.",
         nextChips: [
           { text: "Increase credit to $50", kind: 'secondary', action: 'raise',         arg: 50 },
           { text: "Add SMS recap",          kind: 'secondary', action: 'addPresetStep', arg: 'Send SMS recap — (212) 555-0147' },
@@ -2283,22 +2283,16 @@ function renderConversation(s) {
 
 function scrollToCurrentConversation(tl) {
   const set = () => {
-    const currentEv = tl.querySelector('.tl-event.current');
-    if (!currentEv) { tl.scrollTop = 0; return; }
-    // Land with the CURRENT conversation header at the top of the viewport.
-    // Anything older (prior conversations + close events) sits above and is
-    // only visible if the agent scrolls up. Below the last message is empty
-    // gray space (from the conv-scroll padding-bottom) — that's where new
-    // demo-flow messages land as the conversation progresses.
-    if (currentEv.offsetTop > 0) {
-      tl.scrollTop = currentEv.offsetTop;
-    } else {
-      // Fallback to bounding-rect math if offsetTop is 0 (layout incomplete)
-      const tlRect = tl.getBoundingClientRect();
-      const evRect = currentEv.getBoundingClientRect();
-      const delta = evRect.top - tlRect.top;
-      if (Math.abs(delta) > 1) tl.scrollTop += delta;
-    }
+    // Land the latest message just above the bottom fold, leaving at most ~1/3
+    // of the viewport as empty state below it. Earlier messages and the
+    // current-conversation header remain reachable by scrolling up.
+    const items = tl.querySelectorAll('.msg, .msg-meta, .tl-task, .tl-activity, .tl-event');
+    const last = items[items.length - 1];
+    if (!last) { tl.scrollTop = 0; return; }
+    const lastBottom = last.offsetTop + last.offsetHeight;
+    const viewport = tl.clientHeight;
+    const emptyBelow = Math.min(viewport / 3, 96);
+    tl.scrollTop = Math.max(0, lastBottom - viewport + emptyBelow);
   };
   // Fire on every plausible "layout-is-now-stable" signal — initial-load
   // timing is the slipperiest case (script runs before fonts/CSS settle).
