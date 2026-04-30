@@ -394,7 +394,7 @@
     transition: border-color 120ms, box-shadow 120ms;
   }
   .tl-airequest:hover{ border-color: var(--gray-400); box-shadow: 0 1px 4px rgba(0,0,0,.05); }
-  .tl-airequest.req-pending{ border-color: #8C69F0; }
+  .tl-airequest.req-pending{ border-color: #8C69F0; margin-left: auto; margin-right: calc(32px + var(--sp-3)); max-width: 82%; }
   /* With-checks (approved) state: keep the "Done autonomously" section but
      collapse its list by default. Clicking the label toggles .expanded. */
   .tlt-plan-section.collapsible .tlt-plan-list{ display: none; }
@@ -572,10 +572,9 @@
     margin-bottom: 14px;
   }
   .tlt-plan-label{
-    font: 600 10px/1 var(--ff);
+    font: 600 12px/1 var(--ff);
     color: var(--gray-700);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
+    text-transform: none;
     margin-bottom: 8px;
   }
   .tlt-plan ol{
@@ -700,8 +699,7 @@
   .tlt-plan-sublabel{
     font: 600 12px/1 var(--ff);
     color: var(--gray-800);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
+    text-transform: none;
     margin-bottom: 8px;
   }
   .tlt-plan-sublabel.muted{ color: var(--gray-800); }
@@ -863,10 +861,9 @@
     margin: 0;
   }
   .rec-lite .rl-label{
-    font: 600 10px/1 var(--ff);
+    font: 600 12px/1 var(--ff);
     color: var(--gray-700);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
+    text-transform: none;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
@@ -1364,9 +1361,9 @@
   .cm.ai{ flex-direction: column; align-items: stretch; }
   .cm.ai .cb{ background: transparent; padding-left: 0; padding-right: 0; border-radius: 0; }
   .cm.ai .cb.draft{ background: var(--white); border: 1px solid var(--gray-300); border-radius: 10px; padding: 12px 14px; }
-  .cm.ai .cb.draft .dc-label{ font: 700 10px/1 var(--ff); color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .cm.ai .cb.draft .dc-label{ font: 700 12px/1 var(--ff); color: var(--gray-700); margin-bottom: 8px; }
   .cm.ai .cb.draft .dc-body{ font: var(--copy); color: var(--black); line-height: 1.62; white-space: pre-wrap; }
-  .cm.ai .cb-preface{ font-size: 11px; color: var(--gray-700); margin-bottom: 6px; letter-spacing: 0.02em; }
+  .cm.ai .cb-preface{ display: none; }
 
   /* Inline feedback row under every streaming AI message. Drafts also get a primary Use button. */
   .cm.ai .cb-actions{
@@ -3356,18 +3353,21 @@ function updateCreditInPlan() {
   if (!card) return;
   const v14Re = /Issue \$\d+ Trailblazer service recovery credit/;
   const v14New = `Issue $${session.creditAmount} Trailblazer service recovery credit`;
+  // Mutate in place — applyOptions holds a reference to authorizedSteps and
+  // pushes new entries (e.g. SMS recap) to it. Reassigning the array would
+  // detach that reference and lose the appended steps.
   if (card.authorizedSteps) {
-    card.authorizedSteps = card.authorizedSteps.map(step =>
-      v14Re.test(step) ? v14New : step
-    );
+    for (let i = 0; i < card.authorizedSteps.length; i++) {
+      if (v14Re.test(card.authorizedSteps[i])) card.authorizedSteps[i] = v14New;
+    }
     return;
   }
   if (card.steps) {
-    card.steps = card.steps.map(step =>
-      /Generate \$\d+ Trailblazer loyalty code/.test(step)
-        ? `Generate $${session.creditAmount} Trailblazer loyalty code, no expiration`
-        : step
-    );
+    const re = /Generate \$\d+ Trailblazer loyalty code/;
+    const next = `Generate $${session.creditAmount} Trailblazer loyalty code, no expiration`;
+    for (let i = 0; i < card.steps.length; i++) {
+      if (re.test(card.steps[i])) card.steps[i] = next;
+    }
   }
 }
 
@@ -4236,21 +4236,12 @@ function onCondensedModuleClick() {
 }
 
 function scrollTimeline() {
-  // Keep the latest timeline element fully visible above the reply input
-  // with a comfortable buffer (24px) — never let it sit flush against the
-  // bottom edge where it can read as cut off. Run after layout via rAF so
-  // any newly-rendered footer/buttons have already shrunk the viewport.
+  // Pin the conversation panel to the bottom as new content arrives. Run
+  // after layout via two rAF ticks so any newly-rendered footer/buttons have
+  // already shrunk the viewport before we measure scrollHeight.
   const t = document.querySelector('.conv-scroll');
   if (!t) return;
-  const BOTTOM_BUFFER = 24;
-  const tick = () => {
-    const last = t.lastElementChild;
-    if (!last) return;
-    const tlRect = t.getBoundingClientRect();
-    const lastRect = last.getBoundingClientRect();
-    const overflow = (lastRect.bottom + BOTTOM_BUFFER) - tlRect.bottom;
-    if (overflow > 0) t.scrollTop += overflow;
-  };
+  const tick = () => { t.scrollTop = t.scrollHeight; };
   requestAnimationFrame(() => {
     tick();
     requestAnimationFrame(tick);
