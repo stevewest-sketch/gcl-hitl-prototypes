@@ -395,6 +395,18 @@
   }
   .tl-airequest:hover{ border-color: var(--gray-400); box-shadow: 0 1px 4px rgba(0,0,0,.05); }
   .tl-airequest.req-pending{ border-color: #8C69F0; }
+  /* With-checks (approved) state: keep the "Done autonomously" section but
+     collapse its list by default. Clicking the label toggles .expanded. */
+  .tlt-plan-section.collapsible .tlt-plan-list{ display: none; }
+  .tlt-plan-section.collapsible.expanded .tlt-plan-list{ display: block; }
+  .tlt-plan-section.collapsible .tlt-plan-sublabel{ cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 4px; }
+  .tlt-plan-section.collapsible .tlt-plan-sublabel::after{ content: '▾'; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; font-size: 16px; line-height: 1; transition: transform .15s; }
+  .tlt-plan-section.collapsible.expanded .tlt-plan-sublabel::after{ transform: rotate(180deg); }
+  /* Inside the chat plan-block (AI message), the autonomous section is always
+     uncollapsed — list visible, label is plain text, no chevron. */
+  .cm.ai .cb.plan-block .tlt-plan-section.collapsible .tlt-plan-list{ display: block; }
+  .cm.ai .cb.plan-block .tlt-plan-section.collapsible .tlt-plan-sublabel{ cursor: default; pointer-events: none; }
+  .cm.ai .cb.plan-block .tlt-plan-section.collapsible .tlt-plan-sublabel::after{ display: none; }
   /* Approved: pill itself stays white — only the inner plan container fills
      with the green tint (via .tlt-plan rule below). !important defeats the
      base .tlt-plan { background: var(--gray-100) } and any cascade conflicts. */
@@ -425,11 +437,12 @@
   }
   .tl-airequest .req-badge .req-dot{ background: var(--red-400); color: var(--white); }
   .tl-airequest .req-badge .req-dot-approved{ background: var(--green-400); color: var(--white); }
+  .tl-airequest .req-badge .req-dot, .tl-airequest .req-badge .req-dot-approved{ display: none; }
   .tl-airequest .air-head .air-assigned{ font: 400 14px/1.2 var(--ff); color: #009b00; }
   .tl-airequest .air-head .air-assigned .req-for{ font-weight: 700; }
   .tl-airequest .air-title{ font: 600 13px/1.4 var(--ff); color: var(--black); margin-bottom: 4px; }
   .tl-airequest .air-desc{ font: var(--copy-sm); color: var(--gray-800); line-height: 1.5; margin-bottom: 12px; }
-  .tl-airequest .air-status{ font: var(--copy-sm); color: var(--gray-700); margin-top: 10px; display:flex; align-items:center; gap:6px; }
+  .tl-airequest .air-status{ font: var(--copy-sm); color: var(--gray-700); margin-left: auto; display:flex; align-items:center; gap:6px; }
   .tl-airequest .air-status.approved{ color: var(--green-500); }
   .tl-airequest .air-status.modified{ color: #6B4FE0; }
   .tl-airequest .air-status::before{ content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
@@ -466,7 +479,6 @@
      width, gray container, persistent — chat scrolls under it. */
   .rp-pinned-task{
     background: var(--gray-50);
-    border-bottom: 1px solid var(--gray-200);
     padding: 12px 16px;
     flex-shrink: 0;
   }
@@ -1393,6 +1405,7 @@
      Chips live in the tray, not in the bar — keeps the bar pure input
      and lets it match the composer's 48px height exactly. */
   .rp-sugs{display:flex; flex-wrap: wrap; gap: 6px; padding: 10px var(--sp-4); background: var(--white); border-top: 1px solid var(--gray-300)}
+  .rp-sugs:empty{border-top: none; padding: 0}
   .chip{
     white-space: nowrap;
     padding: 7px 14px;
@@ -1636,8 +1649,8 @@
     <img class="gladly-logo" src="images/logo.svg" alt="Gladly">
   </div>
   <div class="nav-r">
-    <div class="tog-wrap"><button class="tog" title="Email"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button></div>
-    <div class="tog-wrap"><button class="tog" title="Voice"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3a2 2 0 012-2h1l2 3-1.5 1.5a8 8 0 003 3L10 7l3 2v1a2 2 0 01-2 2A10 10 0 013 3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button></div>
+    <div class="tog-wrap"><button class="tog" title="Email"><svg width="24" height="24" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button></div>
+    <div class="tog-wrap"><button class="tog" title="Voice"><svg width="24" height="24" viewBox="0 0 16 16" fill="none"><path d="M3 3a2 2 0 012-2h1l2 3-1.5 1.5a8 8 0 003 3L10 7l3 2v1a2 2 0 01-2 2A10 10 0 013 3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button></div>
     <div class="tog-wrap"><button class="tog active" title="Chat"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button></div>
     <button class="nav-next">Next</button>
     <div class="nav-divider"></div>
@@ -2128,9 +2141,9 @@ const RACHEL = {
     // pre-populated on initial render, so the trailing question is dropped.
     opening: `Rachel's race-day Rocket X 2s arrived damaged. I've drafted a fix — overnight replacement plus a service-recovery credit. The replacement is mine to send; the upgrade and credit need your sign-off.`,
     rec: {
-      forName: 'Joseph Ansanelli',
+      //forName: 'Joseph Ansanelli',
       title: 'Approve overnight upgrade and $25 recovery credit',
-      description: "Rachel's race-day Rocket X 2s arrived damaged — standard ground won't make Saturday's San Diego Half.",
+      //description: "Rachel's race-day Rocket X 2s arrived damaged — standard ground won't make Saturday's San Diego Half.",
       recommendedAction: 'Overnight the replacement at no charge and issue a $25 Trailblazer service recovery credit',
       reasoning: 'Standard ground won\'t get her shoes there in time, and the damage was on us<span class=\'cite\' onclick=\'togglePop(event, 1)\'>1</span>. The overnight upgrade and the $25 recovery credit are within your discretion to authorize<span class=\'cite\' onclick=\'togglePop(event, 2)\'>2</span> — what\'s left is whether we should.',
       actions: {
@@ -3151,10 +3164,7 @@ function populatePinnedTaskCard(opts) {
   const forName = (opts && opts.forName) || '';
   const due = (opts && opts.due) || rachelDueText();
   host.innerHTML = `<div class="ta-task-head">
-      <span class="ta-dot"></span>
       <span class="ta-name">${name}</span>
-      <span class="ta-for-wrap">for ${forName}</span>
-      <span class="ta-chev">▾</span>
     </div>
     <div class="ta-task-due">${due}</div>`;
   host.style.display = '';
@@ -3607,9 +3617,13 @@ function renderSplitPlan(card, opts) {
         ? 'Skipped — replacement only'
         : (editable ? 'Editing — what to authorize' : 'What I need you to authorize'));
 
+  // Autonomous section ("What I'm doing" / "Done autonomously") is always
+  // collapsible — collapsed by default, click the label to expand.
+  const autoSectionClass = 'tlt-plan-section collapsible';
+  const autoLabelOnclick = ' onclick="event.currentTarget.parentElement.classList.toggle(&quot;expanded&quot;)"';
   return `<div class="tlt-plan${wrapClass}">
-    <div class="tlt-plan-section">
-      <div class="tlt-plan-sublabel muted">${autoLabel}</div>
+    <div class="${autoSectionClass}">
+      <div class="tlt-plan-sublabel muted"${autoLabelOnclick}>${autoLabel}</div>
       <ol class="tlt-plan-list autonomous">${autoHtml}</ol>
     </div>
     <div class="tlt-plan-divider"></div>
@@ -3750,11 +3764,17 @@ function renderCondensedAIRequest(state) {
   const dotClass = isResolved ? 'req-dot req-dot-approved' : 'req-dot';
   const dotContent = isResolved ? '✓' : '';
   const assignedTo = rec.forName ? `<span class="air-assigned">Assigned to <span class="req-for">${rec.forName}</span></span>` : '';
-  const head = `<div class="air-head"><div class="req-badge"><span class="${dotClass}">${dotContent}</span>Gladly AI Request</div>${assignedTo}</div>`;
-  const title = rec.title ? `<div class="air-title">${rec.title}</div>` : '';
-  const desc = rec.description ? `<div class="air-desc">${rec.description}</div>` : '';
   // Reuse the existing prev-plans collapse, with a compact list style.
   const history = session.rachelPlanHistory || [];
+  let statusText = 'Awaiting your approval';
+  let statusCls = '';
+  if (state === 'approved') { statusText = 'Approved'; statusCls = 'approved'; }
+  else if (state === 'replacement-only') { statusText = 'Replacement only'; statusCls = 'approved'; }
+  else if (history.length > 0) { statusText = 'Plan modified — awaiting approval'; statusCls = 'modified'; }
+  const status = `<div class="air-status ${statusCls}">${statusText}</div>`;
+  const head = `<div class="air-head"><div class="req-badge"><span class="${dotClass}">${dotContent}</span>Gladly AI Request</div>${assignedTo}${status}</div>`;
+  const title = rec.title ? `<div class="air-title">${rec.title}</div>` : '';
+  const desc = rec.description ? `<div class="air-desc">${rec.description}</div>` : '';
   let prev = '';
   if (history.length > 0) {
     const list = history.map((p, i) => renderTaskcardPrevPlan(p, i)).join('');
@@ -3766,30 +3786,24 @@ function renderCondensedAIRequest(state) {
     withChecks: state === 'approved',
     replacementOnly: state === 'replacement-only'
   };
-  // v15 — pill plan stays COLLAPSED behind a "Show Plan" toggle in every
-  // state (pending, modified, approved, replacement-only). The conversational
-  // surface for the plan is the panel; the pill is just a status indicator.
-  // User explicitly clicks Show Plan to expand; flag persists once set.
-  const planExpanded = session.rachelPillPlanExpanded === true;
+  // v15 — pill plan auto-expands once the user has approved, denied, or
+  // modified the plan; otherwise it collapses behind a "Show Plan" toggle.
+  const isFinal = state === 'approved' || state === 'replacement-only';
+  const isModified = (session.rachelPlanHistory || []).length > 0;
+  const planExpanded = session.rachelPillPlanExpanded === true || isFinal || isModified;
   let plan;
   if (planExpanded) {
     let planHtml = renderTaskcardPlanSection(session.rachelActionCard, planOpts);
-    // Belt-and-suspenders: when approved/replacement-only, paint the green
-    // tint inline so the cascade can't lose to the base .tlt-plan { gray-100 }.
-    if (state === 'approved' || state === 'replacement-only') {
+    // Approved/replacement-only: paint green inline so the cascade can't lose
+    // to the base .tlt-plan { gray-100 } background.
+    if (isFinal) {
       planHtml = planHtml.replace('class="tlt-plan', 'style="background:#D8F4D8;border-color:#009B00" class="tlt-plan');
     }
     plan = planHtml;
   } else {
     plan = `<button class="air-show-plan" onclick="onShowPlan(event)">Show Plan <span class="air-chev">▾</span></button>`;
   }
-  let statusText = 'Awaiting your approval';
-  let statusCls = '';
-  if (state === 'approved') { statusText = 'Approved · running'; statusCls = 'approved'; }
-  else if (state === 'replacement-only') { statusText = 'Replacement only · running'; statusCls = 'approved'; }
-  else if (history.length > 0) { statusText = 'Plan modified — awaiting approval'; statusCls = 'modified'; }
-  const status = `<div class="air-status ${statusCls}">${statusText}</div>`;
-  return head + title + desc + prev + plan + status;
+  return head + title + desc + prev + plan;
 }
 
 function renderTaskcardInner(state) {
@@ -4369,6 +4383,30 @@ function showToast(text) {
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
+  }
+  // Demo hotkey "0" — on Rachel, only after the AI has listed the numbered
+  // options ("Which would you like to do? Type the numbers…"), auto-type
+  // "1 and 3" and submit. Skipped when the user is typing in an input.
+  if (e.key === '0' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    const tag = (e.target && e.target.tagName) || '';
+    const isTyping = /^(INPUT|TEXTAREA)$/.test(tag) || (e.target && e.target.isContentEditable);
+    if (isTyping) return;
+    const s = (typeof currentScenario === 'function') ? currentScenario() : null;
+    if (!s || s.id !== 'rachel') return;
+    if (!(typeof session !== 'undefined' && session.rachelOptionsListed)) return;
+    e.preventDefault();
+    const input = document.getElementById('rp-input');
+    if (!input) return;
+    input.value = '1 and 3';
+    sendMessage();
+  }
+  // Demo hotkey "R" — select Rachel's customer card.
+  if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    const tag = (e.target && e.target.tagName) || '';
+    const isTyping = /^(INPUT|TEXTAREA)$/.test(tag) || (e.target && e.target.isContentEditable);
+    if (isTyping) return;
+    e.preventDefault();
+    selectCustomer('rachel');
   }
 });
 
