@@ -125,6 +125,7 @@
     flex-direction: column;
     min-width: 0;
     overflow: hidden;
+    position: relative;
   }
   .layout{
     display:flex;
@@ -141,9 +142,19 @@
     overflow: hidden;
   }
   .col-cl.collapsed{ width: 80px; min-width: 80px }
-  .col-profile{width: 320px; min-width: 320px; background: var(--gray-100); padding: var(--sp-4); overflow-y: auto; transition: width .2s, min-width .2s, padding .2s}
+  .col-profile{width: 340px; min-width: 320px; background: var(--gray-100); padding: var(--sp-4); padding-right: var(--sp-2); overflow-y: auto; transition: width .2s, min-width .2s, padding .2s}
   .col-conv{flex:1; min-width: 420px; background: var(--gray-100); display:flex; flex-direction: column; overflow: hidden; transition: min-width .2s}
   .col-right{width: 380px; min-width: 280px; display:flex; position: relative; background: var(--white); border-left: 1px solid var(--gray-300); transition: none}
+  /* No uppercase on any content inside the right column. */
+  .col-right .tla-label,
+  .col-right .tlt-prev-label,
+  .col-right .tlt-plan-label,
+  .col-right .tlt-plan-sublabel,
+  .col-right .rl-label,
+  .col-right .rl-label .pill-modified,
+  .col-right .ac-label,
+  .col-right .sp-label,
+  .col-right .dc-label{ text-transform: none; }
   .col-right-drag{position:absolute; left: 0; top: 0; bottom: 0; width: 12px; cursor: col-resize; z-index: 20; display:flex; align-items:center; justify-content:center}
   .col-right-drag-btn{width: 12px; height: 40px; background: var(--gray-300); border-radius: 6px; display:flex; align-items:center; justify-content:center; opacity: 0; transition: opacity .15s, background .15s; pointer-events: none}
   .col-right-drag-btn svg{color: var(--gray-600)}
@@ -238,7 +249,7 @@
   .conv-row .when{color: var(--gray-700); min-width: 56px}
 
   /* CONVERSATION */
-  .conv-wrap{flex:1; display:flex; flex-direction:column; overflow:hidden}
+  .conv-wrap{flex:1; display:flex; flex-direction:column; overflow:hidden; position: relative}
   .conv-header{background: none; padding: var(--sp-3) var(--sp-6); text-align: center; font: var(--copy); color: var(--gray-700); position: relative; flex-shrink: 0}
   .conv-header .title{color: var(--black); font-weight: 700}
   .conv-header-right{position:absolute; right: var(--sp-4); top: 50%; transform: translateY(-50%); display:flex; gap: var(--sp-2); color: var(--gray-500)}
@@ -249,9 +260,16 @@
   .conv-scroll{
     flex:1; overflow-y:auto;
     padding: var(--sp-6);
+    padding-left: 0;
     background: none;
     position: relative;
+    display: flex;
+    flex-direction: column;
   }
+  /* Push content to the bottom when it's shorter than the viewport — keeps the
+     latest message anchored above the bottom-bar. When content overflows, the
+     auto margin collapses and natural scroll resumes. */
+  .conv-scroll > :first-child{ margin-top: auto; }
   /* Conversation date dividers — plain text sitting on the timeline's gray
      background (no card, no border). Match Gladly product style: gray/secondary
      for previous conversations; bold/black for the current conversation header.
@@ -395,15 +413,21 @@
   }
   .tl-airequest:hover{ border-color: var(--gray-400); box-shadow: 0 1px 4px rgba(0,0,0,.05); }
   .tl-airequest.req-pending{ border-color: #8C69F0; margin-left: auto; margin-right: calc(32px + var(--sp-3)); max-width: 82%; }
-  /* With-checks (approved) state: keep the "Done autonomously" section but
-     collapse its list by default. Clicking the label toggles .expanded. */
+  /* With-checks (approved) state: hide the entire split plan body. */
+  .tlt-plan.with-checks.tlt-plan-split{ display: none; }
+  /* Always show the approved-plan body inside the chat completed plan-block. */
+  .cm.ai .cb.plan-block.completed .tlt-plan.with-checks.tlt-plan-split{ display: block; }
+  .cm.ai .cb.plan-block.completed .tlt-plan-section,
+  .cm.ai .cb.plan-block.completed .tlt-plan-section .tlt-plan-list,
+  .cm.ai .cb.plan-block.completed .tlt-plan-divider{ display: block; }
+  /* Collapsible autonomous section — list hidden by default, label toggles .expanded. */
   .tlt-plan-section.collapsible .tlt-plan-list{ display: none; }
   .tlt-plan-section.collapsible.expanded .tlt-plan-list{ display: block; }
   .tlt-plan-section.collapsible .tlt-plan-sublabel{ cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 4px; }
   .tlt-plan-section.collapsible .tlt-plan-sublabel::after{ content: '▾'; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; font-size: 16px; line-height: 1; transition: transform .15s; }
   .tlt-plan-section.collapsible.expanded .tlt-plan-sublabel::after{ transform: rotate(180deg); }
-  /* Inside the chat plan-block (AI message), the autonomous section is always
-     uncollapsed — list visible, label is plain text, no chevron. */
+  /* AI-message plan-blocks always render in the right column. The autonomous
+     "What I'm doing" section stays expanded — static summary, not interactive. */
   .cm.ai .cb.plan-block .tlt-plan-section.collapsible .tlt-plan-list{ display: block; }
   .cm.ai .cb.plan-block .tlt-plan-section.collapsible .tlt-plan-sublabel{ cursor: default; pointer-events: none; }
   .cm.ai .cb.plan-block .tlt-plan-section.collapsible .tlt-plan-sublabel::after{ display: none; }
@@ -467,12 +491,65 @@
   }
   .cm.ai .cb-deny:hover{ background: var(--gray-100); border-color: var(--gray-700); color: var(--black); }
   /* "Want me to authorize…" prompt under the inline actions. */
-  .cm.ai .cb-ask{ font: var(--copy-sm); color: var(--gray-700); margin-top: 8px; padding-left: 2px; }
+  .cm.ai .cb-ask{ display: none; }
   /* "What are my options?" numbered list inside an AI message. */
   .cm.ai .cb .opt-list{ margin: 8px 0 8px; padding-left: 22px; }
   .cm.ai .cb .opt-list li{ margin: 3px 0; line-height: 1.5; }
+  /* v15 — option rows (clickable, multi-select with checkbox + Select button) */
+  .cm.ai .cb .opt-rows{
+    margin: 10px 0 4px;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--white);
+  }
+  .cm.ai .cb .opt-row{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--gray-200);
+    font: var(--copy);
+    color: var(--black);
+    transition: background-color .15s;
+    user-select: none;
+  }
+  .cm.ai .cb .opt-row:last-of-type{ border-bottom: none; }
+  .cm.ai .cb .opt-row:hover{ background: var(--gray-50); }
+  .cm.ai .cb .opt-row.selected, .cm.ai .cb .opt-row.selected:hover{ background: #BFE8BF; }
+  .cm.ai .cb .opt-row input[type="checkbox"]{
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--green-400);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .cm.ai .cb .opt-row .opt-label{ flex: 1; }
+  .cm.ai .cb .opt-actions{
+    display: flex;
+    justify-content: flex-start;
+    padding: 10px 12px;
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+  }
+  .cm.ai .cb .opt-submit{
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: var(--green-400);
+    color: var(--white);
+    border: none;
+    font: var(--button);
+    cursor: pointer;
+    transition: background-color .15s;
+  }
+  .cm.ai .cb .opt-submit:hover:not(:disabled){ background: var(--green-500); }
+  .cm.ai .cb .opt-submit:disabled{ background: var(--gray-300); cursor: default; color: var(--gray-700); }
+  .cm.ai .cb .opt-rows.submitted .opt-row{ pointer-events: none; opacity: .7; }
   /* Recommendation context block (Recommended Action + Reasoning) inside a
      chat bubble. Reuses .req-section. */
+  .cm.ai .cb.rec-context{ padding-top: 0; }
   .cm.ai .cb.rec-context .req-section{ margin-bottom: 12px; }
   .cm.ai .cb.rec-context .req-section:last-child{ margin-bottom: 0; }
   /* v15 — pinned Tasks-style task header at the top of the panel. Full panel
@@ -572,9 +649,10 @@
     margin-bottom: 14px;
   }
   .tlt-plan-label{
-    font: 600 12px/1 var(--ff);
+    font: 600 13px/1 var(--ff);
     color: var(--gray-700);
     text-transform: none;
+    letter-spacing: 0;
     margin-bottom: 8px;
   }
   .tlt-plan ol{
@@ -700,6 +778,7 @@
     font: 600 12px/1 var(--ff);
     color: var(--gray-800);
     text-transform: none;
+    letter-spacing: 0;
     margin-bottom: 8px;
   }
   .tlt-plan-sublabel.muted{ color: var(--gray-800); }
@@ -795,6 +874,113 @@
   .bb-assigned .at .at-name{display:block; font: 400 12px/1.2 var(--ff); color: var(--black)}
   .bb-assigned .at strong{display:block; font: 400 11px/1.2 var(--ff); color: var(--gray-700); font-weight: 400}
   .bb-fab{width: 26px; height: 26px; max-height: 26px; min-width: 26px;border-radius: var(--radius-round); background: var(--green-400); color: #fff; display:flex; align-items:center; justify-content:center; font: 400 24px/1 var(--ff); padding-bottom: 3px}
+  .bb-chat{width: 26px; height: 26px; max-height: 26px; min-width: 26px; border-radius: var(--radius-round); background: var(--white); color: var(--green-400); border: 1.5px solid var(--green-400); display: none; align-items:center; justify-content:center; cursor: pointer; padding: 0; flex-shrink: 0}
+  .bb-chat:hover{background: var(--green-50)}
+  body:has(.conv-wrap.composer-open) .bb-chat{display: flex}
+  body:has(.conv-wrap.composer-open) .bb-input{display: none}
+  /* With bb-input hidden, the flex: 1 spacer is gone — push the Send button to the right. */
+  body:has(.conv-wrap.composer-open) .bb-split{margin-left: auto}
+
+  /* Chat composer popover — anchored inside .conv-wrap so it spans the
+     conversation panel only (not bottom-bar or other columns). */
+  .chat-composer{
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    right: 16px;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 8px 8px 0 0;
+    z-index: 50;
+    display: none;
+    flex-direction: column;
+    max-height: calc(100% - 32px);
+  }
+  .chat-composer.open{display: flex}
+  /* JS sets conv-scroll padding-bottom dynamically when composer is open so
+     the last chat bubble sits just above the composer (not hidden behind). */
+  .chat-composer .cc-header{padding: 18px 20px 0; font: 700 16px/1 var(--ff); color: var(--black)}
+  .chat-composer .cc-input{
+    width: 100%;
+    border: none;
+    outline: none;
+    padding: 14px 20px 8px;
+    min-height: 220px;
+    max-height: 320px;
+    overflow-y: auto;
+    font: var(--copy);
+    color: var(--black);
+    background: transparent;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .chat-composer .cc-input:empty::before{
+    content: attr(data-placeholder);
+    color: var(--gray-700);
+    pointer-events: none;
+  }
+  .chat-composer .cc-input a{ color: var(--green-400); text-decoration: none; }
+  .chat-composer .cc-toolbar{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    margin: 0 16px 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: 999px;
+    color: var(--gray-500);
+  }
+  .chat-composer .cc-toolbar button{
+    background: none; border: none; color: inherit; cursor: pointer;
+    padding: 4px 6px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 4px;
+  }
+  .chat-composer .cc-toolbar button:hover:not(:disabled){color: var(--gray-900); background: var(--gray-100)}
+  .chat-composer .cc-toolbar .cc-chars{margin-left: auto; font: var(--copy-sm); color: var(--gray-700)}
+  .chat-composer .cc-foot{
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--gray-200);
+  }
+  .chat-composer .cc-fab{
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--green-400); color: var(--white);
+    border: none; cursor: pointer;
+    font: 400 22px/1 var(--ff);
+    display: flex; align-items: center; justify-content: center;
+    padding-bottom: 2px;
+  }
+  .chat-composer .cc-channel{
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--white); color: var(--green-400);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .chat-composer .cc-channel[aria-pressed="true"]{border-bottom: 2px solid var(--green-400); border-radius: 50% 50% 4px 4px}
+  .chat-composer .cc-spacer{flex: 1}
+  .chat-composer .cc-cancel{background: none; border: none; color: var(--black); font: var(--button); cursor: pointer; padding: 8px 12px}
+  .chat-composer .cc-cancel:hover{text-decoration: underline}
+  .chat-composer .cc-end-wrap{display: flex; align-items: stretch}
+  .chat-composer .cc-end{
+    background: var(--gray-200); color: var(--gray-700);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 999px 0 0 999px;
+    font: var(--button);
+    cursor: not-allowed;
+  }
+  .chat-composer .cc-end-caret{
+    background: var(--gray-200); color: var(--gray-700);
+    border: none;
+    border-left: 1px solid var(--gray-300);
+    padding: 0 12px;
+    border-radius: 0 999px 999px 0;
+    cursor: not-allowed;
+    display: flex; align-items: center; justify-content: center;
+  }
   .bb-input{flex: 1; height: 32px; border: 1px solid var(--gray-300); border-radius: 6px; padding: 0 12px; font: 400 12px/1 var(--ff); background: var(--white); color: var(--black); box-shadow: inset 0 1px 2px rgba(0,0,0,.02)}
   .bb-input:focus{outline: none; border-color: var(--green-400)}
 
@@ -803,6 +989,9 @@
   .bb-topic .tval{color: var(--green-400)}
   .bb-split{display:flex; background: var(--green-400); border-radius: 16px; overflow: hidden; height: 32px}
   .bb-split .bbs-main{padding: 0 var(--sp-4); color: #fff; font: 500 12px/1 var(--ff); display:flex; align-items:center; cursor:pointer}
+  .bb-split .bbs-main .bbs-send{display: none}
+  body:has(.conv-wrap.composer-open) .bb-split .bbs-main .bbs-default{display: none}
+  body:has(.conv-wrap.composer-open) .bb-split .bbs-main .bbs-send{display: inline}
   .bb-split .bbs-main:hover{background: var(--green-400)}
   .bb-split .bbs-caret{padding: 0 var(--sp-2); border-left: 1px solid rgba(255,255,255,.25); display:flex; align-items:center; color: #fff; cursor: pointer}
   /* Closed state — after the post-Approve sequence completes the conversation
@@ -861,9 +1050,10 @@
     margin: 0;
   }
   .rec-lite .rl-label{
-    font: 600 12px/1 var(--ff);
+    font: 600 13px/1 var(--ff);
     color: var(--gray-700);
     text-transform: none;
+    letter-spacing: 0;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
@@ -1361,7 +1551,7 @@
   .cm.ai{ flex-direction: column; align-items: stretch; }
   .cm.ai .cb{ background: transparent; padding-left: 0; padding-right: 0; border-radius: 0; }
   .cm.ai .cb.draft{ background: var(--white); border: 1px solid var(--gray-300); border-radius: 10px; padding: 12px 14px; }
-  .cm.ai .cb.draft .dc-label{ font: 700 12px/1 var(--ff); color: var(--gray-700); margin-bottom: 8px; }
+  .cm.ai .cb.draft .dc-label{ font: 700 12px/1 var(--ff); color: var(--gray-700); text-transform: none; letter-spacing: 0; margin-bottom: 8px; }
   .cm.ai .cb.draft .dc-body{ font: var(--copy); color: var(--black); line-height: 1.62; white-space: pre-wrap; }
   .cm.ai .cb-preface{ display: none; }
 
@@ -1689,6 +1879,29 @@
         <div class="conv-header-right"><span title="More">⋮</span></div>
       </div>
       <div class="conv-scroll" id="timeline"></div>
+
+      <!-- Chat composer popover — opens from the green chat button, contained inside the conversation panel. -->
+      <div class="chat-composer" id="chat-composer" onclick="event.stopPropagation()">
+        <div class="cc-header">Chat</div>
+        <div class="cc-input" contenteditable="true" data-placeholder="Type to chat"></div>
+        <div class="cc-toolbar">
+          <button title="Knowledge"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 2h8l2 2v10H3V2z" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+          <button title="Quick reply"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 7v3l-2 2V4a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H7" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg></button>
+          <button title="Macro"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="3" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/></svg></button>
+          <button title="Refresh"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 8a5.5 5.5 0 11-1.6-3.9" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><path d="M13.5 2.5v2.5H11" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button title="Indent up"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M3 8h6M3 12h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+          <button title="Indent down"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M3 8h6M3 12h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+          <button title="Translate"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="6" height="6" stroke="currentColor" stroke-width="1.3" fill="none"/><rect x="8" y="7" width="6" height="6" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></button>
+          <button class="cc-tb-divider" disabled aria-hidden="true" style="border:none;background:none;padding:0 4px;color:var(--gray-300)">|</button>
+          <button title="Bold" style="font-weight:700;font-size:14px">B</button>
+          <button title="Italic" style="font-style:italic;font-family:serif">i</button>
+          <button title="Underline" style="text-decoration:underline">U</button>
+          <button title="Link"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M7 9a3 3 0 010-4l2-2a3 3 0 014 4l-1 1M9 7a3 3 0 010 4l-2 2a3 3 0 01-4-4l1-1" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg></button>
+          <button title="Emoji"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3" fill="none"/><circle cx="6" cy="7" r=".7" fill="currentColor"/><circle cx="10" cy="7" r=".7" fill="currentColor"/><path d="M5.5 10c.7 1 1.5 1.5 2.5 1.5s1.8-.5 2.5-1.5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg></button>
+          <button title="Attach"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M9 4l-4 4a2 2 0 102.8 2.8L13 5.6a3 3 0 00-4.2-4.2L4.5 5.7" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg></button>
+          <span class="cc-chars">0 Chars</span>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1705,9 +1918,12 @@
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     </div>
     <button class="bb-fab"><span>+</span></button>
+    <button class="bb-chat" title="Open chat composer" onclick="openChatComposer(event)" aria-label="Open chat composer">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>
+    </button>
     <input class="bb-input" placeholder="Reply to Jordan…">
     <div class="bb-split">
-      <div class="bbs-main">Close &amp; Next</div>
+      <div class="bbs-main" id="bbs-main" onclick="onBbsMainClick()"><span class="bbs-default">Close &amp; Next</span><span class="bbs-send">Send</span></div>
       <div class="bbs-caret"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
     </div>
   </div><!-- /.bottom-bar -->
@@ -1817,6 +2033,7 @@
   <div class="ap-row" onclick="setTheme('dark')"><span class="theme-swatch" data-t="dark"></span>Dark</div>
   <div class="ap-row" onclick="setTheme('warm')"><span class="theme-swatch" data-t="warm"></span>Warm</div>
 </div>
+
 
 <script>
 /* =========================================================================
@@ -1935,7 +2152,7 @@ const JORDAN = {
         ]
       },
       sentiment: {
-        reply: "<strong>Frustrated and disappointed.</strong> Sentiment score decreased by <strong>2</strong>, down from positive at the start.",
+        reply: "<strong>Frustrated and disappointed.</strong>",
         nextChips: [
           { text: "Draft a response",       kind: 'primary',   action: 'draft' },
           { text: "What do you recommend?", kind: 'secondary', action: 'recommend' }
@@ -1979,7 +2196,7 @@ Wishing you a smooth recovery — when you're ready to lace up again, we'll be h
 
       // ── Post-send (relationship, not upsell) ──────────────────────
       useDraft: {
-        reply: "Sent.<br><br>You handled that well. This might be a good moment to stay connected while he's recovering.",
+        reply: "This might be a good moment to stay connected while he's recovering.",
         sideEffect: 'sendOutboundChat',
         nextChips: [
           { text: "What would you recommend?", kind: 'primary',   action: 'recoverProducts' },
@@ -2118,9 +2335,7 @@ const RACHEL = {
   events: [
     { kind: 'event', current: true, text: '<strong>{TODAY}</strong> · Today · Damaged shipment' },
     { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '5 min ago', channel: 'chat',
-      text: "Hi — my Rocket X 2s arrived yesterday and one of the soles is separating from the upper. There's also some scuffing on both shoes. I'm flying out Saturday for the San Diego Half and these were supposed to be my race-day pair." },
-    { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '5 min ago', channel: 'chat',
-      text: "[photo attached — damaged Rocket X 2]" },
+      text: "Hi — my Rocket X 2s arrived yesterday and one of the soles is separating from the upper. There's also some scuffing on both shoes. I'm flying out Saturday for the San Diego Half and these were supposed to be my race-day pair. [photo attached — damaged Rocket X 2]" },
     { kind: 'amsg', time: '4 min ago',
       text: "Oh no — that's clearly damaged in transit, Rachel. I'm so sorry. Let me get a replacement pair lined up for you right now. One sec while I check inventory and pull this together." },
     { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '3 min ago', channel: 'chat',
@@ -2456,23 +2671,16 @@ function updateBottomBarAssignee(s) {
   const name = document.querySelector('.bb-assigned .at-name');
   const team = document.querySelector('.bb-assigned .at strong');
   if (!av || !name || !team) return;
-  if (s && s.id === 'rachel') {
-    av.textContent = 'AI';
-    av.style.background = 'var(--navy)';
-    av.style.backgroundImage = '';
-    name.textContent = 'Gladly AI';
-    team.textContent = 'AI VIP Response Team';
-  } else {
-    av.textContent = '';
-    av.style.background = '';
-    av.style.backgroundColor = 'transparent';
-    av.style.backgroundImage = "url('images/joseph_profile.png')";
-    av.style.backgroundSize = '130%';
-    av.style.backgroundPosition = 'center';
-    av.style.backgroundRepeat = 'no-repeat';
-    name.textContent = 'Joseph Ansanelli (You)';
-    team.textContent = 'VIP Response Team';
-  }
+  // Same Joseph assignment for both Rachel and Jordan.
+  av.textContent = '';
+  av.style.background = '';
+  av.style.backgroundColor = 'transparent';
+  av.style.backgroundImage = "url('images/joseph_profile.png')";
+  av.style.backgroundSize = '130%';
+  av.style.backgroundPosition = 'center';
+  av.style.backgroundRepeat = 'no-repeat';
+  name.textContent = 'Joseph Ansanelli (You)';
+  team.textContent = 'VIP Response Team';
 }
 
 function renderConversation(s) {
@@ -2759,15 +2967,16 @@ function runDecision(action, arg) {
     if (summaries.length === 0) {
       pushAIMsg("Those changes are already in the plan.");
     } else {
-      pushAIMsg(`Got it — ${humanList(summaries)}. Here's the updated plan:`);
+      pushAIMsg(`Got it — ${humanList(summaries)}. Here's the updated plan:`, { noActions: true });
       // v15 — updated plan card carries the same inline Approve/Deny affordance
       // as the initial render, so the user can act without scrolling to chips.
-      pushPlanAsAIMessage({ askApproval: true, askText: rachelAskText() });
+      // After modify-plan, suppress the "Want me to authorize…" ask line and
+      // explicitly show this plan-block (default chat plan-blocks are hidden).
+      pushPlanAsAIMessage({ askApproval: true, show: true });
     }
-    renderChips([
-      { text: "What are my options?", kind: 'secondary', action: 'options' },
-      { text: "Modify plan",          kind: 'secondary', action: 'options' }
-    ]);
+    // After Select submits the option choices, hide the "What are my options?"
+    // and "Modify plan" chips — the next step is Approve/Deny on the plan.
+    renderChips([]);
     return;
   }
   if (action === 'pickAddStep')    { pushStepPicker('add'); return; }
@@ -3131,7 +3340,11 @@ function pushPlanAsAIMessage(opts) {
   });
   // Approved + replacement-only states get the green-tinted plan-block.
   const finalState = opts.withChecks || opts.replacementOnly;
-  const blockCls = finalState ? 'cb plan-block completed' : 'cb plan-block';
+  let blockCls = finalState ? 'cb plan-block completed' : 'cb plan-block';
+  // opts.show — opt the plan-block back into the chat (defaults are hidden via
+  // .cm.ai .cb.plan-block { display: none }; the post-modify "Here's the
+  // updated plan" call passes show:true so its plan-block renders).
+  if (opts.show) blockCls += ' show';
   let extra = `<div class="${blockCls}">${html}</div>`;
   if (opts.askApproval) {
     // Approve / Deny + the same feedback icons that follow every AI output.
@@ -3237,14 +3450,64 @@ function markLastPlanBlockCompleted(opts) {
 // "1 and 3" / "do 1, 3" / etc.
 function sideEffectListOptions() {
   session.rachelOptionsListed = true;
-  const list = `<ol class="opt-list">
-    <li>Increase credit to $50</li>
-    <li>Decrease credit to $10</li>
-    <li>Add SMS recap — (212) 555-0147</li>
-    <li>Add free Clifton Recovery Socks to the replacement</li>
-    <li>Schedule a follow-up after the San Diego Half</li>
-  </ol>`;
-  pushAIMsg(`Here's what I can do — you can mix and match:${list}Which would you like to do? Type the numbers (e.g., "1 and 3").`);
+  const opts = [
+    'Increase credit to $50',
+    'Decrease credit to $10',
+    'Add SMS recap — (212) 555-0147',
+    'Add free Clifton Recovery Socks to the replacement',
+    'Schedule a follow-up after the San Diego Half'
+  ];
+  const rows = opts.map((label, i) => `
+    <div class="opt-row" role="option" data-opt="${i + 1}" onclick="onOptionRowToggle(this, event)">
+      <input type="checkbox" tabindex="-1" onclick="event.stopPropagation(); onOptionRowToggle(this.parentElement, event)">
+      <span class="opt-label">${label}</span>
+    </div>`).join('');
+  const list = `<div class="opt-rows" role="listbox" aria-multiselectable="true">
+    ${rows}
+    <div class="opt-actions">
+      <button class="opt-submit" disabled onclick="onOptionsSubmit(this)">Select</button>
+    </div>
+  </div>`;
+  pushAIMsg(`Here's what I can do — you can mix and match. Pick the options you want and click Select (or type "Something else" below):${list}`);
+}
+
+// v15 — option row click toggles the checkbox + selected class. The Select
+// button submits all checked options at once via applyOptions.
+function onOptionRowToggle(row, e) {
+  if (!row) return;
+  if (e && e.target && e.target.tagName === 'INPUT') {
+    // Click came from checkbox itself — let the input toggle naturally;
+    // sync the row's selected class to the (already-toggled) checked state.
+    row.classList.toggle('selected', e.target.checked);
+  } else {
+    const cb = row.querySelector('input[type="checkbox"]');
+    if (!cb) return;
+    cb.checked = !cb.checked;
+    row.classList.toggle('selected', cb.checked);
+  }
+  // Enable the Select button when at least one row is checked.
+  const wrap = row.closest('.opt-rows');
+  if (wrap) {
+    const anyChecked = wrap.querySelectorAll('.opt-row input[type="checkbox"]:checked').length > 0;
+    const btn = wrap.querySelector('.opt-submit');
+    if (btn) btn.disabled = !anyChecked;
+  }
+}
+
+function onOptionsSubmit(btn) {
+  const wrap = btn && btn.closest('.opt-rows');
+  if (!wrap) return;
+  const nums = [...wrap.querySelectorAll('.opt-row input[type="checkbox"]:checked')]
+    .map(cb => parseInt(cb.parentElement.dataset.opt, 10))
+    .filter(n => !isNaN(n));
+  if (nums.length === 0) return;
+  wrap.classList.add('submitted');
+  btn.disabled = true;
+  // Hide the AI feedback icons (regen/copy/thumbs) on the message that held
+  // the option list — once submitted, those affordances are noise.
+  const cm = wrap.closest('.cm.ai');
+  if (cm) cm.querySelectorAll('.cb-actions').forEach(el => el.remove());
+  runDecision('applyOptions', nums);
 }
 
 function sideEffectApproveRun() {
@@ -3609,8 +3872,8 @@ function renderSplitPlan(card, opts) {
   }
 
   const autoLabel = withChecks
-    ? 'Done autonomously'
-    : (replacementOnly ? 'Done autonomously' : "What I'm doing");
+    ? "What I'm doing"
+    : (replacementOnly ? "What I'm doing" : "What I'm doing");
   const authLabel = withChecks
     ? 'Authorized — done'
     : (replacementOnly
@@ -3790,7 +4053,9 @@ function renderCondensedAIRequest(state) {
   // modified the plan; otherwise it collapses behind a "Show Plan" toggle.
   const isFinal = state === 'approved' || state === 'replacement-only';
   const isModified = (session.rachelPlanHistory || []).length > 0;
-  const planExpanded = session.rachelPillPlanExpanded === true || isFinal || isModified;
+  // After Select submits a modify, the pill plan stays collapsed unless the
+  // user explicitly toggles "Show Plan" or the plan reaches a final state.
+  const planExpanded = session.rachelPillPlanExpanded === true || isFinal;
   let plan;
   if (planExpanded) {
     let planHtml = renderTaskcardPlanSection(session.rachelActionCard, planOpts);
@@ -4047,6 +4312,53 @@ function renderMessageActions(isDraft, useAction) {
 }
 
 function onUse(btn, action) {
+  // Special-case: clicking Use on a "friendlier tone" or "SMS" draft copies
+  // the body into the composer and opens it instead of running the send script.
+  const msg = btn.closest('.cm.ai');
+  const dcLabel = msg && msg.querySelector('.dc-label');
+  const labelText = (dcLabel && dcLabel.textContent) || '';
+  const isFriendlier = /friendlier/i.test(labelText);
+  const isSMS = /sms\s*draft/i.test(labelText);
+  if (isFriendlier || isSMS) {
+    const dcBody = msg.querySelector('.dc-body');
+    const cc = document.getElementById('chat-composer');
+    const ta = cc && cc.querySelector('.cc-input');
+    // Set composer header based on draft channel.
+    const ccHeader = cc && cc.querySelector('.cc-header');
+    if (ccHeader) ccHeader.textContent = isSMS ? 'SMS' : 'Chat';
+    if (dcBody && ta) {
+      // Copy draft HTML into the composer, preserving <a> links and <br>
+      // line breaks. Other tags are stripped so the editable surface stays clean.
+      const html = dcBody.innerHTML
+        .replace(/<(?!\/?(a|br)\b)[^>]+>/gi, '')   // strip all tags except <a> and <br>
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+      ta.innerHTML = html;
+      const chars = cc.querySelector('.cc-chars');
+      if (chars) chars.textContent = `${ta.textContent.length} Chars`;
+      if (!cc.classList.contains('open')) {
+        cc.classList.add('open');
+        const wrap = cc.closest('.conv-wrap');
+        if (wrap) wrap.classList.add('composer-open');
+      }
+      // Measure composer, reserve space, then scroll the conversation above it.
+      syncComposerSpacing();
+      if (typeof scrollTimeline === 'function') scrollTimeline();
+      setTimeout(() => {
+        ta.focus();
+        // Place caret at the end of the contenteditable.
+        const range = document.createRange();
+        range.selectNodeContents(ta);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }, 0);
+    }
+    const actions = btn.closest('.cb-actions');
+    if (actions) actions.remove();
+    return;
+  }
   const actions = btn.closest('.cb-actions');
   if (actions) actions.remove();
   runScript(action || 'useDraft');
@@ -4375,9 +4687,9 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
     document.querySelectorAll('.cite-pop.open').forEach(p => p.classList.remove('open'));
   }
-  // Demo hotkey "0" — on Rachel, only after the AI has listed the numbered
-  // options ("Which would you like to do? Type the numbers…"), auto-type
-  // "1 and 3" and submit. Skipped when the user is typing in an input.
+  // Demo hotkey "0" — on Rachel, only after the AI has listed the option
+  // rows, programmatically check rows 1 and 3 then click Select. Falls back to
+  // typing "1 and 3" into the input if no option list is on screen.
   if (e.key === '0' && !e.metaKey && !e.ctrlKey && !e.altKey) {
     const tag = (e.target && e.target.tagName) || '';
     const isTyping = /^(INPUT|TEXTAREA)$/.test(tag) || (e.target && e.target.isContentEditable);
@@ -4386,10 +4698,26 @@ document.addEventListener('keydown', function(e) {
     if (!s || s.id !== 'rachel') return;
     if (!(typeof session !== 'undefined' && session.rachelOptionsListed)) return;
     e.preventDefault();
-    const input = document.getElementById('rp-input');
-    if (!input) return;
-    input.value = '1 and 3';
-    sendMessage();
+    const allWraps = document.querySelectorAll('.opt-rows:not(.submitted)');
+    const wrap = allWraps[allWraps.length - 1];
+    if (wrap) {
+      [1, 3].forEach(n => {
+        const row = wrap.querySelector(`.opt-row[data-opt="${n}"]`);
+        if (!row) return;
+        const cb = row.querySelector('input[type="checkbox"]');
+        if (cb && !cb.checked) {
+          cb.checked = true;
+          row.classList.add('selected');
+        }
+      });
+      const btn = wrap.querySelector('.opt-submit');
+      if (btn) btn.disabled = false;
+    } else {
+      const input = document.getElementById('rp-input');
+      if (!input) return;
+      input.value = '1 and 3';
+      sendMessage();
+    }
   }
   // Demo hotkey "R" — select Rachel's customer card.
   if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey && !e.altKey) {
@@ -4433,16 +4761,16 @@ function selectCustomer(id) {
   const tl = document.querySelector('.conv-scroll');
   const rp = document.getElementById('rp-scroll');
   const settle = () => {
-    if (tl && tl.lastElementChild) {
-      tl.lastElementChild.scrollIntoView({ block: 'end', inline: 'nearest' });
-    }
+    if (tl) tl.scrollTop = tl.scrollHeight;
     if (rp) rp.scrollTop = 0;
   };
+  // Multiple settle passes — covers async renders, image loading, font swaps,
+  // and any late layout shifts that change scrollHeight after the initial paint.
   requestAnimationFrame(() => {
     settle();
     requestAnimationFrame(() => {
       settle();
-      setTimeout(settle, 80);   // belt-and-suspenders after image/layout settles
+      [60, 160, 320, 600].forEach(delay => setTimeout(settle, delay));
     });
   });
 }
@@ -4493,6 +4821,118 @@ function toggleAvatarMenu(e) {
   if (e) e.stopPropagation();
   const pop = document.getElementById('av-pop');
   pop.classList.toggle('open');
+}
+
+// Reserve space at the bottom of conv-scroll equal to the composer height so
+// the last chat bubble lands just above the composer when scrolled to bottom.
+// Then hard-scroll the conv-scroll to the bottom so the conversation moves up.
+function syncComposerSpacing() {
+  const cc = document.getElementById('chat-composer');
+  if (!cc) return;
+  const wrap = cc.closest('.conv-wrap');
+  const scroll = wrap && wrap.querySelector('.conv-scroll');
+  if (!scroll) return;
+  if (cc.classList.contains('open')) {
+    const h = cc.getBoundingClientRect().height;
+    scroll.style.paddingBottom = `${Math.round(h + 16)}px`;
+    // Wait for the new padding to register, then pin to bottom across two rAF
+    // ticks (some browsers settle layout on the second tick).
+    requestAnimationFrame(() => {
+      scroll.scrollTop = scroll.scrollHeight;
+      requestAnimationFrame(() => { scroll.scrollTop = scroll.scrollHeight; });
+    });
+  } else {
+    scroll.style.paddingBottom = '';
+  }
+}
+
+function openChatComposer(e) {
+  if (e) e.stopPropagation();
+  const cc = document.getElementById('chat-composer');
+  if (!cc) return;
+  const wasOpen = cc.classList.contains('open');
+  cc.classList.toggle('open');
+  const wrap = cc.closest('.conv-wrap');
+  if (wrap) wrap.classList.toggle('composer-open', cc.classList.contains('open'));
+  // Reset header to Chat when manually toggled — onUse overrides per draft.
+  const ccHeader = cc.querySelector('.cc-header');
+  if (ccHeader) ccHeader.textContent = 'Chat';
+  syncComposerSpacing();
+  if (wasOpen) return;
+  // Push the conversation to the bottom so the last bubble sits just above the composer.
+  if (typeof scrollTimeline === 'function') scrollTimeline();
+  const ta = cc.querySelector('.cc-input');
+  if (ta) {
+    setTimeout(() => ta.focus(), 0);
+    if (!ta._wired) {
+      const chars = cc.querySelector('.cc-chars');
+      ta.addEventListener('input', () => { if (chars) chars.textContent = `${ta.textContent.length} Chars`; });
+      ta._wired = true;
+    }
+  }
+}
+
+function closeChatComposer() {
+  const cc = document.getElementById('chat-composer');
+  if (!cc) return;
+  cc.classList.remove('open');
+  const wrap = cc.closest('.conv-wrap');
+  if (wrap) wrap.classList.remove('composer-open');
+  syncComposerSpacing();
+}
+
+// Bottom-bar split-button main click. When the composer is open, "Send" the
+// composer's text as Joseph's outbound chat + Jordan's canned reply, then
+// close the composer. Otherwise it's a no-op (close-&-next isn't wired in v15).
+function onBbsMainClick() {
+  const cc = document.getElementById('chat-composer');
+  if (!cc || !cc.classList.contains('open')) return;
+  sendFromComposer();
+}
+
+function sendFromComposer() {
+  const cc = document.getElementById('chat-composer');
+  if (!cc) return;
+  const ta = cc.querySelector('.cc-input');
+  // .cc-input is a contenteditable div — pull HTML so embedded <a> links survive.
+  const rawHtml = (ta && ta.innerHTML || '').trim();
+  const rawText = (ta && ta.textContent || '').trim();
+  if (!rawText) return;
+  const html = rawHtml;
+  const tl = document.getElementById('timeline');
+  if (!tl) return;
+  // Channel mode based on composer header (SMS vs Chat).
+  const headerText = (cc.querySelector('.cc-header')?.textContent || '').trim().toLowerCase();
+  const isSMS = headerText === 'sms';
+  const channel = isSMS ? 'sms' : 'chat';
+  const icon = (typeof CH_ICON !== 'undefined' && CH_ICON[channel]) || '';
+  const label = (typeof CH_LABEL !== 'undefined' && CH_LABEL[channel]) || (isSMS ? 'sent an SMS' : 'sent a chat');
+  tl.insertAdjacentHTML('beforeend',
+    `<div class="msg-meta right">Joseph Ansanelli (You) ${label} — just now<span class="ch-icon">${icon}</span></div>
+     <div class="msg outbound"><div class="msg-av" style="${avBg('Joseph Ansanelli','var(--gray-600)')}">${avText('Joseph Ansanelli','JA')}</div><div class="msg-bub">${html}</div><span class="msg-dots">⋮</span></div>`);
+  // Mark post-send phase so free-text routing knows the draft has shipped.
+  if (typeof session !== 'undefined') session.jordanDraftSent = true;
+  // Reset and close the composer.
+  if (ta) ta.innerHTML = '';
+  const chars = cc.querySelector('.cc-chars');
+  if (chars) chars.textContent = '0 Chars';
+  closeChatComposer();
+  if (typeof scrollTimeline === 'function') scrollTimeline();
+  // SMS path stops here — no AI "Sent." follow-up, no Jordan reply. The chat
+  // path advances the script + plays Jordan's canned thank-you reply.
+  if (isSMS) return;
+  const s = currentScenario();
+  const next = s && s.copilot && s.copilot.script && s.copilot.script.useDraft;
+  if (next) {
+    if (next.reply) pushAIMsg(next.reply);
+    if (next.nextChips) renderChips(next.nextChips);
+  }
+  setTimeout(() => {
+    tl.insertAdjacentHTML('beforeend',
+      `<div class="msg-meta"><span class="ch-icon">${icon}</span>Jordan Rivera sent a chat — just now</div>
+       <div class="msg inbound"><div class="msg-av" style="${avBg('Jordan Rivera','#BD650E')}">${avText('Jordan Rivera','JR')}</div><div class="msg-bub">Thank you so much, Joseph. I really appreciate the flexibility — that means a lot right now. I'll get the shoes shipped back this week.</div><span class="msg-dots">⋮</span></div>`);
+    if (typeof scrollTimeline === 'function') scrollTimeline();
+  }, 1500);
 }
 
 function onContrastChange(v) {
@@ -4617,6 +5057,15 @@ document.addEventListener('click', (e) => {
     const ap = document.getElementById('av-pop');
     if (ap) ap.classList.remove('open');
   }
+  if (!e.target.closest('#chat-composer') && !e.target.closest('.bb-chat') && !e.target.closest('.cb-use')) {
+    const cc = document.getElementById('chat-composer');
+    if (cc && cc.classList.contains('open')) {
+      cc.classList.remove('open');
+      const wrap = cc.closest('.conv-wrap');
+      if (wrap) wrap.classList.remove('composer-open');
+      if (typeof syncComposerSpacing === 'function') syncComposerSpacing();
+    }
+  }
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -4624,6 +5073,8 @@ document.addEventListener('keydown', (e) => {
     if (pop) pop.classList.remove('open');
     const ap = document.getElementById('av-pop');
     if (ap) ap.classList.remove('open');
+    const cc = document.getElementById('chat-composer');
+    if (cc) cc.classList.remove('open');
   }
 });
 
