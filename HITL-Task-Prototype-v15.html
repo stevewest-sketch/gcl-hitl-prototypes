@@ -2196,12 +2196,9 @@ Wishing you a smooth recovery — when you're ready to lace up again, we'll be h
 
       // ── Post-send (relationship, not upsell) ──────────────────────
       useDraft: {
-        reply: "This might be a good moment to stay connected while he's recovering.",
+        reply: "",
         sideEffect: 'sendOutboundChat',
-        nextChips: [
-          { text: "What would you recommend?", kind: 'primary',   action: 'recoverProducts' },
-          { text: "End conversation",                   kind: 'secondary', action: 'skipRec' }
-        ]
+        nextChips: []
       },
       recoverProducts: {
         reply: "Based on what Jordan already owns (Bondi 7, Mach 5, and the Clifton 9 he just returned) and his current injury — suggest products that might help him through his recovery. Here are some options:",
@@ -2335,7 +2332,7 @@ const RACHEL = {
   events: [
     { kind: 'event', current: true, text: '<strong>{TODAY}</strong> · Today · Damaged shipment' },
     { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '5 min ago', channel: 'chat',
-      text: "Hi — my Rocket X 2s arrived yesterday and one of the soles is separating from the upper. There's also some scuffing on both shoes. I'm flying out Saturday for the San Diego Half and these were supposed to be my race-day pair. [photo attached — damaged Rocket X 2]" },
+      text: "Hi — my Rocket X 2s arrived yesterday and one of the soles is separating from the upper. There's also some scuffing on both shoes. I'm flying out Saturday for the San Diego Half and these were supposed to be my race-day pair.<br><br><img src='images/brokenHoka.png' alt='Damaged Rocket X 2' class='msg-attach' width='240' height='195' style='width:240px;height:195px;aspect-ratio:1392/1130;border-radius:8px;display:block;object-fit:cover'>" },
     { kind: 'amsg', time: '4 min ago',
       text: "Oh no — that's clearly damaged in transit, Rachel. I'm so sorry. Let me get a replacement pair lined up for you right now. One sec while I check inventory and pull this together." },
     { kind: 'cmsg', who: 'Rachel Thompson', av: 'RT', avColor: '#5B8DEF', time: '3 min ago', channel: 'chat',
@@ -4760,19 +4757,30 @@ function selectCustomer(id) {
   //    reads down through the task card / rec context / plan.
   const tl = document.querySelector('.conv-scroll');
   const rp = document.getElementById('rp-scroll');
+  // Settle only re-pins if we're still anchored at the bottom — never yanks
+  // the scroll if the user has already scrolled up. Also waits for any
+  // <img> children to finish loading so layout doesn't shift afterwards.
+  let lastScrollTop = -1;
+  const isAtBottom = () => !tl || (tl.scrollHeight - tl.clientHeight - tl.scrollTop) < 40;
   const settle = () => {
-    if (tl) tl.scrollTop = tl.scrollHeight;
+    if (tl && (lastScrollTop < 0 || isAtBottom())) {
+      tl.scrollTop = tl.scrollHeight;
+      lastScrollTop = tl.scrollTop;
+    }
     if (rp) rp.scrollTop = 0;
   };
-  // Multiple settle passes — covers async renders, image loading, font swaps,
-  // and any late layout shifts that change scrollHeight after the initial paint.
   requestAnimationFrame(() => {
     settle();
-    requestAnimationFrame(() => {
-      settle();
-      [60, 160, 320, 600].forEach(delay => setTimeout(settle, delay));
-    });
+    requestAnimationFrame(settle);
   });
+  // Re-pin once any inline images in the timeline have loaded — avoids the
+  // mid-scroll glitch when an attachment image's height resolves late.
+  if (tl) {
+    const imgs = tl.querySelectorAll('img');
+    imgs.forEach(img => {
+      if (!img.complete) img.addEventListener('load', settle, { once: true });
+    });
+  }
 }
 
 function resetSessionForScenario(s) {
